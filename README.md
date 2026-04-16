@@ -1,81 +1,115 @@
-# medsync-backend
+# MedSync Backend
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+Backend de la plataforma MedSync, un sistema de farmacovigilancia que analiza artículos científicos con IA y los cruza con el contexto clínico de pacientes para generar alertas sobre medicamentos obsoletos o nueva evidencia.
 
-If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
+## Stack
 
-## Running the application in dev mode
+- **Framework**: Quarkus
+- **Lenguaje**: Java 21
+- **Base de datos**: MySQL (producción), H2 (desarrollo)
+- **ORM**: Hibernate ORM con Panache
+- **API**: REST + Jackson + OpenAPI
+- **Validación**: Hibernate Validator
 
-You can run your application in dev mode that enables live coding using:
+## Arquitectura
 
-```shell script
+Este proyecto sigue **Clean Architecture** con organización **Capa > Feature**.
+
+### Las 4 capas
+
+```
+src/main/java/itesm/medsync/
+│
+├── domain/             ← Reglas de negocio puras (cero dependencias externas)
+│   └── <feature>/
+│       ├── model/         POJOs del negocio
+│       ├── usecase/       Interfaces de casos de uso
+│       ├── repository/    Interfaces de repositorios y gateways
+│       └── exception/     Excepciones del negocio
+│
+├── application/        ← Implementación de los casos de uso
+│   └── <feature>/         Services que implementan las interfaces de domain/usecase
+│
+├── infrastructure/     ← Implementaciones concretas + configuración
+│   ├── persistence/       BD MedSync (MySQL): JPA Entities, Panache, Mappers
+│   │   └── <feature>/
+│   ├── hospital/          Gateway a la BD externa del hospital
+│   ├── ai/                Gateway al servicio de IA
+│   └── config/            Exception handlers, CORS, datasources
+│
+└── interfaces/         ← Puntos de entrada al sistema
+    └── rest/
+        └── <feature>/     JAX-RS Resources, DTOs, RestMappers
+```
+
+### Reglas de dependencia
+
+```
+domain/          ← no importa nada externo
+application/     ← solo importa domain/
+infrastructure/  ← importa domain/ + frameworks (JPA, Panache)
+interfaces/      ← importa domain/ + Jakarta REST
+```
+
+### Nomenclatura
+
+- **`*Repository`** → para datos propios de MedSync (CRUD)
+- **`*Gateway`** → para servicios externos (BD del hospital, IA)
+- Ambos viven en `domain/<feature>/repository/` porque son output ports
+
+### Features planeados
+
+- `user` — Usuarios del sistema
+- `patient` — Pacientes
+- `medication` — Medicamentos
+- `article` — Artículos científicos y tags
+- `alert` — Alertas generadas
+
+## Cómo correr
+
+### Modo desarrollo (con live reload)
+
+```shell
 ./mvnw quarkus:dev
 ```
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
+La Dev UI estará disponible en <http://localhost:8080/q/dev/>.
 
-## Packaging and running the application
+### Empaquetar
 
-The application can be packaged using:
-
-```shell script
+```shell
 ./mvnw package
 ```
 
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
+Produce `target/quarkus-app/quarkus-run.jar`. Para correrlo:
 
-The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
-
-If you want to build an _über-jar_, execute the following command:
-
-```shell script
-./mvnw package -Dquarkus.package.jar.type=uber-jar
+```shell
+java -jar target/quarkus-app/quarkus-run.jar
 ```
 
-The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
+### Ejecutable nativo
 
-## Creating a native executable
-
-You can create a native executable using:
-
-```shell script
+```shell
 ./mvnw package -Dnative
 ```
 
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using:
+O sin GraalVM instalado:
 
-```shell script
+```shell
 ./mvnw package -Dnative -Dquarkus.native.container-build=true
 ```
 
-You can then execute your native executable with: `./target/medsync-backend-1.0.0-SNAPSHOT-runner`
+## Documentación de la API
 
-If you want to learn more about building native executables, please consult <https://quarkus.io/guides/maven-tooling>.
+Una vez corriendo, la documentación OpenAPI/Swagger está en:
+- OpenAPI: <http://localhost:8080/q/openapi>
+- Swagger UI: <http://localhost:8080/q/swagger-ui>
 
-## Related Guides
+## Recursos
 
-- Hibernate ORM with Panache ([guide](https://quarkus.io/guides/hibernate-orm-panache)): Simplify your persistence code for Hibernate ORM via the active record or the repository pattern
-- REST Jackson ([guide](https://quarkus.io/guides/rest#json-serialisation)): Jackson serialization support for Quarkus REST. This extension is not compatible with the quarkus-resteasy extension, or any of the extensions that depend on it
-- JDBC Driver - MySQL ([guide](https://quarkus.io/guides/datasource)): Connect to the MySQL database via JDBC
-- Hibernate Validator ([guide](https://quarkus.io/guides/validation)): Validate object properties (field, getter) and method parameters for your beans (REST, CDI, Jakarta Persistence)
-- SmallRye OpenAPI ([guide](https://quarkus.io/guides/openapi-swaggerui)): Document your REST APIs with OpenAPI - comes with Swagger UI
-- JDBC Driver - H2 ([guide](https://quarkus.io/guides/datasource)): Connect to the H2 database via JDBC
-
-## Provided Code
-
-### Hibernate ORM
-
-Create your first JPA entity
-
-[Related guide section...](https://quarkus.io/guides/hibernate-orm)
-
-
-[Related Hibernate with Panache section...](https://quarkus.io/guides/hibernate-orm-panache)
-
-
-### REST
-
-Easily start your REST Web Services
-
-[Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
+- [Quarkus](https://quarkus.io/)
+- [Hibernate ORM con Panache](https://quarkus.io/guides/hibernate-orm-panache)
+- [REST Jackson](https://quarkus.io/guides/rest#json-serialisation)
+- [Datasource (MySQL/H2)](https://quarkus.io/guides/datasource)
+- [Hibernate Validator](https://quarkus.io/guides/validation)
+- [SmallRye OpenAPI](https://quarkus.io/guides/openapi-swaggerui)

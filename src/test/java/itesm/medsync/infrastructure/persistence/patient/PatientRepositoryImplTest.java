@@ -37,7 +37,7 @@ class PatientRepositoryImplTest {
         assertNotNull(saved.getCreatedAt(), "createdAt debe ser asignado por Hibernate");
         assertNotNull(saved.getUpdatedAt(), "updatedAt debe ser asignado por Hibernate");
 
-        Optional<Patient> found = repository.findById(p.getId());
+        Optional<Patient> found = repository.findByUuid(p.getId());
         assertTrue(found.isPresent());
         assertEquals("EXP-A", found.get().getExpedienteExternoId());
         assertTrue(found.get().isActivo());
@@ -63,7 +63,7 @@ class PatientRepositoryImplTest {
         Patient p = repository.save(newPatient("EXP-SD"));
         repository.save(p.softDelete());
 
-        Optional<Patient> result = repository.findById(p.getId());
+        Optional<Patient> result = repository.findByUuid(p.getId());
         assertTrue(result.isEmpty(), "@SQLRestriction debe filtrar soft-deleted");
     }
 

@@ -34,7 +34,7 @@ class DeletePatientServiceTest {
         UUID id = UUID.randomUUID();
         Patient active = new Patient(id, "EXP-1", "Juan", LocalDate.of(1990, 1, 1),
                 "M", UUID.randomUUID(), true, null, null);
-        when(repository.findById(id)).thenReturn(Optional.of(active));
+        when(repository.findByUuid(id)).thenReturn(Optional.of(active));
         when(repository.save(any(Patient.class))).thenAnswer(inv -> inv.getArgument(0));
 
         service.execute(id);
@@ -49,7 +49,7 @@ class DeletePatientServiceTest {
     @DisplayName("Paciente inexistente → PatientNotFoundException, no guarda")
     void deleteNotFound() {
         UUID missing = UUID.randomUUID();
-        when(repository.findById(missing)).thenReturn(Optional.empty());
+        when(repository.findByUuid(missing)).thenReturn(Optional.empty());
 
         assertThrows(PatientNotFoundException.class, () -> service.execute(missing));
         verify(repository, never()).save(any());

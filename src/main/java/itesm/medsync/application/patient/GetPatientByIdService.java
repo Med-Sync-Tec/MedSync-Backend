@@ -21,7 +21,7 @@ public class GetPatientByIdService implements GetPatientByIdUseCase {
 
     @Override
     public Patient execute(UUID id) {
-        return repository.findById(id)
+        return repository.findByUuid(id)
                 .orElseThrow(() -> new PatientNotFoundException(id));
     }
 }

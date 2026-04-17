@@ -10,7 +10,7 @@ public interface PatientRepository {
 
     Patient save(Patient patient);
 
-    Optional<Patient> findById(UUID id);
+    Optional<Patient> findByUuid(UUID id);
 
     List<Patient> findAllActive();
 

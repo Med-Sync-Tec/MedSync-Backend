@@ -33,7 +33,7 @@ class GetPatientByIdServiceTest {
         UUID id = UUID.randomUUID();
         Patient p = new Patient(id, "EXP-1", "Juan", LocalDate.of(1990, 1, 1),
                 "M", UUID.randomUUID(), true, null, null);
-        when(repository.findById(id)).thenReturn(Optional.of(p));
+        when(repository.findByUuid(id)).thenReturn(Optional.of(p));
 
         Patient result = service.execute(id);
 
@@ -44,7 +44,7 @@ class GetPatientByIdServiceTest {
     @DisplayName("Id inexistente lanza PatientNotFoundException")
     void getNotFound() {
         UUID missing = UUID.randomUUID();
-        when(repository.findById(missing)).thenReturn(Optional.empty());
+        when(repository.findByUuid(missing)).thenReturn(Optional.empty());
 
         assertThrows(PatientNotFoundException.class, () -> service.execute(missing));
     }

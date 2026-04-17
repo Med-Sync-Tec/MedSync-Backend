@@ -21,7 +21,7 @@ public class DeletePatientService implements DeletePatientUseCase {
 
     @Override
     public void execute(UUID id) {
-        Patient patient = repository.findById(id)
+        Patient patient = repository.findByUuid(id)
                 .orElseThrow(() -> new PatientNotFoundException(id));
         repository.save(patient.softDelete());
     }

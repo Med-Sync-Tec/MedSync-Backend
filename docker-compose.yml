@@ -1,0 +1,23 @@
+services:
+  medsync-db:
+    image: mysql:8.0
+    container_name: medsync-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: medsync
+      MYSQL_USER: medsync
+      MYSQL_PASSWORD: medsync
+    ports:
+      - "3307:3306"
+    volumes:
+      - medsync-db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 20s
+
+volumes:
+  medsync-db-data:

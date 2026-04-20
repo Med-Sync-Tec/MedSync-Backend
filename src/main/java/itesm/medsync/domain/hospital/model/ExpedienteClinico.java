@@ -4,6 +4,7 @@ import itesm.medsync.domain.hospital.exception.InvalidHospitalDataException;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
+import java.util.UUID;
 
 public final class ExpedienteClinico {
 
@@ -24,6 +25,15 @@ public final class ExpedienteClinico {
         this.doctorResponsableId = doctorResponsableId;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+    }
+
+    public static ExpedienteClinico create(String pacienteExternoId, String doctorResponsableId) {
+        return new ExpedienteClinico(
+                UUID.randomUUID().toString(),
+                pacienteExternoId,
+                doctorResponsableId,
+                null,
+                null);
     }
 
     private static void validate(String id, String pacienteExternoId) {

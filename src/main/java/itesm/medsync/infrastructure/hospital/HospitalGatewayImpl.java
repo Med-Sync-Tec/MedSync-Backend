@@ -52,6 +52,22 @@ public class HospitalGatewayImpl implements HospitalGateway {
     }
 
     @Override
+    public ExpedienteClinico saveExpediente(ExpedienteClinico expediente) {
+        ExpedienteClinicoHospitalEntity entity = HospitalPersistenceMapper.toEntity(expediente);
+        em.persist(entity);
+        em.flush();
+        return HospitalPersistenceMapper.toDomain(entity);
+    }
+
+    @Override
+    public Consulta saveConsulta(Consulta consulta) {
+        ConsultaHospitalEntity entity = HospitalPersistenceMapper.toEntity(consulta);
+        em.persist(entity);
+        em.flush();
+        return HospitalPersistenceMapper.toDomain(entity);
+    }
+
+    @Override
     public Optional<Consulta> findConsultaById(String consultaId) {
         return em.createQuery(
                         "SELECT c FROM ConsultaHospitalEntity c WHERE c.id = :id",

@@ -1,5 +1,8 @@
 package itesm.medsync.infrastructure.config;
 
+import itesm.medsync.domain.hospital.exception.ConsultaNotFoundException;
+import itesm.medsync.domain.hospital.exception.ExpedienteNotFoundException;
+import itesm.medsync.domain.hospital.exception.InvalidHospitalDataException;
 import itesm.medsync.domain.patient.exception.DuplicatePatientException;
 import itesm.medsync.domain.patient.exception.InvalidPatientDataException;
 import itesm.medsync.domain.patient.exception.PatientNotFoundException;
@@ -41,6 +44,36 @@ public final class GlobalExceptionHandler {
     public static class InvalidPatientDataMapper implements ExceptionMapper<InvalidPatientDataException> {
         @Override
         public Response toResponse(InvalidPatientDataException ex) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class ExpedienteNotFoundMapper implements ExceptionMapper<ExpedienteNotFoundException> {
+        @Override
+        public Response toResponse(ExpedienteNotFoundException ex) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(404, "Not Found", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class ConsultaNotFoundMapper implements ExceptionMapper<ConsultaNotFoundException> {
+        @Override
+        public Response toResponse(ConsultaNotFoundException ex) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(404, "Not Found", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class InvalidHospitalDataMapper implements ExceptionMapper<InvalidHospitalDataException> {
+        @Override
+        public Response toResponse(InvalidHospitalDataException ex) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
                     .build();

@@ -19,5 +19,27 @@ services:
       retries: 10
       start_period: 20s
 
+  hospital-db:
+    image: mysql:8.0
+    container_name: hospital-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: hospital
+      MYSQL_USER: hospital
+      MYSQL_PASSWORD: hospital
+    ports:
+      - "3308:3306"
+    volumes:
+      - hospital-db-data:/var/lib/mysql
+      - ./docker/hospital-initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 20s
+
 volumes:
   medsync-db-data:
+  hospital-db-data:

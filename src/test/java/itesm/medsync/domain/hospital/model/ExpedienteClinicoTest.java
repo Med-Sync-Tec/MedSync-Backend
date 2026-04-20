@@ -56,6 +56,33 @@ class ExpedienteClinicoTest {
     }
 
     @Test
+    @DisplayName("ExpedienteClinico.create genera id, sin timestamps")
+    void factoryCreate() {
+        ExpedienteClinico e = ExpedienteClinico.create("PAC-EXT-NEW", "DR-1");
+
+        assertNotNull(e.getId());
+        assertFalse(e.getId().isBlank());
+        assertEquals("PAC-EXT-NEW", e.getPacienteExternoId());
+        assertEquals("DR-1", e.getDoctorResponsableId());
+        assertNull(e.getCreatedAt());
+        assertNull(e.getUpdatedAt());
+    }
+
+    @Test
+    @DisplayName("ExpedienteClinico.create con doctor null es válido")
+    void factoryCreateNullDoctor() {
+        ExpedienteClinico e = ExpedienteClinico.create("PAC-EXT-NEW", null);
+        assertNull(e.getDoctorResponsableId());
+    }
+
+    @Test
+    @DisplayName("ExpedienteClinico.create con pacienteExternoId blank lanza excepción")
+    void factoryCreateBlankPacExt() {
+        assertThrows(InvalidHospitalDataException.class,
+                () -> ExpedienteClinico.create("  ", "DR-1"));
+    }
+
+    @Test
     @DisplayName("equals/hashCode basados en id")
     void equalsAndHashCode() {
         ExpedienteClinico a = new ExpedienteClinico(VALID_ID, VALID_PAC_EXT, VALID_DOCTOR, null, null);

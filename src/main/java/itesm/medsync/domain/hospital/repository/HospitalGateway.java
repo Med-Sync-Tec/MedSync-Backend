@@ -13,4 +13,8 @@ public interface HospitalGateway {
     List<Consulta> findConsultasByPacienteExternoId(String pacienteExternoId);
 
     Optional<Consulta> findConsultaById(String consultaId);
+
+    ExpedienteClinico saveExpediente(ExpedienteClinico expediente);
+
+    Consulta saveConsulta(Consulta consulta);
 }

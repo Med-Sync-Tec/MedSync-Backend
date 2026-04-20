@@ -158,4 +158,48 @@ class HospitalGatewayImplTest {
         Optional<Consulta> result = gateway.findConsultaById("MISSING-C");
         assertTrue(result.isEmpty());
     }
+
+    @Test
+    @TestTransaction
+    @DisplayName("saveExpediente: persiste y devuelve con timestamps")
+    void saveExpediente() {
+        ExpedienteClinico dom = ExpedienteClinico.create("PAC-EXT-SAVE", "DR-SAVE");
+
+        ExpedienteClinico saved = gateway.saveExpediente(dom);
+
+        assertEquals(dom.getId(), saved.getId());
+        assertEquals("PAC-EXT-SAVE", saved.getPacienteExternoId());
+        assertEquals("DR-SAVE", saved.getDoctorResponsableId());
+        assertNotNull(saved.getCreatedAt());
+        assertNotNull(saved.getUpdatedAt());
+
+        Optional<ExpedienteClinico> fetched = gateway.findExpedienteByPacienteExternoId("PAC-EXT-SAVE");
+        assertTrue(fetched.isPresent());
+        assertEquals(saved.getId(), fetched.get().getId());
+    }
+
+    @Test
+    @TestTransaction
+    @DisplayName("saveConsulta: persiste y es recuperable por id")
+    void saveConsulta() {
+        seedExpediente("EXP-FOR-CONS", "PAC-FOR-CONS");
+        em.flush();
+
+        Consulta dom = Consulta.create("EXP-FOR-CONS",
+                LocalDateTime.of(2026, 4, 20, 12, 0),
+                "motivo-save", "subj-save", "obj-save",
+                "eval-save", "plan-save", "presc-save", "diag-save");
+
+        Consulta saved = gateway.saveConsulta(dom);
+
+        assertEquals(dom.getId(), saved.getId());
+        assertEquals("EXP-FOR-CONS", saved.getExpedienteId());
+        assertEquals("motivo-save", saved.getMotivoConsulta());
+        assertEquals("diag-save", saved.getDiagnostico());
+        assertNotNull(saved.getCreatedAt());
+
+        Optional<Consulta> fetched = gateway.findConsultaById(saved.getId());
+        assertTrue(fetched.isPresent());
+        assertEquals("presc-save", fetched.get().getPrescripcion());
+    }
 }

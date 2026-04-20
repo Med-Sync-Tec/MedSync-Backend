@@ -78,6 +78,52 @@ class ConsultaTest {
     }
 
     @Test
+    @DisplayName("Consulta.create genera id, sin timestamps, copia campos SOAP")
+    void factoryCreate() {
+        Consulta c = Consulta.create("EXP-1", VALID_FECHA,
+                "motivo", "subj", "obj", "eval", "plan", "presc", "diag");
+
+        assertNotNull(c.getId());
+        assertFalse(c.getId().isBlank());
+        assertEquals("EXP-1", c.getExpedienteId());
+        assertEquals(VALID_FECHA, c.getFecha());
+        assertEquals("motivo", c.getMotivoConsulta());
+        assertEquals("subj", c.getSubjetivo());
+        assertEquals("obj", c.getObjetivo());
+        assertEquals("eval", c.getEvaluacion());
+        assertEquals("plan", c.getPlan());
+        assertEquals("presc", c.getPrescripcion());
+        assertEquals("diag", c.getDiagnostico());
+        assertNull(c.getCreatedAt());
+        assertNull(c.getUpdatedAt());
+    }
+
+    @Test
+    @DisplayName("Consulta.create con campos SOAP opcionales en null es válido")
+    void factoryCreateNullFields() {
+        Consulta c = Consulta.create("EXP-1", VALID_FECHA,
+                null, null, null, null, null, null, null);
+        assertNotNull(c.getId());
+        assertNull(c.getMotivoConsulta());
+    }
+
+    @Test
+    @DisplayName("Consulta.create con expedienteId blank lanza excepción")
+    void factoryCreateBlankExpediente() {
+        assertThrows(InvalidHospitalDataException.class,
+                () -> Consulta.create("  ", VALID_FECHA,
+                        null, null, null, null, null, null, null));
+    }
+
+    @Test
+    @DisplayName("Consulta.create con fecha null lanza excepción")
+    void factoryCreateNullFecha() {
+        assertThrows(InvalidHospitalDataException.class,
+                () -> Consulta.create("EXP-1", null,
+                        null, null, null, null, null, null, null));
+    }
+
+    @Test
     @DisplayName("equals/hashCode basados en id")
     void equalsAndHashCode() {
         Consulta a = new Consulta(VALID_ID, VALID_EXP_ID, VALID_FECHA,

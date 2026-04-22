@@ -35,7 +35,7 @@ class RegisterUserServiceTest {
     @Test
     @DisplayName("Usuario existe → devuelve existente, no consulta rol ni guarda")
     void loginExistingUser() {
-        User existing = new User(UUID.randomUUID(), "Juan", "juan@tec.mx", UUID.randomUUID(), true);
+        User existing = new User(UUID.randomUUID(), "Juan", "juan@tec.mx", UUID.randomUUID(), true, null);
         when(userRepository.findByEmail("juan@tec.mx")).thenReturn(Optional.of(existing));
 
         User result = service.loginOrRegister("juan@tec.mx", "Juan");
@@ -59,6 +59,7 @@ class RegisterUserServiceTest {
         assertEquals("Nuevo Usuario", result.getNombre());
         assertEquals(doctor.getId(), result.getRolId());
         assertTrue(result.isActivo());
+        assertNotNull(result.getId(), "User.create debe generar un UUID");
 
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(captor.capture());

@@ -6,6 +6,8 @@ import itesm.medsync.domain.hospital.exception.InvalidHospitalDataException;
 import itesm.medsync.domain.patient.exception.DuplicatePatientException;
 import itesm.medsync.domain.patient.exception.InvalidPatientDataException;
 import itesm.medsync.domain.patient.exception.PatientNotFoundException;
+import itesm.medsync.domain.user.exception.InvalidUserDataException;
+import itesm.medsync.domain.user.exception.UserNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
@@ -74,6 +76,26 @@ public final class GlobalExceptionHandler {
     public static class InvalidHospitalDataMapper implements ExceptionMapper<InvalidHospitalDataException> {
         @Override
         public Response toResponse(InvalidHospitalDataException ex) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class UserNotFoundMapper implements ExceptionMapper<UserNotFoundException> {
+        @Override
+        public Response toResponse(UserNotFoundException ex) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(404, "Not Found", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class InvalidUserDataMapper implements ExceptionMapper<InvalidUserDataException> {
+        @Override
+        public Response toResponse(InvalidUserDataException ex) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
                     .build();

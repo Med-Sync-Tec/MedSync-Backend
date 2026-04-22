@@ -32,12 +32,7 @@ public class RegisterUserService {
     private User createDefaultUser(String email, String name) {
         Role role = roleRepository.findByNombre(DEFAULT_ROLE)
                 .orElseThrow(() -> new RoleNotFoundException(DEFAULT_ROLE));
-
-        User newUser = new User();
-        newUser.setCorreo(email);
-        newUser.setNombre(name);
-        newUser.setActivo(true);
-        newUser.setRolId(role.getId());
+        User newUser = User.create(name, email, role.getId());
         return userRepository.save(newUser);
     }
 }

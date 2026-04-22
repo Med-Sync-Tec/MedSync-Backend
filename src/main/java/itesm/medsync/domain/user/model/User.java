@@ -1,33 +1,94 @@
 package itesm.medsync.domain.user.model;
 
+import itesm.medsync.domain.user.exception.InvalidUserDataException;
+
+import java.time.LocalDateTime;
+import java.util.Objects;
 import java.util.UUID;
 
-public class User {
-    private UUID id;
-    private String nombre;
-    private String correo;
-    private UUID rolId;
-    private boolean activo;
+public final class User {
 
-    public User() {}
+    private final UUID id;
+    private final String nombre;
+    private final String correo;
+    private final UUID rolId;
+    private final boolean activo;
+    private final LocalDateTime createdAt;
 
-    public User(UUID id, String nombre, String correo, UUID rolId, boolean activo) {
+    public User(UUID id,
+                String nombre,
+                String correo,
+                UUID rolId,
+                boolean activo,
+                LocalDateTime createdAt) {
+        validate(id, nombre, correo, rolId);
         this.id = id;
         this.nombre = nombre;
         this.correo = correo;
         this.rolId = rolId;
         this.activo = activo;
+        this.createdAt = createdAt;
     }
 
-    // Getters y Setters
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-    public String getNombre() { return nombre; }
-    public void setNombre(String nombre) { this.nombre = nombre; }
-    public String getCorreo() { return correo; }
-    public void setCorreo(String correo) { this.correo = correo; }
-    public UUID getRolId() { return rolId; }
-    public void setRolId(UUID rolId) { this.rolId = rolId; }
-    public boolean isActivo() { return activo; }
-    public void setActivo(boolean activo) { this.activo = activo; }
+    public static User create(String nombre, String correo, UUID rolId) {
+        return new User(UUID.randomUUID(), nombre, correo, rolId, true, null);
+    }
+
+    public User deactivate() {
+        return new User(id, nombre, correo, rolId, false, createdAt);
+    }
+
+    private static void validate(UUID id, String nombre, String correo, UUID rolId) {
+        if (id == null) {
+            throw new InvalidUserDataException("User id cannot be null");
+        }
+        if (nombre == null || nombre.isBlank()) {
+            throw new InvalidUserDataException("nombre cannot be null or blank");
+        }
+        if (correo == null || correo.isBlank()) {
+            throw new InvalidUserDataException("correo cannot be null or blank");
+        }
+        if (!correo.contains("@") || correo.indexOf('@') == 0 || correo.indexOf('@') == correo.length() - 1) {
+            throw new InvalidUserDataException("correo must be a valid email address");
+        }
+        if (rolId == null) {
+            throw new InvalidUserDataException("rolId cannot be null");
+        }
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public String getCorreo() {
+        return correo;
+    }
+
+    public UUID getRolId() {
+        return rolId;
+    }
+
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User other)) return false;
+        return Objects.equals(id, other.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }

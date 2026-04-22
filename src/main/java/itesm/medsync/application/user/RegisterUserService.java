@@ -5,12 +5,13 @@ import itesm.medsync.domain.user.model.Role;
 import itesm.medsync.domain.user.model.User;
 import itesm.medsync.domain.user.repository.RoleRepository;
 import itesm.medsync.domain.user.repository.UserRepository;
+import itesm.medsync.domain.user.usecase.LoginOrRegisterUserUseCase;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
 @ApplicationScoped
-public class RegisterUserService {
+public class RegisterUserService implements LoginOrRegisterUserUseCase {
 
     private static final String DEFAULT_ROLE = "DOCTOR";
 
@@ -23,8 +24,9 @@ public class RegisterUserService {
         this.roleRepository = roleRepository;
     }
 
+    @Override
     @Transactional
-    public User loginOrRegister(String email, String name) {
+    public User execute(String email, String name) {
         return userRepository.findByEmail(email)
                 .orElseGet(() -> createDefaultUser(email, name));
     }

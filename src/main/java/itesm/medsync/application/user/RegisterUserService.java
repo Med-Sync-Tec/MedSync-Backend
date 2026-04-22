@@ -1,38 +1,38 @@
 package itesm.medsync.application.user;
 
+import itesm.medsync.domain.user.exception.RoleNotFoundException;
+import itesm.medsync.domain.user.model.Role;
 import itesm.medsync.domain.user.model.User;
+import itesm.medsync.domain.user.repository.RoleRepository;
 import itesm.medsync.domain.user.repository.UserRepository;
-import itesm.medsync.infrastructure.persistence.user.RoleEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import java.util.Optional;
 
 @ApplicationScoped
 public class RegisterUserService {
 
+    private static final String DEFAULT_ROLE = "DOCTOR";
+
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+
     @Inject
-    UserRepository userRepository;
+    public RegisterUserService(UserRepository userRepository, RoleRepository roleRepository) {
+        this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
+    }
 
     @Transactional
     public User loginOrRegister(String email, String name) {
-        Optional<User> existingUser = userRepository.findByEmail(email);
-        
-        if (existingUser.isPresent()) {
-            return existingUser.get();
-        }
+        return userRepository.findByEmail(email)
+                .orElseGet(() -> createDefaultUser(email, name));
+    }
 
-        User newUser = new User();
-        newUser.setCorreo(email);
-        newUser.setNombre(name);
-        newUser.setActivo(true);
-        
-        // Asignar rol por defecto (DOCTOR)
-        RoleEntity doctorRole = RoleEntity.find("nombre", "DOCTOR").firstResult();
-        if (doctorRole != null) {
-            newUser.setRolId(doctorRole.id);
-        }
-        
+    private User createDefaultUser(String email, String name) {
+        Role role = roleRepository.findByNombre(DEFAULT_ROLE)
+                .orElseThrow(() -> new RoleNotFoundException(DEFAULT_ROLE));
+        User newUser = User.create(name, email, role.getId());
         return userRepository.save(newUser);
     }
 }

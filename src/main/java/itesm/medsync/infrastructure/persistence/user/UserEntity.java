@@ -1,25 +1,86 @@
 package itesm.medsync.infrastructure.persistence.user;
 
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "usuarios")
-public class UserEntity extends PanacheEntityBase {
+public class UserEntity {
 
     @Id
-    @GeneratedValue
-    // Definición para el ID principal
     @Column(columnDefinition = "BINARY(16)")
-    public UUID id;
+    private UUID id;
 
-    public String nombre;
-    public String correo;
+    @Column(nullable = false, length = 100)
+    private String nombre;
 
-    // Definición para la llave foránea/referencia al rol
-    @Column(name = "rol_id", columnDefinition = "BINARY(16)")
-    public UUID rolId;
+    @Column(nullable = false, unique = true, length = 100)
+    private String correo;
 
-    public boolean activo = true;
+    @Column(name = "rol_id", columnDefinition = "BINARY(16)", nullable = false)
+    private UUID rolId;
+
+    @Column(nullable = false)
+    private boolean activo;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    public UserEntity() {
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public String getCorreo() {
+        return correo;
+    }
+
+    public void setCorreo(String correo) {
+        this.correo = correo;
+    }
+
+    public UUID getRolId() {
+        return rolId;
+    }
+
+    public void setRolId(UUID rolId) {
+        this.rolId = rolId;
+    }
+
+    public boolean isActivo() {
+        return activo;
+    }
+
+    public void setActivo(boolean activo) {
+        this.activo = activo;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 }

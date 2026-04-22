@@ -6,7 +6,6 @@ import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
-import java.util.UUID;
 
 public class CreatePatientRequest {
 
@@ -24,7 +23,4 @@ public class CreatePatientRequest {
 
     @Size(max = 20)
     public String genero;
-
-    @NotNull
-    public UUID medicoId;
 }

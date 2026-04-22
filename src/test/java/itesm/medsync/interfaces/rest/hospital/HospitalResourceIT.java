@@ -1,8 +1,15 @@
 package itesm.medsync.interfaces.rest.hospital;
 
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
+import itesm.medsync.application.security.AuthenticatedUserContext;
+import itesm.medsync.domain.user.model.Role;
+import itesm.medsync.domain.user.model.User;
+import itesm.medsync.domain.user.repository.RoleRepository;
+import itesm.medsync.domain.user.repository.UserRepository;
 import jakarta.inject.Inject;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -13,6 +20,7 @@ import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
+import static org.mockito.Mockito.when;
 
 @QuarkusTest
 class HospitalResourceIT {
@@ -20,14 +28,32 @@ class HospitalResourceIT {
     @Inject
     HospitalTestFixtures fixtures;
 
+    @Inject
+    UserRepository userRepository;
+
+    @Inject
+    RoleRepository roleRepository;
+
+    @InjectMock
+    AuthenticatedUserContext userContext;
+
+    @BeforeEach
+    void setupTestMedico() {
+        UUID doctorRoleId = roleRepository.findByNombre("DOCTOR")
+                .map(Role::getId)
+                .orElseThrow(() -> new AssertionError("DOCTOR role debe existir (seed V3)"));
+        User testMedico = userRepository.save(
+                User.create("Hosp IT Medico", "hosp-it-" + UUID.randomUUID() + "@tec.mx", doctorRoleId));
+        when(userContext.getCurrentUser()).thenReturn(testMedico);
+    }
+
     private Map<String, Object> patientPayload(String expedienteExternoId) {
-        return Map.of(
-                "expedienteExternoId", expedienteExternoId,
-                "nombre", "Hospital IT",
-                "fechaNacimiento", "1990-05-20",
-                "genero", "M",
-                "medicoId", UUID.randomUUID().toString()
-        );
+        Map<String, Object> m = new HashMap<>();
+        m.put("expedienteExternoId", expedienteExternoId);
+        m.put("nombre", "Hospital IT");
+        m.put("fechaNacimiento", "1990-05-20");
+        m.put("genero", "M");
+        return m;
     }
 
     private String createPatient(String expedienteExternoId) {

@@ -1,10 +1,12 @@
 package itesm.medsync.interfaces.rest.patient;
 
+import itesm.medsync.application.security.AuthenticatedUserContext;
 import itesm.medsync.domain.patient.model.Patient;
 import itesm.medsync.domain.patient.usecase.CreatePatientUseCase;
 import itesm.medsync.domain.patient.usecase.DeletePatientUseCase;
 import itesm.medsync.domain.patient.usecase.GetPatientByIdUseCase;
 import itesm.medsync.domain.patient.usecase.ListActivePatientsUseCase;
+import itesm.medsync.domain.user.model.User;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
@@ -14,10 +16,10 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
-import jakarta.ws.rs.core.Context;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
@@ -36,30 +38,38 @@ public class PatientResource {
     private final ListActivePatientsUseCase listActivePatients;
     private final GetPatientByIdUseCase getPatientById;
     private final DeletePatientUseCase deletePatient;
+    private final AuthenticatedUserContext userContext;
 
     @Inject
     public PatientResource(CreatePatientUseCase createPatient,
                            ListActivePatientsUseCase listActivePatients,
                            GetPatientByIdUseCase getPatientById,
-                           DeletePatientUseCase deletePatient) {
+                           DeletePatientUseCase deletePatient,
+                           AuthenticatedUserContext userContext) {
         this.createPatient = createPatient;
         this.listActivePatients = listActivePatients;
         this.getPatientById = getPatientById;
         this.deletePatient = deletePatient;
+        this.userContext = userContext;
     }
 
     @POST
-    @Operation(summary = "Crear paciente")
+    @Operation(summary = "Crear paciente asignado al médico autenticado")
     @APIResponse(responseCode = "201", description = "Paciente creado")
     @APIResponse(responseCode = "400", description = "Datos inválidos")
+    @APIResponse(responseCode = "401", description = "No autenticado")
     @APIResponse(responseCode = "409", description = "Expediente duplicado")
     public Response create(@Valid CreatePatientRequest request, @Context UriInfo uriInfo) {
+        User medico = userContext.getCurrentUser();
+        if (medico == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
+        }
         Patient created = createPatient.execute(
                 request.expedienteExternoId,
                 request.nombre,
                 request.fechaNacimiento,
                 request.genero,
-                request.medicoId
+                medico.getId()
         );
         URI location = uriInfo.getAbsolutePathBuilder().path(created.getId().toString()).build();
         return Response.created(location)

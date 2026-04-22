@@ -38,7 +38,7 @@ class RegisterUserServiceTest {
         User existing = new User(UUID.randomUUID(), "Juan", "juan@tec.mx", UUID.randomUUID(), true, null);
         when(userRepository.findByEmail("juan@tec.mx")).thenReturn(Optional.of(existing));
 
-        User result = service.loginOrRegister("juan@tec.mx", "Juan");
+        User result = service.execute("juan@tec.mx", "Juan");
 
         assertSame(existing, result);
         verify(roleRepository, never()).findByNombre(any());
@@ -53,7 +53,7 @@ class RegisterUserServiceTest {
         when(roleRepository.findByNombre("DOCTOR")).thenReturn(Optional.of(doctor));
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        User result = service.loginOrRegister("nuevo@tec.mx", "Nuevo Usuario");
+        User result = service.execute("nuevo@tec.mx", "Nuevo Usuario");
 
         assertEquals("nuevo@tec.mx", result.getCorreo());
         assertEquals("Nuevo Usuario", result.getNombre());
@@ -74,7 +74,7 @@ class RegisterUserServiceTest {
         when(roleRepository.findByNombre("DOCTOR")).thenReturn(Optional.empty());
 
         RoleNotFoundException ex = assertThrows(RoleNotFoundException.class,
-                () -> service.loginOrRegister("x@tec.mx", "X"));
+                () -> service.execute("x@tec.mx", "X"));
         assertTrue(ex.getMessage().contains("DOCTOR"));
         verify(userRepository, never()).save(any());
     }

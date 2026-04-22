@@ -4,8 +4,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 import itesm.medsync.application.security.AuthenticatedUserContext;
-import itesm.medsync.application.user.RegisterUserService;
 import itesm.medsync.domain.user.model.User;
+import itesm.medsync.domain.user.usecase.LoginOrRegisterUserUseCase;
 import itesm.medsync.infrastructure.config.ErrorResponse;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
@@ -23,13 +23,13 @@ public class FirebaseAuthFilter implements ContainerRequestFilter {
     private static final Logger LOG = Logger.getLogger(FirebaseAuthFilter.class);
     private static final String BEARER_PREFIX = "Bearer ";
 
-    private final RegisterUserService registerUserService;
+    private final LoginOrRegisterUserUseCase loginOrRegister;
     private final AuthenticatedUserContext userContext;
 
     @Inject
-    public FirebaseAuthFilter(RegisterUserService registerUserService,
+    public FirebaseAuthFilter(LoginOrRegisterUserUseCase loginOrRegister,
                               AuthenticatedUserContext userContext) {
-        this.registerUserService = registerUserService;
+        this.loginOrRegister = loginOrRegister;
         this.userContext = userContext;
     }
 
@@ -67,7 +67,7 @@ public class FirebaseAuthFilter implements ContainerRequestFilter {
         }
 
         String name = nameFromClaims(decoded, email);
-        User user = registerUserService.loginOrRegister(email, name);
+        User user = loginOrRegister.execute(email, name);
         userContext.setCurrentUser(user);
     }
 

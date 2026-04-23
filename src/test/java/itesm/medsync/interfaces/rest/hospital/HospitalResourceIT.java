@@ -6,6 +6,7 @@ import io.restassured.http.ContentType;
 import itesm.medsync.application.security.AuthenticatedUserContext;
 import itesm.medsync.domain.user.model.Role;
 import itesm.medsync.domain.user.model.User;
+import itesm.medsync.domain.user.model.UserWithRole;
 import itesm.medsync.domain.user.repository.RoleRepository;
 import itesm.medsync.domain.user.repository.UserRepository;
 import jakarta.inject.Inject;
@@ -44,7 +45,7 @@ class HospitalResourceIT {
                 .orElseThrow(() -> new AssertionError("DOCTOR role debe existir (seed V3)"));
         User testMedico = userRepository.save(
                 User.create("Hosp IT Medico", "hosp-it-" + UUID.randomUUID() + "@tec.mx", doctorRoleId));
-        when(userContext.getCurrentUser()).thenReturn(testMedico);
+        when(userContext.getCurrentUser()).thenReturn(new UserWithRole(testMedico, "DOCTOR"));
     }
 
     private Map<String, Object> patientPayload(String expedienteExternoId) {

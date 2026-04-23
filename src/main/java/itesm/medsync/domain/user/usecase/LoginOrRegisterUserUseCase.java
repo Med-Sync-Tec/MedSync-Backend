@@ -1,8 +1,8 @@
 package itesm.medsync.domain.user.usecase;
 
-import itesm.medsync.domain.user.model.User;
+import itesm.medsync.domain.user.model.UserWithRole;
 
 public interface LoginOrRegisterUserUseCase {
 
-    User execute(String email, String name);
+    UserWithRole execute(String email, String name);
 }

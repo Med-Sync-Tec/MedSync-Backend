@@ -40,7 +40,7 @@ class RegisterUserServiceTest {
         UserWithRole existingWithRole = new UserWithRole(existing, "DOCTOR");
         when(userRepository.findByEmail("juan@tec.mx")).thenReturn(Optional.of(existingWithRole));
 
-        UserWithRole result = service.loginOrRegister("juan@tec.mx", "Juan");
+        UserWithRole result = service.execute("juan@tec.mx", "Juan");
 
         assertSame(existingWithRole, result);
         assertEquals("DOCTOR", result.roleName());
@@ -56,7 +56,7 @@ class RegisterUserServiceTest {
         when(roleRepository.findByNombre("DOCTOR")).thenReturn(Optional.of(doctor));
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        UserWithRole result = service.loginOrRegister("nuevo@tec.mx", "Nuevo Usuario");
+        UserWithRole result = service.execute("nuevo@tec.mx", "Nuevo Usuario");
 
         assertEquals("nuevo@tec.mx", result.user().getCorreo());
         assertEquals("Nuevo Usuario", result.user().getNombre());

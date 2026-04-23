@@ -27,7 +27,7 @@ public class RegisterUserService implements LoginOrRegisterUserUseCase {
 
     @Override
     @Transactional
-    public UserWithRole loginOrRegister(String email, String name) {
+    public UserWithRole execute(String email, String name) {
         return userRepository.findByEmail(email)
                 .orElseGet(() -> createDefaultUser(email, name));
     }

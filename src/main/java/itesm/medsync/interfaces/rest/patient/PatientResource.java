@@ -6,7 +6,7 @@ import itesm.medsync.domain.patient.usecase.CreatePatientUseCase;
 import itesm.medsync.domain.patient.usecase.DeletePatientUseCase;
 import itesm.medsync.domain.patient.usecase.GetPatientByIdUseCase;
 import itesm.medsync.domain.patient.usecase.ListActivePatientsUseCase;
-import itesm.medsync.domain.user.model.User;
+import itesm.medsync.domain.user.model.UserWithRole;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
@@ -60,7 +60,7 @@ public class PatientResource {
     @APIResponse(responseCode = "401", description = "No autenticado")
     @APIResponse(responseCode = "409", description = "Expediente duplicado")
     public Response create(@Valid CreatePatientRequest request, @Context UriInfo uriInfo) {
-        User medico = userContext.getCurrentUser();
+        UserWithRole medico = userContext.getCurrentUser();
         if (medico == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
@@ -69,7 +69,7 @@ public class PatientResource {
                 request.nombre,
                 request.fechaNacimiento,
                 request.genero,
-                medico.getId()
+                medico.user().getId()
         );
         URI location = uriInfo.getAbsolutePathBuilder().path(created.getId().toString()).build();
         return Response.created(location)

@@ -78,7 +78,7 @@ class RegisterUserServiceTest {
         when(roleRepository.findByNombre("DOCTOR")).thenReturn(Optional.empty());
 
         RoleNotFoundException ex = assertThrows(RoleNotFoundException.class,
-                () -> service.loginOrRegister("x@tec.mx", "X"));
+                () -> service.execute("x@tec.mx", "X"));
         assertTrue(ex.getMessage().contains("DOCTOR"));
         verify(userRepository, never()).save(any());
     }

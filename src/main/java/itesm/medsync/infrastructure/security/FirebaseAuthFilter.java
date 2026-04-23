@@ -23,13 +23,13 @@ public class FirebaseAuthFilter implements ContainerRequestFilter {
     private static final Logger LOG = Logger.getLogger(FirebaseAuthFilter.class);
     private static final String BEARER_PREFIX = "Bearer ";
 
-    private final RegisterUserService registerUserService;
+    private final LoginOrRegisterUserUseCase loginOrRegister;
     private final AuthenticatedUserContext userContext;
 
     @Inject
-    public FirebaseAuthFilter(RegisterUserService registerUserService,
+    public FirebaseAuthFilter(LoginOrRegisterUserUseCase loginOrRegister,
                               AuthenticatedUserContext userContext) {
-        this.registerUserService = registerUserService;
+        this.loginOrRegister = loginOrRegister;
         this.userContext = userContext;
     }
 

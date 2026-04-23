@@ -4,7 +4,12 @@ import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
 import itesm.medsync.domain.patient.model.Patient;
 import itesm.medsync.domain.patient.repository.PatientRepository;
+import itesm.medsync.domain.user.model.Role;
+import itesm.medsync.domain.user.model.User;
+import itesm.medsync.domain.user.repository.RoleRepository;
+import itesm.medsync.domain.user.repository.UserRepository;
 import jakarta.inject.Inject;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -21,9 +26,27 @@ class PatientRepositoryImplTest {
     @Inject
     PatientRepository repository;
 
+    @Inject
+    UserRepository userRepository;
+
+    @Inject
+    RoleRepository roleRepository;
+
+    private UUID medicoId;
+
+    @BeforeEach
+    void setupMedico() {
+        UUID doctorRoleId = roleRepository.findByNombre("DOCTOR")
+                .map(Role::getId)
+                .orElseThrow(() -> new AssertionError("DOCTOR role debe existir (seed V3)"));
+        User medico = userRepository.save(
+                User.create("Repo Medico", "repo-" + UUID.randomUUID() + "@tec.mx", doctorRoleId));
+        medicoId = medico.getId();
+    }
+
     private Patient newPatient(String expediente) {
         return Patient.create(expediente, "Nombre " + expediente,
-                LocalDate.of(1990, 1, 1), "M", UUID.randomUUID());
+                LocalDate.of(1990, 1, 1), "M", medicoId);
     }
 
     @Test

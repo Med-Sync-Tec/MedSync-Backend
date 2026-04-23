@@ -3,6 +3,7 @@ package itesm.medsync.application.user;
 import itesm.medsync.domain.user.exception.RoleNotFoundException;
 import itesm.medsync.domain.user.model.Role;
 import itesm.medsync.domain.user.model.User;
+import itesm.medsync.domain.user.model.UserWithRole;
 import itesm.medsync.domain.user.repository.RoleRepository;
 import itesm.medsync.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
@@ -33,33 +34,36 @@ class RegisterUserServiceTest {
     RegisterUserService service;
 
     @Test
-    @DisplayName("Usuario existe → devuelve existente, no consulta rol ni guarda")
+    @DisplayName("Usuario existe → devuelve existente con rol cargado, no consulta rol ni guarda")
     void loginExistingUser() {
         User existing = new User(UUID.randomUUID(), "Juan", "juan@tec.mx", UUID.randomUUID(), true, null);
-        when(userRepository.findByEmail("juan@tec.mx")).thenReturn(Optional.of(existing));
+        UserWithRole existingWithRole = new UserWithRole(existing, "DOCTOR");
+        when(userRepository.findByEmail("juan@tec.mx")).thenReturn(Optional.of(existingWithRole));
 
-        User result = service.loginOrRegister("juan@tec.mx", "Juan");
+        UserWithRole result = service.loginOrRegister("juan@tec.mx", "Juan");
 
-        assertSame(existing, result);
+        assertSame(existingWithRole, result);
+        assertEquals("DOCTOR", result.roleName());
         verify(roleRepository, never()).findByNombre(any());
         verify(userRepository, never()).save(any());
     }
 
     @Test
-    @DisplayName("Usuario no existe → crea con rol DOCTOR y guarda")
+    @DisplayName("Usuario no existe → crea con rol DOCTOR, guarda, y devuelve UserWithRole")
     void registerNewUser() {
         Role doctor = new Role(UUID.randomUUID(), "DOCTOR", "Personal médico", null);
         when(userRepository.findByEmail("nuevo@tec.mx")).thenReturn(Optional.empty());
         when(roleRepository.findByNombre("DOCTOR")).thenReturn(Optional.of(doctor));
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        User result = service.loginOrRegister("nuevo@tec.mx", "Nuevo Usuario");
+        UserWithRole result = service.loginOrRegister("nuevo@tec.mx", "Nuevo Usuario");
 
-        assertEquals("nuevo@tec.mx", result.getCorreo());
-        assertEquals("Nuevo Usuario", result.getNombre());
-        assertEquals(doctor.getId(), result.getRolId());
-        assertTrue(result.isActivo());
-        assertNotNull(result.getId(), "User.create debe generar un UUID");
+        assertEquals("nuevo@tec.mx", result.user().getCorreo());
+        assertEquals("Nuevo Usuario", result.user().getNombre());
+        assertEquals(doctor.getId(), result.user().getRolId());
+        assertTrue(result.user().isActivo());
+        assertNotNull(result.user().getId(), "User.create debe generar un UUID");
+        assertEquals("DOCTOR", result.roleName());
 
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(captor.capture());

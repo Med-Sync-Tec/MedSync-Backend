@@ -1,18 +1,18 @@
 package itesm.medsync.application.security;
 
-import itesm.medsync.domain.user.model.User;
+import itesm.medsync.domain.user.model.UserWithRole;
 import jakarta.enterprise.context.RequestScoped;
 
 @RequestScoped
 public class AuthenticatedUserContext {
 
-    private User currentUser;
+    private UserWithRole currentUser;
 
-    public User getCurrentUser() {
+    public UserWithRole getCurrentUser() {
         return currentUser;
     }
 
-    public void setCurrentUser(User user) {
+    public void setCurrentUser(UserWithRole user) {
         this.currentUser = user;
     }
 }

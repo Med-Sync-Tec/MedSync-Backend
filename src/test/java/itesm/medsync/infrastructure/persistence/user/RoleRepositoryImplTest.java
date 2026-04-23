@@ -9,6 +9,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -42,6 +43,25 @@ class RoleRepositoryImplTest {
     @DisplayName("findByNombre con rol inexistente devuelve Optional.empty()")
     void findByNombreMissing() {
         Optional<Role> role = repository.findByNombre("NOPE");
+        assertTrue(role.isEmpty());
+    }
+
+    @Test
+    @TestTransaction
+    @DisplayName("findByUuid devuelve el rol cuando el UUID existe")
+    void findByUuidExisting() {
+        Role doctor = repository.findByNombre("DOCTOR").orElseThrow();
+        Optional<Role> found = repository.findByUuid(doctor.getId());
+        assertTrue(found.isPresent());
+        assertEquals("DOCTOR", found.get().getNombre());
+        assertEquals(doctor.getId(), found.get().getId());
+    }
+
+    @Test
+    @TestTransaction
+    @DisplayName("findByUuid con UUID inexistente devuelve Optional.empty()")
+    void findByUuidMissing() {
+        Optional<Role> role = repository.findByUuid(UUID.randomUUID());
         assertTrue(role.isEmpty());
     }
 }

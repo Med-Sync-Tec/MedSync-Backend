@@ -7,7 +7,7 @@ public record UserResponse(
         UUID id,
         String nombre,
         String correo,
-        UUID rolId,
+        String role,
         boolean activo,
         LocalDateTime createdAt
 ) {

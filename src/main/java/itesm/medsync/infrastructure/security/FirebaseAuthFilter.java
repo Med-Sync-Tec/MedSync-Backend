@@ -4,8 +4,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseToken;
 import itesm.medsync.application.security.AuthenticatedUserContext;
-import itesm.medsync.domain.user.model.User;
-import itesm.medsync.domain.user.usecase.LoginOrRegisterUserUseCase;
+import itesm.medsync.application.user.RegisterUserService;
+import itesm.medsync.domain.user.model.UserWithRole;
 import itesm.medsync.infrastructure.config.ErrorResponse;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
@@ -67,7 +67,7 @@ public class FirebaseAuthFilter implements ContainerRequestFilter {
         }
 
         String name = nameFromClaims(decoded, email);
-        User user = loginOrRegister.execute(email, name);
+        UserWithRole user = registerUserService.loginOrRegister(email, name);
         userContext.setCurrentUser(user);
     }
 

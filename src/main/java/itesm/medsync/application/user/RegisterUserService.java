@@ -3,6 +3,7 @@ package itesm.medsync.application.user;
 import itesm.medsync.domain.user.exception.RoleNotFoundException;
 import itesm.medsync.domain.user.model.Role;
 import itesm.medsync.domain.user.model.User;
+import itesm.medsync.domain.user.model.UserWithRole;
 import itesm.medsync.domain.user.repository.RoleRepository;
 import itesm.medsync.domain.user.repository.UserRepository;
 import itesm.medsync.domain.user.usecase.LoginOrRegisterUserUseCase;
@@ -26,15 +27,16 @@ public class RegisterUserService implements LoginOrRegisterUserUseCase {
 
     @Override
     @Transactional
-    public User execute(String email, String name) {
+    public UserWithRole loginOrRegister(String email, String name) {
         return userRepository.findByEmail(email)
                 .orElseGet(() -> createDefaultUser(email, name));
     }
 
-    private User createDefaultUser(String email, String name) {
+    private UserWithRole createDefaultUser(String email, String name) {
         Role role = roleRepository.findByNombre(DEFAULT_ROLE)
                 .orElseThrow(() -> new RoleNotFoundException(DEFAULT_ROLE));
         User newUser = User.create(name, email, role.getId());
-        return userRepository.save(newUser);
+        User saved = userRepository.save(newUser);
+        return new UserWithRole(saved, role.getNombre());
     }
 }

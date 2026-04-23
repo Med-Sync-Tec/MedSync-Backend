@@ -1,7 +1,7 @@
 package itesm.medsync.interfaces.rest.user;
 
 import itesm.medsync.application.security.AuthenticatedUserContext;
-import itesm.medsync.domain.user.model.User;
+import itesm.medsync.domain.user.model.UserWithRole;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -32,10 +32,10 @@ public class UserResource {
     @APIResponse(responseCode = "200", description = "Usuario autenticado")
     @APIResponse(responseCode = "401", description = "No autenticado")
     public Response getCurrentUser() {
-        User user = userContext.getCurrentUser();
-        if (user == null) {
+        UserWithRole current = userContext.getCurrentUser();
+        if (current == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
-        return Response.ok(UserRestMapper.toResponse(user)).build();
+        return Response.ok(UserRestMapper.toResponse(current.user(), current.roleName())).build();
     }
 }

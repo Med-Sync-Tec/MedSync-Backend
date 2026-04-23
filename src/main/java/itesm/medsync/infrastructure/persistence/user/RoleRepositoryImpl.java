@@ -18,4 +18,9 @@ public class RoleRepositoryImpl implements RoleRepository, PanacheRepositoryBase
         return find("nombre", nombre).firstResultOptional()
                 .map(RolePersistenceMapper::toDomain);
     }
+
+    @Override
+    public Optional<Role> findByUuid(UUID id) {
+        return findByIdOptional(id).map(RolePersistenceMapper::toDomain);
+    }
 }

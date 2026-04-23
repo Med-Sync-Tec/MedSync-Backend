@@ -1,6 +1,7 @@
 package itesm.medsync.infrastructure.persistence.user;
 
 import itesm.medsync.domain.user.model.User;
+import itesm.medsync.domain.user.model.UserWithRole;
 
 public final class UserPersistenceMapper {
 
@@ -33,5 +34,15 @@ public final class UserPersistenceMapper {
                 entity.getRolId(),
                 entity.isActivo(),
                 entity.getCreatedAt());
+    }
+
+    public static UserWithRole toDomainWithRole(UserEntity entity) {
+        RoleEntity role = entity.getRole();
+        if (role == null) {
+            throw new IllegalStateException(
+                    "Role not loaded for user " + entity.getId()
+                            + "; query must use the User.withRole entity graph");
+        }
+        return new UserWithRole(toDomain(entity), role.getNombre());
     }
 }

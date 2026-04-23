@@ -2,7 +2,12 @@ package itesm.medsync.infrastructure.persistence.user;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.Table;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -11,6 +16,10 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "usuarios")
+@NamedEntityGraph(
+        name = "User.withRole",
+        attributeNodes = @NamedAttributeNode("role")
+)
 public class UserEntity {
 
     @Id
@@ -25,6 +34,10 @@ public class UserEntity {
 
     @Column(name = "rol_id", columnDefinition = "BINARY(16)", nullable = false)
     private UUID rolId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "rol_id", insertable = false, updatable = false)
+    private RoleEntity role;
 
     @Column(nullable = false)
     private boolean activo;
@@ -66,6 +79,10 @@ public class UserEntity {
 
     public void setRolId(UUID rolId) {
         this.rolId = rolId;
+    }
+
+    public RoleEntity getRole() {
+        return role;
     }
 
     public boolean isActivo() {

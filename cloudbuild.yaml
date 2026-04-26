@@ -21,7 +21,6 @@ substitutions:
 
 options:
   logging: CLOUD_LOGGING_ONLY
-  machineType: E2_HIGHCPU_8
 
 steps:
   # 1. Build Docker image (con cache de la imagen `latest` para builds más rápidos)

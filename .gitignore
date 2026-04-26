@@ -43,3 +43,6 @@ nb-configuration.xml
 /.quarkus/cli/plugins/
 # TLS Certificates
 .certs/
+
+# Firebase Credentials
+src/main/resources/medsync-firebase-adminsdk.json

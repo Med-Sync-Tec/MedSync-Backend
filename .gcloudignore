@@ -1,0 +1,38 @@
+# .gcloudignore — qué excluir del upload a Cloud Build
+# (similar a .gitignore pero para `gcloud builds submit` y triggers)
+
+.git/
+.gitignore
+.gitattributes
+
+# Build outputs (Docker rebuild adentro)
+target/
+.quarkus/
+*.class
+
+# IDE / editores
+.idea/
+.vscode/
+*.iml
+.project
+.classpath
+.settings/
+
+# Logs y SO
+*.log
+.DS_Store
+Thumbs.db
+
+# Docker compose local (no se usa en GCP)
+docker-compose.yml
+docker/
+
+# Documentación que no necesita estar en la imagen
+docs/
+README.md
+CLAUDE.md
+
+# Secretos locales (defensa en profundidad — ya están en .gitignore)
+src/main/resources/medsync-firebase-adminsdk.json
+.env
+.env.*

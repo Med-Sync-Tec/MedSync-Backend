@@ -53,6 +53,10 @@
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-jdbc-mysql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
             <artifactId>quarkus-arc</artifactId>
         </dependency>
         <dependency>
@@ -95,6 +99,11 @@
     <dependency>
         <groupId>org.flywaydb</groupId>
         <artifactId>flyway-mysql</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>com.google.cloud.sql</groupId>
+        <artifactId>mysql-socket-factory-connector-j-8</artifactId>
+        <version>1.20.0</version>
     </dependency>
     <dependency>
         <groupId>com.google.firebase</groupId>

@@ -1,5 +1,40 @@
-*
-!target/*-runner
-!target/*-runner.jar
-!target/lib/*
-!target/quarkus-app/*
+# Excluir todo lo que NO necesita el Dockerfile multi-stage.
+# El Dockerfile usa: pom.xml, mvnw, .mvn/, src/
+
+# Build outputs (Maven los regenera adentro del builder stage)
+target/
+.quarkus/
+
+# Git y CI (no necesarios en la imagen)
+.git/
+.gitignore
+.gitattributes
+.github/
+
+# Docker / compose locales (no se usan en runtime)
+docker-compose.yml
+docker/
+src/main/docker/
+
+# IDE y editores
+.idea/
+.vscode/
+*.iml
+.project
+.classpath
+.settings/
+
+# SO
+.DS_Store
+Thumbs.db
+*.log
+
+# Documentación que no necesita estar en la imagen
+docs/
+README.md
+CLAUDE.md
+
+# Secretos locales (defensa en profundidad)
+src/main/resources/medsync-firebase-adminsdk.json
+.env
+.env.*

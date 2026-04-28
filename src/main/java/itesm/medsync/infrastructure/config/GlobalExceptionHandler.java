@@ -9,6 +9,7 @@ import itesm.medsync.domain.patient.exception.DuplicatePatientException;
 import itesm.medsync.domain.patient.exception.InvalidPatientDataException;
 import itesm.medsync.domain.patient.exception.PatientNotFoundException;
 import itesm.medsync.domain.user.exception.InvalidUserDataException;
+import itesm.medsync.domain.user.exception.RoleMismatchException;
 import itesm.medsync.domain.user.exception.UserNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.WebApplicationException;
@@ -100,6 +101,21 @@ public final class GlobalExceptionHandler {
         public Response toResponse(InvalidUserDataException ex) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class RoleMismatchMapper implements ExceptionMapper<RoleMismatchException> {
+        @Override
+        public Response toResponse(RoleMismatchException ex) {
+            return Response.status(Response.Status.FORBIDDEN)
+                    .entity(new RoleMismatchErrorResponse(
+                            403,
+                            "Forbidden",
+                            ex.getMessage(),
+                            ex.getActualRole(),
+                            ex.getExpectedRole()))
                     .build();
         }
     }

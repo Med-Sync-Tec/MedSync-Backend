@@ -8,8 +8,13 @@ import itesm.medsync.domain.pacientecontexto.exception.PacienteContextoNotFoundE
 import itesm.medsync.domain.patient.exception.DuplicatePatientException;
 import itesm.medsync.domain.patient.exception.InvalidPatientDataException;
 import itesm.medsync.domain.patient.exception.PatientNotFoundException;
+import itesm.medsync.domain.medicamento.exception.DuplicateMedicamentoException;
+import itesm.medsync.domain.medicamento.exception.EstadoNotFoundException;
+import itesm.medsync.domain.medicamento.exception.InvalidMedicamentoDataException;
+import itesm.medsync.domain.medicamento.exception.MedicamentoNotFoundException;
 import itesm.medsync.domain.user.exception.InvalidUserDataException;
 import itesm.medsync.domain.user.exception.RoleMismatchException;
+import itesm.medsync.domain.user.exception.UserAlreadyExistsException;
 import itesm.medsync.domain.user.exception.UserNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.WebApplicationException;
@@ -81,6 +86,56 @@ public final class GlobalExceptionHandler {
         public Response toResponse(InvalidHospitalDataException ex) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class MedicamentoNotFoundMapper implements ExceptionMapper<MedicamentoNotFoundException> {
+        @Override
+        public Response toResponse(MedicamentoNotFoundException ex) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(404, "Not Found", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class DuplicateMedicamentoMapper implements ExceptionMapper<DuplicateMedicamentoException> {
+        @Override
+        public Response toResponse(DuplicateMedicamentoException ex) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(new ErrorResponse(409, "Conflict", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class InvalidMedicamentoDataMapper implements ExceptionMapper<InvalidMedicamentoDataException> {
+        @Override
+        public Response toResponse(InvalidMedicamentoDataException ex) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class EstadoNotFoundMapper implements ExceptionMapper<EstadoNotFoundException> {
+        @Override
+        public Response toResponse(EstadoNotFoundException ex) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(404, "Not Found", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class UserAlreadyExistsMapper implements ExceptionMapper<UserAlreadyExistsException> {
+        @Override
+        public Response toResponse(UserAlreadyExistsException ex) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(new ErrorResponse(409, "Conflict", ex.getMessage()))
                     .build();
         }
     }

@@ -1,10 +1,15 @@
 package itesm.medsync.infrastructure.config;
 
+import itesm.medsync.domain.article.exception.ArticleNotFoundException;
+import itesm.medsync.domain.article.exception.ArticleTagNotFoundException;
+import itesm.medsync.domain.article.exception.DuplicateArticleException;
+import itesm.medsync.domain.article.exception.InvalidArticleDataException;
 import itesm.medsync.domain.hospital.exception.ConsultaNotFoundException;
 import itesm.medsync.domain.hospital.exception.ExpedienteNotFoundException;
 import itesm.medsync.domain.hospital.exception.InvalidHospitalDataException;
 import itesm.medsync.domain.pacientecontexto.exception.InvalidPacienteContextoDataException;
 import itesm.medsync.domain.pacientecontexto.exception.PacienteContextoNotFoundException;
+import itesm.medsync.domain.shared.exception.InvalidTipoClinicoException;
 import itesm.medsync.domain.patient.exception.DuplicatePatientException;
 import itesm.medsync.domain.patient.exception.InvalidPatientDataException;
 import itesm.medsync.domain.patient.exception.PatientNotFoundException;
@@ -134,6 +139,56 @@ public final class GlobalExceptionHandler {
     public static class InvalidPacienteContextoDataMapper implements ExceptionMapper<InvalidPacienteContextoDataException> {
         @Override
         public Response toResponse(InvalidPacienteContextoDataException ex) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class ArticleNotFoundMapper implements ExceptionMapper<ArticleNotFoundException> {
+        @Override
+        public Response toResponse(ArticleNotFoundException ex) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(404, "Not Found", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class ArticleTagNotFoundMapper implements ExceptionMapper<ArticleTagNotFoundException> {
+        @Override
+        public Response toResponse(ArticleTagNotFoundException ex) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(404, "Not Found", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class DuplicateArticleMapper implements ExceptionMapper<DuplicateArticleException> {
+        @Override
+        public Response toResponse(DuplicateArticleException ex) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(new ErrorResponse(409, "Conflict", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class InvalidArticleDataMapper implements ExceptionMapper<InvalidArticleDataException> {
+        @Override
+        public Response toResponse(InvalidArticleDataException ex) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class InvalidTipoClinicoMapper implements ExceptionMapper<InvalidTipoClinicoException> {
+        @Override
+        public Response toResponse(InvalidTipoClinicoException ex) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
                     .build();

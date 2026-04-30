@@ -5,6 +5,7 @@ import itesm.medsync.domain.pacientecontexto.repository.PacienteContextoReposito
 import itesm.medsync.domain.patient.exception.PatientNotFoundException;
 import itesm.medsync.domain.patient.model.Patient;
 import itesm.medsync.domain.patient.repository.PatientRepository;
+import itesm.medsync.domain.shared.model.TipoClinico;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -52,14 +53,11 @@ class AddPacienteContextoServiceTest {
         when(patientRepository.findByUuid(pacienteId)).thenReturn(Optional.of(stubPatient()));
         when(repository.save(any(PacienteContexto.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        PacienteContexto result = service.execute(
-                pacienteId,
-                PacienteContexto.Tipo.ENFERMEDAD,
-                "Hipertensión");
+        PacienteContexto result = service.execute(pacienteId, TipoClinico.ENFERMEDAD, "Hipertensión");
 
         assertNotNull(result);
         assertEquals(pacienteId, result.getPacienteId());
-        assertEquals(PacienteContexto.Tipo.ENFERMEDAD, result.getTipo());
+        assertEquals(TipoClinico.ENFERMEDAD, result.getTipo());
         assertEquals("Hipertensión", result.getValor());
 
         ArgumentCaptor<PacienteContexto> captor = ArgumentCaptor.forClass(PacienteContexto.class);
@@ -73,9 +71,7 @@ class AddPacienteContextoServiceTest {
         when(patientRepository.findByUuid(pacienteId)).thenReturn(Optional.empty());
 
         assertThrows(PatientNotFoundException.class,
-                () -> service.execute(pacienteId,
-                        PacienteContexto.Tipo.SINTOMA,
-                        "Mareo"));
+                () -> service.execute(pacienteId, TipoClinico.SINTOMA, "Mareo"));
 
         verify(repository, never()).save(any());
     }

@@ -5,6 +5,7 @@ import itesm.medsync.domain.pacientecontexto.repository.PacienteContextoReposito
 import itesm.medsync.domain.pacientecontexto.usecase.AddPacienteContextoUseCase;
 import itesm.medsync.domain.patient.exception.PatientNotFoundException;
 import itesm.medsync.domain.patient.repository.PatientRepository;
+import itesm.medsync.domain.shared.model.TipoClinico;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -24,9 +25,7 @@ public class AddPacienteContextoService implements AddPacienteContextoUseCase {
     }
 
     @Override
-    public PacienteContexto execute(UUID pacienteId,
-                                    PacienteContexto.Tipo tipo,
-                                    String valor) {
+    public PacienteContexto execute(UUID pacienteId, TipoClinico tipo, String valor) {
         patientRepository.findByUuid(pacienteId)
                 .orElseThrow(() -> new PatientNotFoundException(pacienteId));
         PacienteContexto contexto = PacienteContexto.create(pacienteId, tipo, valor);

@@ -3,6 +3,7 @@ package itesm.medsync.application.pacientecontexto;
 import itesm.medsync.domain.pacientecontexto.exception.PacienteContextoNotFoundException;
 import itesm.medsync.domain.pacientecontexto.model.PacienteContexto;
 import itesm.medsync.domain.pacientecontexto.repository.PacienteContextoRepository;
+import itesm.medsync.domain.shared.model.TipoClinico;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,10 +30,7 @@ class DeletePacienteContextoServiceTest {
     @DisplayName("Existente: invoca removeById")
     void deleteOk() {
         UUID id = UUID.randomUUID();
-        PacienteContexto ctx = PacienteContexto.create(
-                UUID.randomUUID(),
-                PacienteContexto.Tipo.SINTOMA,
-                "x");
+        PacienteContexto ctx = PacienteContexto.create(UUID.randomUUID(), TipoClinico.SINTOMA, "x");
         when(repository.findByUuid(id)).thenReturn(Optional.of(ctx));
 
         service.execute(id);

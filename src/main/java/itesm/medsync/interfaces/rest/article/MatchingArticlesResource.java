@@ -2,10 +2,12 @@ package itesm.medsync.interfaces.rest.article;
 
 import itesm.medsync.domain.article.usecase.GetMatchingArticlesByPatientUseCase;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
@@ -28,10 +30,11 @@ public class MatchingArticlesResource {
 
     @GET
     @Operation(summary = "Listar artículos cuyas tags coinciden con el contexto clínico del paciente")
-    @APIResponse(responseCode = "200", description = "Lista de artículos relevantes")
+    @APIResponse(responseCode = "200", description = "Lista de artículos relevantes (cap por 'limit')")
     @APIResponse(responseCode = "404", description = "Paciente no encontrado")
-    public List<ArticleResponse> getMatching(@PathParam("patientId") UUID patientId) {
-        return getMatching.execute(patientId).stream()
+    public List<ArticleResponse> getMatching(@PathParam("patientId") UUID patientId,
+                                             @QueryParam("limit") @DefaultValue("50") int limit) {
+        return getMatching.execute(patientId, limit).stream()
                 .map(ArticleRestMapper::toResponse)
                 .toList();
     }

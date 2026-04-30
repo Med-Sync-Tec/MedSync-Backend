@@ -7,5 +7,5 @@ import java.util.UUID;
 
 public interface GetMatchingArticlesByPatientUseCase {
 
-    List<Article> execute(UUID patientId);
+    List<Article> execute(UUID patientId, int limit);
 }

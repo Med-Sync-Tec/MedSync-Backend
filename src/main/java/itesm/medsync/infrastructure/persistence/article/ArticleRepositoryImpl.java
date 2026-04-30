@@ -4,6 +4,7 @@ import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import itesm.medsync.domain.article.model.Article;
 import itesm.medsync.domain.article.model.ArticleTag;
 import itesm.medsync.domain.article.repository.ArticleRepository;
+import itesm.medsync.domain.shared.model.Page;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityGraph;
 import jakarta.transaction.Transactional;
@@ -67,15 +68,25 @@ public class ArticleRepositoryImpl
     }
 
     @Override
-    public List<Article> listAllArticles() {
-        EntityGraph<?> graph = getEntityManager().getEntityGraph(GRAPH_WITH_TAGS);
-        return getEntityManager()
-                .createQuery("SELECT DISTINCT a FROM ArticleEntity a", ArticleEntity.class)
-                .setHint(FETCH_GRAPH_HINT, graph)
-                .getResultList()
-                .stream()
-                .map(ArticlePersistenceMapper::toDomain)
-                .toList();
+    public Page<Article> listArticles(int page, int size) {
+        long total = getEntityManager()
+                .createQuery("SELECT COUNT(a) FROM ArticleEntity a", Long.class)
+                .getSingleResult();
+        if (total == 0) {
+            return Page.of(List.of(), 0L, page, size);
+        }
+
+        List<UUID> ids = getEntityManager()
+                .createQuery("SELECT a.id FROM ArticleEntity a ORDER BY a.id", UUID.class)
+                .setFirstResult(page * size)
+                .setMaxResults(size)
+                .getResultList();
+        if (ids.isEmpty()) {
+            return Page.of(List.of(), total, page, size);
+        }
+
+        List<Article> items = loadArticlesByIds(ids);
+        return Page.of(items, total, page, size);
     }
 
     @Override
@@ -88,22 +99,39 @@ public class ArticleRepositoryImpl
     }
 
     @Override
-    public List<Article> findMatchingArticlesForPaciente(UUID pacienteId) {
-        EntityGraph<?> graph = getEntityManager().getEntityGraph(GRAPH_WITH_TAGS);
-        return getEntityManager().createQuery(
-                "SELECT DISTINCT a FROM ArticleEntity a " +
+    public List<Article> findMatchingArticlesForPaciente(UUID pacienteId, int limit) {
+        List<UUID> ids = getEntityManager().createQuery(
+                "SELECT DISTINCT a.id FROM ArticleEntity a JOIN a.tags at " +
                 "WHERE EXISTS (" +
-                "  SELECT 1 FROM ArticleTagEntity at, " +
-                "    itesm.medsync.infrastructure.persistence.pacientecontexto.PacienteContextoEntity pc " +
-                "  WHERE at.articulo = a " +
-                "    AND pc.pacienteId = :pid " +
+                "  SELECT 1 FROM itesm.medsync.infrastructure.persistence.pacientecontexto.PacienteContextoEntity pc " +
+                "  WHERE pc.pacienteId = :pid " +
                 "    AND pc.tipo = at.tipo " +
                 "    AND pc.valor = at.valor" +
-                ")", ArticleEntity.class)
+                ") " +
+                "ORDER BY a.id", UUID.class)
                 .setParameter("pid", pacienteId)
+                .setMaxResults(limit)
+                .getResultList();
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        return loadArticlesByIds(ids);
+    }
+
+    private List<Article> loadArticlesByIds(List<UUID> ids) {
+        EntityGraph<?> graph = getEntityManager().getEntityGraph(GRAPH_WITH_TAGS);
+        Map<UUID, ArticleEntity> byId = new HashMap<>();
+        for (ArticleEntity entity : getEntityManager()
+                .createQuery("SELECT a FROM ArticleEntity a WHERE a.id IN :ids", ArticleEntity.class)
+                .setParameter("ids", ids)
                 .setHint(FETCH_GRAPH_HINT, graph)
-                .getResultList()
-                .stream()
+                .getResultList()) {
+            byId.put(entity.getId(), entity);
+        }
+        // Preservar el orden del listado de IDs (paginación / orden estable)
+        return ids.stream()
+                .map(byId::get)
+                .filter(java.util.Objects::nonNull)
                 .map(ArticlePersistenceMapper::toDomain)
                 .toList();
     }

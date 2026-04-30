@@ -2,6 +2,7 @@ package itesm.medsync.interfaces.rest.article;
 
 import itesm.medsync.domain.article.model.Article;
 import itesm.medsync.domain.article.model.ArticleTag;
+import itesm.medsync.domain.shared.model.Page;
 
 import java.util.List;
 
@@ -30,6 +31,13 @@ public final class ArticleRestMapper {
                 article.getCreatedAt(),
                 article.getUpdatedAt()
         );
+    }
+
+    public static PagedArticlesResponse toPagedResponse(Page<Article> page) {
+        List<ArticleResponse> items = page.items().stream()
+                .map(ArticleRestMapper::toResponse)
+                .toList();
+        return new PagedArticlesResponse(items, page.total(), page.page(), page.size());
     }
 
     public static ArticleTagResponse toTagResponse(ArticleTag tag) {

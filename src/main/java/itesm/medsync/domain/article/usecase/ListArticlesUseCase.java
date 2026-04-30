@@ -1,10 +1,9 @@
 package itesm.medsync.domain.article.usecase;
 
 import itesm.medsync.domain.article.model.Article;
-
-import java.util.List;
+import itesm.medsync.domain.shared.model.Page;
 
 public interface ListArticlesUseCase {
 
-    List<Article> execute();
+    Page<Article> execute(int page, int size);
 }

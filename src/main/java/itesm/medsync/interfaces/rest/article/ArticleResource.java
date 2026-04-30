@@ -12,11 +12,13 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -26,7 +28,6 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import java.net.URI;
-import java.util.List;
 import java.util.UUID;
 
 @Path("/api/articles")
@@ -78,12 +79,11 @@ public class ArticleResource {
     }
 
     @GET
-    @Operation(summary = "Listar artículos")
-    @APIResponse(responseCode = "200", description = "Lista de artículos")
-    public List<ArticleResponse> list() {
-        return listArticles.execute().stream()
-                .map(ArticleRestMapper::toResponse)
-                .toList();
+    @Operation(summary = "Listar artículos paginados")
+    @APIResponse(responseCode = "200", description = "Página de artículos con total")
+    public PagedArticlesResponse list(@QueryParam("page") @DefaultValue("0") int page,
+                                      @QueryParam("size") @DefaultValue("20") int size) {
+        return ArticleRestMapper.toPagedResponse(listArticles.execute(page, size));
     }
 
     @GET

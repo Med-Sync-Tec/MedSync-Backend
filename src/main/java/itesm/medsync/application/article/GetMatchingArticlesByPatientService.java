@@ -14,6 +14,9 @@ import java.util.UUID;
 @ApplicationScoped
 public class GetMatchingArticlesByPatientService implements GetMatchingArticlesByPatientUseCase {
 
+    private static final int MAX_LIMIT = 100;
+    private static final int DEFAULT_LIMIT = 50;
+
     private final ArticleRepository articleRepository;
     private final PatientRepository patientRepository;
 
@@ -25,9 +28,10 @@ public class GetMatchingArticlesByPatientService implements GetMatchingArticlesB
     }
 
     @Override
-    public List<Article> execute(UUID patientId) {
+    public List<Article> execute(UUID patientId, int limit) {
         patientRepository.findByUuid(patientId)
                 .orElseThrow(() -> new PatientNotFoundException(patientId));
-        return articleRepository.findMatchingArticlesForPaciente(patientId);
+        int safeLimit = limit <= 0 ? DEFAULT_LIMIT : Math.min(limit, MAX_LIMIT);
+        return articleRepository.findMatchingArticlesForPaciente(patientId, safeLimit);
     }
 }

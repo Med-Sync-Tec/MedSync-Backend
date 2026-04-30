@@ -97,6 +97,14 @@
         <artifactId>quarkus-flyway</artifactId>
     </dependency>
     <dependency>
+        <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-scheduler</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-rest-client-jackson</artifactId>
+    </dependency>
+    <dependency>
         <groupId>org.flywaydb</groupId>
         <artifactId>flyway-mysql</artifactId>
     </dependency>

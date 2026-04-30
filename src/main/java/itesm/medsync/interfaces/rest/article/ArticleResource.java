@@ -5,8 +5,10 @@ import itesm.medsync.domain.article.model.ArticleTag;
 import itesm.medsync.domain.article.usecase.AddTagToArticleUseCase;
 import itesm.medsync.domain.article.usecase.CreateArticleUseCase;
 import itesm.medsync.domain.article.usecase.GetArticleByIdUseCase;
+import itesm.medsync.domain.article.usecase.GetRecentArticlesUseCase;
 import itesm.medsync.domain.article.usecase.ListArticlesUseCase;
 import itesm.medsync.domain.article.usecase.RemoveTagFromArticleUseCase;
+import itesm.medsync.domain.article.usecase.SyncPubmedArticlesUseCase;
 import itesm.medsync.domain.shared.model.TipoClinico;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -28,6 +30,7 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import java.net.URI;
+import java.util.Map;
 import java.util.UUID;
 
 @Path("/api/articles")
@@ -39,21 +42,31 @@ public class ArticleResource {
     private final CreateArticleUseCase createArticle;
     private final GetArticleByIdUseCase getArticleById;
     private final ListArticlesUseCase listArticles;
+    private final GetRecentArticlesUseCase getRecentArticles;
     private final AddTagToArticleUseCase addTag;
     private final RemoveTagFromArticleUseCase removeTag;
+    private final SyncPubmedArticlesUseCase syncPubmed;
 
     @Inject
     public ArticleResource(CreateArticleUseCase createArticle,
                            GetArticleByIdUseCase getArticleById,
                            ListArticlesUseCase listArticles,
+                           GetRecentArticlesUseCase getRecentArticles,
                            AddTagToArticleUseCase addTag,
-                           RemoveTagFromArticleUseCase removeTag) {
+                           RemoveTagFromArticleUseCase removeTag,
+                           SyncPubmedArticlesUseCase syncPubmed) {
         this.createArticle = createArticle;
         this.getArticleById = getArticleById;
         this.listArticles = listArticles;
+        this.getRecentArticles = getRecentArticles;
         this.addTag = addTag;
         this.removeTag = removeTag;
+        this.syncPubmed = syncPubmed;
     }
+
+    // -------------------------------------------------------------------------
+    // CRUD existente
+    // -------------------------------------------------------------------------
 
     @POST
     @Operation(summary = "Crear artículo científico")
@@ -88,12 +101,59 @@ public class ArticleResource {
 
     @GET
     @Path("/{id}")
-    @Operation(summary = "Obtener artículo por id")
-    @APIResponse(responseCode = "200")
+    @Operation(summary = "Obtener artículo por id — incluye fuente, revista, año y enlace oficial")
+    @APIResponse(responseCode = "200", description = "Metadatos completos del artículo (fuente, revista, año, url)")
     @APIResponse(responseCode = "404", description = "Artículo no encontrado")
     public ArticleResponse getById(@PathParam("id") UUID id) {
         return ArticleRestMapper.toResponse(getArticleById.execute(id));
     }
+
+    // -------------------------------------------------------------------------
+    // NUEVO: Artículos recientes para el home del médico
+    // -------------------------------------------------------------------------
+
+    /**
+     * GET /api/articles/recent
+     * Devuelve los artículos más recientes (ordenados por fecha de actualización
+     * descendente). Es el endpoint que consume el home del médico.
+     * Incluye todos los metadatos: revista, año, url (enlace oficial), DOI.
+     */
+    @GET
+    @Path("/recent")
+    @Operation(summary = "Artículos recientes de PubMed para el home del médico",
+               description = "Devuelve los artículos ordenados por fecha de actualización " +
+                             "descendente. Cada artículo incluye fuente (PubMed), revista, " +
+                             "año de publicación y enlace oficial.")
+    @APIResponse(responseCode = "200", description = "Página de artículos recientes con metadatos completos")
+    public PagedArticlesResponse recent(@QueryParam("page") @DefaultValue("0") int page,
+                                        @QueryParam("size") @DefaultValue("20") int size) {
+        return ArticleRestMapper.toPagedResponse(getRecentArticles.execute(page, size));
+    }
+
+    // -------------------------------------------------------------------------
+    // NUEVO: Disparo manual de sincronización con PubMed
+    // -------------------------------------------------------------------------
+
+    /**
+     * POST /api/articles/sync
+     * Dispara la sincronización manual con la API de PubMed (esearch + efetch).
+     * En producción la sincronización ocurre automáticamente cada 5 minutos
+     * via el scheduler. Este endpoint permite forzarla de forma inmediata.
+     */
+    @POST
+    @Path("/sync")
+    @Operation(summary = "Forzar sincronización manual con PubMed",
+               description = "Llama a esearch (trending[sb]) y a efetch para actualizar " +
+                             "la base de datos con los artículos más recientes de PubMed.")
+    @APIResponse(responseCode = "200", description = "Sincronización ejecutada — devuelve cantidad de artículos procesados")
+    public Response syncNow() {
+        int count = syncPubmed.execute();
+        return Response.ok(Map.of("articulosProcesados", count)).build();
+    }
+
+    // -------------------------------------------------------------------------
+    // Tags
+    // -------------------------------------------------------------------------
 
     @POST
     @Path("/{id}/tags")
@@ -123,3 +183,4 @@ public class ArticleResource {
         return Response.noContent().build();
     }
 }
+

@@ -96,7 +96,7 @@ class ArticleRepositoryImplTest {
                 ArticleTag.create(TipoClinico.ENFERMEDAD, "X")));
         repository.save(newArticle("10.1234/b"));
 
-        List<Article> all = repository.listAllArticles();
+        List<Article> all = repository.listArticles(0, 100).items();
         assertTrue(all.size() >= 2);
     }
 
@@ -136,7 +136,7 @@ class ArticleRepositoryImplTest {
                 newArticle("10.1234/nope").withTagAdded(
                         ArticleTag.create(TipoClinico.SINTOMA, "Mareo")));
 
-        List<Article> results = repository.findMatchingArticlesForPaciente(paciente.getId());
+        List<Article> results = repository.findMatchingArticlesForPaciente(paciente.getId(), 50);
 
         List<UUID> ids = results.stream().map(Article::getId).toList();
         assertTrue(ids.contains(matching1.getId()));
@@ -159,7 +159,7 @@ class ArticleRepositoryImplTest {
         repository.save(newArticle("10.1234/lonely").withTagAdded(
                 ArticleTag.create(TipoClinico.ENFERMEDAD, "X")));
 
-        List<Article> results = repository.findMatchingArticlesForPaciente(paciente.getId());
+        List<Article> results = repository.findMatchingArticlesForPaciente(paciente.getId(), 50);
         assertTrue(results.isEmpty());
     }
 }

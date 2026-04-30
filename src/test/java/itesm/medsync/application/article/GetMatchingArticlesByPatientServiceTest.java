@@ -19,6 +19,8 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -42,10 +44,10 @@ class GetMatchingArticlesByPatientServiceTest {
         when(patientRepository.findByUuid(pacienteId)).thenReturn(Optional.of(stub));
         Article article = Article.create("titulo", null, null, 2024, null,
                 null, null, null, null, null);
-        when(articleRepository.findMatchingArticlesForPaciente(pacienteId))
+        when(articleRepository.findMatchingArticlesForPaciente(eq(pacienteId), anyInt()))
                 .thenReturn(List.of(article));
 
-        List<Article> result = service.execute(pacienteId);
+        List<Article> result = service.execute(pacienteId, 50);
         assertEquals(1, result.size());
     }
 
@@ -55,7 +57,7 @@ class GetMatchingArticlesByPatientServiceTest {
         UUID pacienteId = UUID.randomUUID();
         when(patientRepository.findByUuid(pacienteId)).thenReturn(Optional.empty());
 
-        assertThrows(PatientNotFoundException.class, () -> service.execute(pacienteId));
-        verify(articleRepository, never()).findMatchingArticlesForPaciente(any());
+        assertThrows(PatientNotFoundException.class, () -> service.execute(pacienteId, 50));
+        verify(articleRepository, never()).findMatchingArticlesForPaciente(any(), anyInt());
     }
 }

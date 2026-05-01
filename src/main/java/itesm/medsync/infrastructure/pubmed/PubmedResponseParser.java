@@ -68,7 +68,15 @@ public class PubmedResponseParser {
         List<PubmedArticleData> result = new ArrayList<>();
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+            // PubMed envía DOCTYPE en su XML, por lo que debemos permitirlo (false).
+            // Sin embargo, desactivamos entidades externas para mantener la seguridad (XXE).
+            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false);
+            factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+            factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+            factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+            factory.setXIncludeAware(false);
+            factory.setExpandEntityReferences(false);
+            
             DocumentBuilder builder = factory.newDocumentBuilder();
             Document doc = builder.parse(
                     new ByteArrayInputStream(efetchXml.getBytes(StandardCharsets.UTF_8)));

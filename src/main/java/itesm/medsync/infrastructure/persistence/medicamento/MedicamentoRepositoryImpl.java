@@ -30,17 +30,6 @@ public class MedicamentoRepositoryImpl
     EntityManager em;
 
     @Override
-    public List<MedicamentoWithEstado> findAll() {
-        EntityGraph<?> graph = em.getEntityGraph(ENTITY_GRAPH_WITH_ESTADO);
-        return em.createQuery("SELECT m FROM MedicamentoEntity m", MedicamentoEntity.class)
-                .setHint(FETCH_GRAPH_HINT, graph)
-                .getResultList()
-                .stream()
-                .map(MedicamentoPersistenceMapper::toDomain)
-                .toList();
-    }
-
-    @Override
     public MedicamentosPage findPaginated(String nombre, String estado, int page, int size) {
         StringBuilder whereClause = new StringBuilder();
         List<Object[]> params = new ArrayList<>();

@@ -18,4 +18,11 @@ public interface ArticleRepository {
     boolean existsByDoi(String doi);
 
     List<Article> findMatchingArticlesForPaciente(UUID pacienteId, int limit);
+
+    /**
+     * Devuelve los artículos ordenados por fecha de actualización descendente
+     * (los más recientes primero), con paginación.
+     */
+    Page<Article> findRecentArticles(int page, int size);
 }
+

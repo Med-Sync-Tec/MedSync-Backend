@@ -135,4 +135,30 @@ public class ArticleRepositoryImpl
                 .map(ArticlePersistenceMapper::toDomain)
                 .toList();
     }
+
+    @Override
+    public Page<Article> findRecentArticles(int page, int size) {
+        long total = getEntityManager()
+                .createQuery("SELECT COUNT(a) FROM ArticleEntity a", Long.class)
+                .getSingleResult();
+        if (total == 0) {
+            return Page.of(List.of(), 0L, page, size);
+        }
+
+        List<UUID> ids = getEntityManager()
+                .createQuery(
+                        "SELECT a.id FROM ArticleEntity a ORDER BY a.updatedAt DESC, a.id ASC",
+                        UUID.class)
+                .setFirstResult(page * size)
+                .setMaxResults(size)
+                .getResultList();
+
+        if (ids.isEmpty()) {
+            return Page.of(List.of(), total, page, size);
+        }
+
+        List<Article> items = loadArticlesByIds(ids);
+        return Page.of(items, total, page, size);
+    }
 }
+

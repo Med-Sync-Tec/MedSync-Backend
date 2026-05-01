@@ -26,26 +26,45 @@ class DeletePacienteContextoServiceTest {
     DeletePacienteContextoService service;
 
     @Test
-    @DisplayName("Existente: invoca removeById")
+    @DisplayName("Existente y pertenece al paciente: invoca removeById")
     void deleteOk() {
+        UUID patientId = UUID.randomUUID();
         UUID id = UUID.randomUUID();
         PacienteContexto ctx = PacienteContexto.create(
-                UUID.randomUUID(),
+                patientId,
                 PacienteContexto.Tipo.SINTOMA,
                 "x");
         when(repository.findByUuid(id)).thenReturn(Optional.of(ctx));
 
-        service.execute(id);
+        service.execute(patientId, id);
         verify(repository).removeById(id);
     }
 
     @Test
     @DisplayName("Inexistente: PacienteContextoNotFoundException, no borra")
     void deleteNotFound() {
+        UUID patientId = UUID.randomUUID();
         UUID id = UUID.randomUUID();
         when(repository.findByUuid(id)).thenReturn(Optional.empty());
 
-        assertThrows(PacienteContextoNotFoundException.class, () -> service.execute(id));
+        assertThrows(PacienteContextoNotFoundException.class, () -> service.execute(patientId, id));
+        verify(repository, never()).removeById(any());
+    }
+
+    @Test
+    @DisplayName("Contexto pertenece a otro paciente: 404 (no enumeration), no borra")
+    void deleteWrongOwner() {
+        UUID requestedPatientId = UUID.randomUUID();
+        UUID actualPatientId = UUID.randomUUID();
+        UUID id = UUID.randomUUID();
+        PacienteContexto ctx = PacienteContexto.create(
+                actualPatientId,
+                PacienteContexto.Tipo.SINTOMA,
+                "x");
+        when(repository.findByUuid(id)).thenReturn(Optional.of(ctx));
+
+        assertThrows(PacienteContextoNotFoundException.class,
+                () -> service.execute(requestedPatientId, id));
         verify(repository, never()).removeById(any());
     }
 }

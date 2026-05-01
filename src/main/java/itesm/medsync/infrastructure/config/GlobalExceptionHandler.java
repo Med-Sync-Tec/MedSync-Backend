@@ -14,6 +14,7 @@ import itesm.medsync.domain.medicamento.exception.InvalidMedicamentoDataExceptio
 import itesm.medsync.domain.medicamento.exception.MedicamentoNotFoundException;
 import itesm.medsync.domain.user.exception.InvalidUserDataException;
 import itesm.medsync.domain.user.exception.RoleMismatchException;
+import itesm.medsync.domain.user.exception.RoleNotFoundException;
 import itesm.medsync.domain.user.exception.UserAlreadyExistsException;
 import itesm.medsync.domain.user.exception.UserNotFoundException;
 import jakarta.validation.ConstraintViolationException;
@@ -162,15 +163,27 @@ public final class GlobalExceptionHandler {
 
     @Provider
     public static class RoleMismatchMapper implements ExceptionMapper<RoleMismatchException> {
+        private static final Logger LOG = Logger.getLogger(RoleMismatchMapper.class);
+
         @Override
         public Response toResponse(RoleMismatchException ex) {
+            LOG.debugf("Role mismatch: actual=%s expected=%s", ex.getActualRole(), ex.getExpectedRole());
             return Response.status(Response.Status.FORBIDDEN)
                     .entity(new RoleMismatchErrorResponse(
                             403,
                             "Forbidden",
                             ex.getMessage(),
-                            ex.getActualRole(),
                             ex.getExpectedRole()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class RoleNotFoundMapper implements ExceptionMapper<RoleNotFoundException> {
+        @Override
+        public Response toResponse(RoleNotFoundException ex) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
                     .build();
         }
     }

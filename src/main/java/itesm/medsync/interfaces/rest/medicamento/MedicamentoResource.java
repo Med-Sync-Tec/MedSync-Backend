@@ -1,5 +1,6 @@
 package itesm.medsync.interfaces.rest.medicamento;
 
+import itesm.medsync.application.security.AuthenticatedUserContext;
 import itesm.medsync.domain.medicamento.usecase.CreateMedicamentoUseCase;
 import itesm.medsync.domain.medicamento.usecase.DeleteMedicamentoUseCase;
 import itesm.medsync.domain.medicamento.usecase.GetMedicamentoByIdUseCase;
@@ -19,6 +20,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -43,6 +45,7 @@ public class MedicamentoResource {
     private final UpdateMedicamentoUseCase updateMedicamento;
     private final UpdateMedicamentoEstadoUseCase updateEstado;
     private final DeleteMedicamentoUseCase deleteMedicamento;
+    private final AuthenticatedUserContext userContext;
 
     @Inject
     public MedicamentoResource(ListMedicamentosUseCase listMedicamentos,
@@ -50,23 +53,33 @@ public class MedicamentoResource {
                                 CreateMedicamentoUseCase createMedicamento,
                                 UpdateMedicamentoUseCase updateMedicamento,
                                 UpdateMedicamentoEstadoUseCase updateEstado,
-                                DeleteMedicamentoUseCase deleteMedicamento) {
+                                DeleteMedicamentoUseCase deleteMedicamento,
+                                AuthenticatedUserContext userContext) {
         this.listMedicamentos = listMedicamentos;
         this.getMedicamentoById = getMedicamentoById;
         this.createMedicamento = createMedicamento;
         this.updateMedicamento = updateMedicamento;
         this.updateEstado = updateEstado;
         this.deleteMedicamento = deleteMedicamento;
+        this.userContext = userContext;
+    }
+
+    private void requireAuthenticated() {
+        if (userContext.getCurrentUser() == null) {
+            throw new WebApplicationException("Authentication required", Response.Status.UNAUTHORIZED);
+        }
     }
 
     @GET
     @Operation(summary = "Listar medicamentos paginados")
     @APIResponse(responseCode = "200", description = "Página de medicamentos")
+    @APIResponse(responseCode = "401", description = "No autenticado")
     public MedicamentosPageResponse listAll(
             @QueryParam("page") @DefaultValue("0") int page,
             @QueryParam("size") @DefaultValue("10") int size,
             @QueryParam("nombre") String nombre,
             @QueryParam("estado") String estado) {
+        requireAuthenticated();
         var result = listMedicamentos.execute(nombre, estado, page, size);
         List<MedicamentoResponse> content = result.content().stream()
                 .map(MedicamentoRestMapper::toResponse)
@@ -78,8 +91,10 @@ public class MedicamentoResource {
     @Path("/{id}")
     @Operation(summary = "Obtener medicamento por ID")
     @APIResponse(responseCode = "200", description = "Medicamento encontrado")
+    @APIResponse(responseCode = "401", description = "No autenticado")
     @APIResponse(responseCode = "404", description = "Medicamento no encontrado")
     public MedicamentoResponse getById(@PathParam("id") UUID id) {
+        requireAuthenticated();
         return MedicamentoRestMapper.toResponse(getMedicamentoById.execute(id));
     }
 
@@ -87,8 +102,10 @@ public class MedicamentoResource {
     @Operation(summary = "Crear medicamento")
     @APIResponse(responseCode = "201", description = "Medicamento creado")
     @APIResponse(responseCode = "400", description = "Datos inválidos")
+    @APIResponse(responseCode = "401", description = "No autenticado")
     @APIResponse(responseCode = "409", description = "Nombre ya existe")
     public Response create(@Valid CreateMedicamentoRequest request, @Context UriInfo uriInfo) {
+        requireAuthenticated();
         var created = createMedicamento.execute(request.nombre, request.descripcion);
         URI location = uriInfo.getAbsolutePathBuilder()
                 .path(created.medicamento().getId().toString())
@@ -103,10 +120,12 @@ public class MedicamentoResource {
     @Operation(summary = "Actualizar medicamento")
     @APIResponse(responseCode = "200", description = "Medicamento actualizado")
     @APIResponse(responseCode = "400", description = "Datos inválidos")
+    @APIResponse(responseCode = "401", description = "No autenticado")
     @APIResponse(responseCode = "404", description = "Medicamento no encontrado")
     @APIResponse(responseCode = "409", description = "Nombre ya existe")
     public MedicamentoResponse update(@PathParam("id") UUID id,
                                       @Valid UpdateMedicamentoRequest request) {
+        requireAuthenticated();
         return MedicamentoRestMapper.toResponse(
                 updateMedicamento.execute(id, request.nombre, request.estado, request.descripcion));
     }
@@ -115,8 +134,10 @@ public class MedicamentoResource {
     @Path("/{id}")
     @Operation(summary = "Eliminar medicamento")
     @APIResponse(responseCode = "204", description = "Medicamento eliminado")
+    @APIResponse(responseCode = "401", description = "No autenticado")
     @APIResponse(responseCode = "404", description = "Medicamento no encontrado")
     public Response delete(@PathParam("id") UUID id) {
+        requireAuthenticated();
         deleteMedicamento.execute(id);
         return Response.noContent().build();
     }
@@ -125,9 +146,11 @@ public class MedicamentoResource {
     @Path("/{id}/estado")
     @Operation(summary = "Actualizar estado del medicamento")
     @APIResponse(responseCode = "200", description = "Estado actualizado")
+    @APIResponse(responseCode = "401", description = "No autenticado")
     @APIResponse(responseCode = "404", description = "Medicamento o estado no encontrado")
     public MedicamentoResponse updateEstado(@PathParam("id") UUID id,
                                             @Valid UpdateEstadoRequest request) {
+        requireAuthenticated();
         return MedicamentoRestMapper.toResponse(updateEstado.execute(id, request.estado));
     }
 }

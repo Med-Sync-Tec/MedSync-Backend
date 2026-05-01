@@ -1,5 +1,7 @@
 package itesm.medsync.infrastructure.persistence.medicamento;
 
+import itesm.medsync.domain.medicamento.exception.EstadoNotFoundException;
+import itesm.medsync.domain.medicamento.exception.MedicamentoNotFoundException;
 import itesm.medsync.domain.medicamento.model.Medicamento;
 import itesm.medsync.domain.medicamento.model.MedicamentosPage;
 import itesm.medsync.domain.medicamento.model.MedicamentoWithEstado;
@@ -98,6 +100,9 @@ public class MedicamentoRepositoryImpl implements MedicamentoRepository {
     @Override
     public Medicamento save(Medicamento medicamento) {
         MedicamentoEstadoEntity estadoEntity = em.find(MedicamentoEstadoEntity.class, medicamento.getEstadoId());
+        if (estadoEntity == null) {
+            throw new EstadoNotFoundException(medicamento.getEstadoId().toString());
+        }
         MedicamentoEntity entity = MedicamentoPersistenceMapper.toEntity(medicamento, estadoEntity);
         em.persist(entity);
         return medicamento;
@@ -105,8 +110,14 @@ public class MedicamentoRepositoryImpl implements MedicamentoRepository {
 
     @Override
     public Medicamento update(Medicamento medicamento) {
-        MedicamentoEstadoEntity estadoEntity = em.find(MedicamentoEstadoEntity.class, medicamento.getEstadoId());
         MedicamentoEntity entity = em.find(MedicamentoEntity.class, medicamento.getId());
+        if (entity == null) {
+            throw new MedicamentoNotFoundException(medicamento.getId());
+        }
+        MedicamentoEstadoEntity estadoEntity = em.find(MedicamentoEstadoEntity.class, medicamento.getEstadoId());
+        if (estadoEntity == null) {
+            throw new EstadoNotFoundException(medicamento.getEstadoId().toString());
+        }
         entity.setNombre(medicamento.getNombre());
         entity.setDescripcion(medicamento.getDescripcion());
         entity.setEstado(estadoEntity);

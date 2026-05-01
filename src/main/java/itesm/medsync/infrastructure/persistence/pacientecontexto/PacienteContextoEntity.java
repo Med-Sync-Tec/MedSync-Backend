@@ -1,6 +1,6 @@
 package itesm.medsync.infrastructure.persistence.pacientecontexto;
 
-import itesm.medsync.domain.pacientecontexto.model.PacienteContexto;
+import itesm.medsync.domain.shared.model.TipoClinico;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -25,7 +25,7 @@ public class PacienteContextoEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)
-    private PacienteContexto.Tipo tipo;
+    private TipoClinico tipo;
 
     @Column(nullable = false, length = 500)
     private String valor;
@@ -53,11 +53,11 @@ public class PacienteContextoEntity {
         this.pacienteId = pacienteId;
     }
 
-    public PacienteContexto.Tipo getTipo() {
+    public TipoClinico getTipo() {
         return tipo;
     }
 
-    public void setTipo(PacienteContexto.Tipo tipo) {
+    public void setTipo(TipoClinico tipo) {
         this.tipo = tipo;
     }
 

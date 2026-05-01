@@ -4,5 +4,5 @@ import java.util.UUID;
 
 public interface DeletePacienteContextoUseCase {
 
-    void execute(UUID id);
+    void execute(UUID patientId, UUID contextoId);
 }

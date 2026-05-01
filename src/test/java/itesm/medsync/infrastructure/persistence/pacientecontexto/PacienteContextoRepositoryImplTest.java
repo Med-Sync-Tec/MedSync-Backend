@@ -6,6 +6,7 @@ import itesm.medsync.domain.pacientecontexto.model.PacienteContexto;
 import itesm.medsync.domain.pacientecontexto.repository.PacienteContextoRepository;
 import itesm.medsync.domain.patient.model.Patient;
 import itesm.medsync.domain.patient.repository.PatientRepository;
+import itesm.medsync.domain.shared.model.TipoClinico;
 import itesm.medsync.domain.user.model.Role;
 import itesm.medsync.domain.user.model.User;
 import itesm.medsync.domain.user.repository.RoleRepository;
@@ -59,22 +60,20 @@ class PacienteContextoRepositoryImplTest {
     @TestTransaction
     @DisplayName("save asigna createdAt y conserva el id generado")
     void saveAssignsTimestamp() {
-        PacienteContexto ctx = PacienteContexto.create(pacienteId,
-                PacienteContexto.Tipo.ENFERMEDAD, "Hipertensión");
+        PacienteContexto ctx = PacienteContexto.create(pacienteId, TipoClinico.ENFERMEDAD, "Hipertensión");
 
         PacienteContexto saved = repository.save(ctx);
 
         assertEquals(ctx.getId(), saved.getId());
         assertNotNull(saved.getCreatedAt(), "createdAt debe asignarse por Hibernate");
-        assertEquals(PacienteContexto.Tipo.ENFERMEDAD, saved.getTipo());
+        assertEquals(TipoClinico.ENFERMEDAD, saved.getTipo());
     }
 
     @Test
     @TestTransaction
     @DisplayName("findByUuid devuelve el contexto guardado")
     void findByUuid() {
-        PacienteContexto ctx = repository.save(PacienteContexto.create(pacienteId,
-                PacienteContexto.Tipo.SINTOMA, "Cefalea"));
+        PacienteContexto ctx = repository.save(PacienteContexto.create(pacienteId, TipoClinico.SINTOMA, "Cefalea"));
 
         Optional<PacienteContexto> found = repository.findByUuid(ctx.getId());
         assertTrue(found.isPresent());
@@ -93,12 +92,9 @@ class PacienteContextoRepositoryImplTest {
                 Patient.create("EXP-OTRO-" + UUID.randomUUID(),
                         "Otro", LocalDate.of(1985, 3, 3), "M", otroDoctor)).getId();
 
-        repository.save(PacienteContexto.create(pacienteId,
-                PacienteContexto.Tipo.ENFERMEDAD, "HTA"));
-        repository.save(PacienteContexto.create(pacienteId,
-                PacienteContexto.Tipo.MEDICAMENTO, "Losartán"));
-        repository.save(PacienteContexto.create(otroPaciente,
-                PacienteContexto.Tipo.SINTOMA, "Mareo"));
+        repository.save(PacienteContexto.create(pacienteId, TipoClinico.ENFERMEDAD, "HTA"));
+        repository.save(PacienteContexto.create(pacienteId, TipoClinico.MEDICAMENTO, "Losartán"));
+        repository.save(PacienteContexto.create(otroPaciente, TipoClinico.SINTOMA, "Mareo"));
 
         List<PacienteContexto> mios = repository.findByPacienteId(pacienteId);
         assertEquals(2, mios.size());
@@ -109,8 +105,7 @@ class PacienteContextoRepositoryImplTest {
     @TestTransaction
     @DisplayName("removeById elimina el contexto")
     void removeById() {
-        PacienteContexto saved = repository.save(PacienteContexto.create(pacienteId,
-                PacienteContexto.Tipo.TRATAMIENTO, "Reposo"));
+        PacienteContexto saved = repository.save(PacienteContexto.create(pacienteId, TipoClinico.TRATAMIENTO, "Reposo"));
 
         repository.removeById(saved.getId());
         assertTrue(repository.findByUuid(saved.getId()).isEmpty());

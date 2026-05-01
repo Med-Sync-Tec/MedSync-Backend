@@ -1,6 +1,7 @@
 package itesm.medsync.application.pacientecontexto;
 
 import itesm.medsync.domain.pacientecontexto.exception.PacienteContextoNotFoundException;
+import itesm.medsync.domain.pacientecontexto.model.PacienteContexto;
 import itesm.medsync.domain.pacientecontexto.repository.PacienteContextoRepository;
 import itesm.medsync.domain.pacientecontexto.usecase.DeletePacienteContextoUseCase;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -19,9 +20,16 @@ public class DeletePacienteContextoService implements DeletePacienteContextoUseC
     }
 
     @Override
-    public void execute(UUID id) {
-        repository.findByUuid(id)
-                .orElseThrow(() -> new PacienteContextoNotFoundException(id));
-        repository.removeById(id);
+    public void execute(UUID patientId, UUID contextoId) {
+        PacienteContexto contexto = repository.findByUuid(contextoId)
+                .orElseThrow(() -> new PacienteContextoNotFoundException(contextoId));
+
+        if (!contexto.getPacienteId().equals(patientId)) {
+            // El contexto existe pero no pertenece al paciente del path; no filtramos esa
+            // diferencia al cliente para no permitir enumeración.
+            throw new PacienteContextoNotFoundException(contextoId);
+        }
+
+        repository.removeById(contextoId);
     }
 }

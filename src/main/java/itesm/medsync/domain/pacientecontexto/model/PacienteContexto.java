@@ -1,6 +1,7 @@
 package itesm.medsync.domain.pacientecontexto.model;
 
 import itesm.medsync.domain.pacientecontexto.exception.InvalidPacienteContextoDataException;
+import itesm.medsync.domain.shared.model.TipoClinico;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -12,13 +13,13 @@ public final class PacienteContexto {
 
     private final UUID id;
     private final UUID pacienteId;
-    private final Tipo tipo;
+    private final TipoClinico tipo;
     private final String valor;
     private final LocalDateTime createdAt;
 
     public PacienteContexto(UUID id,
                             UUID pacienteId,
-                            Tipo tipo,
+                            TipoClinico tipo,
                             String valor,
                             LocalDateTime createdAt) {
         validate(id, pacienteId, tipo, valor);
@@ -29,7 +30,7 @@ public final class PacienteContexto {
         this.createdAt = createdAt;
     }
 
-    public static PacienteContexto create(UUID pacienteId, Tipo tipo, String valor) {
+    public static PacienteContexto create(UUID pacienteId, TipoClinico tipo, String valor) {
         return new PacienteContexto(
                 UUID.randomUUID(),
                 pacienteId,
@@ -38,7 +39,7 @@ public final class PacienteContexto {
                 null);
     }
 
-    private static void validate(UUID id, UUID pacienteId, Tipo tipo, String valor) {
+    private static void validate(UUID id, UUID pacienteId, TipoClinico tipo, String valor) {
         if (id == null) {
             throw new InvalidPacienteContextoDataException("id cannot be null");
         }
@@ -65,7 +66,7 @@ public final class PacienteContexto {
         return pacienteId;
     }
 
-    public Tipo getTipo() {
+    public TipoClinico getTipo() {
         return tipo;
     }
 
@@ -87,24 +88,5 @@ public final class PacienteContexto {
     @Override
     public int hashCode() {
         return Objects.hash(id);
-    }
-
-    public enum Tipo {
-        ENFERMEDAD,
-        SINTOMA,
-        TRATAMIENTO,
-        MEDICAMENTO;
-
-        public static Tipo fromString(String raw) {
-            if (raw == null || raw.isBlank()) {
-                throw new InvalidPacienteContextoDataException("tipo cannot be null or blank");
-            }
-            try {
-                return Tipo.valueOf(raw.trim().toUpperCase());
-            } catch (IllegalArgumentException ex) {
-                throw new InvalidPacienteContextoDataException(
-                        "tipo inválido: '" + raw + "'. Permitidos: enfermedad, sintoma, tratamiento, medicamento");
-            }
-        }
     }
 }

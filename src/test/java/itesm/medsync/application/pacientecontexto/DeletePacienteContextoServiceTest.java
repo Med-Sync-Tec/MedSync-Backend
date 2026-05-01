@@ -3,6 +3,7 @@ package itesm.medsync.application.pacientecontexto;
 import itesm.medsync.domain.pacientecontexto.exception.PacienteContextoNotFoundException;
 import itesm.medsync.domain.pacientecontexto.model.PacienteContexto;
 import itesm.medsync.domain.pacientecontexto.repository.PacienteContextoRepository;
+import itesm.medsync.domain.shared.model.TipoClinico;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -30,10 +31,7 @@ class DeletePacienteContextoServiceTest {
     void deleteOk() {
         UUID patientId = UUID.randomUUID();
         UUID id = UUID.randomUUID();
-        PacienteContexto ctx = PacienteContexto.create(
-                patientId,
-                PacienteContexto.Tipo.SINTOMA,
-                "x");
+        PacienteContexto ctx = PacienteContexto.create(patientId, TipoClinico.SINTOMA, "x");
         when(repository.findByUuid(id)).thenReturn(Optional.of(ctx));
 
         service.execute(patientId, id);
@@ -57,10 +55,7 @@ class DeletePacienteContextoServiceTest {
         UUID requestedPatientId = UUID.randomUUID();
         UUID actualPatientId = UUID.randomUUID();
         UUID id = UUID.randomUUID();
-        PacienteContexto ctx = PacienteContexto.create(
-                actualPatientId,
-                PacienteContexto.Tipo.SINTOMA,
-                "x");
+        PacienteContexto ctx = PacienteContexto.create(actualPatientId, TipoClinico.SINTOMA, "x");
         when(repository.findByUuid(id)).thenReturn(Optional.of(ctx));
 
         assertThrows(PacienteContextoNotFoundException.class,

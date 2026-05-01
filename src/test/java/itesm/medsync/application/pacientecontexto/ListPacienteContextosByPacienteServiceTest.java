@@ -5,6 +5,7 @@ import itesm.medsync.domain.pacientecontexto.repository.PacienteContextoReposito
 import itesm.medsync.domain.patient.exception.PatientNotFoundException;
 import itesm.medsync.domain.patient.model.Patient;
 import itesm.medsync.domain.patient.repository.PatientRepository;
+import itesm.medsync.domain.shared.model.TipoClinico;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,8 +40,7 @@ class ListPacienteContextosByPacienteServiceTest {
         when(patientRepository.findByUuid(pacienteId)).thenReturn(
                 Optional.of(new Patient(pacienteId, "EXP", "Ana",
                         LocalDate.of(1990, 1, 1), "F", UUID.randomUUID(), true, null, null)));
-        PacienteContexto ctx = PacienteContexto.create(pacienteId,
-                PacienteContexto.Tipo.ENFERMEDAD, "HTA");
+        PacienteContexto ctx = PacienteContexto.create(pacienteId, TipoClinico.ENFERMEDAD, "HTA");
         when(repository.findByPacienteId(pacienteId)).thenReturn(List.of(ctx));
 
         List<PacienteContexto> result = service.execute(pacienteId);

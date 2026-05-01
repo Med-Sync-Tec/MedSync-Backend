@@ -5,6 +5,7 @@ import itesm.medsync.domain.pacientecontexto.model.PacienteContexto;
 import itesm.medsync.domain.pacientecontexto.usecase.AddPacienteContextoUseCase;
 import itesm.medsync.domain.pacientecontexto.usecase.DeletePacienteContextoUseCase;
 import itesm.medsync.domain.pacientecontexto.usecase.ListPacienteContextosByPacienteUseCase;
+import itesm.medsync.domain.shared.model.TipoClinico;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
@@ -65,7 +66,7 @@ public class PacienteContextoResource {
                         @Valid AddPacienteContextoRequest request,
                         @Context UriInfo uriInfo) {
         requireAuthenticated();
-        PacienteContexto.Tipo tipo = PacienteContexto.Tipo.fromString(request.tipo);
+        TipoClinico tipo = TipoClinico.fromString(request.tipo);
         PacienteContexto created = addContexto.execute(patientId, tipo, request.valor);
 
         URI location = uriInfo.getAbsolutePathBuilder().path(created.getId().toString()).build();

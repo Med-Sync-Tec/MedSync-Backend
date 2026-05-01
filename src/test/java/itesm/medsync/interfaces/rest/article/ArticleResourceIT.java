@@ -69,11 +69,14 @@ class ArticleResourceIT {
     }
 
     @Test
-    @DisplayName("GET /api/articles devuelve lista")
+    @DisplayName("GET /api/articles devuelve página con items/total/page/size")
     void listArticles() {
         given().when().get("/api/articles")
                 .then().statusCode(200)
-                .body("$", instanceOf(java.util.List.class));
+                .body("items", instanceOf(java.util.List.class))
+                .body("page", notNullValue())
+                .body("size", notNullValue())
+                .body("total", notNullValue());
     }
 
     @Test

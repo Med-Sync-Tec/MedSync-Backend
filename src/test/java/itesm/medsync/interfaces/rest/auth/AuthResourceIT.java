@@ -64,7 +64,7 @@ class AuthResourceIT {
     }
 
     @Test
-    @DisplayName("expectedRole NO coincide → 403 con actualRole y expectedRole en el body")
+    @DisplayName("expectedRole NO coincide → 403 con expectedRole en el body (no se expone actualRole)")
     void loginRoleMismatch() {
         User doctor = stubUserWithRole("DOCTOR");
         when(userContext.getCurrentUser()).thenReturn(new UserWithRole(doctor, "DOCTOR"));
@@ -75,7 +75,7 @@ class AuthResourceIT {
         given().contentType(ContentType.JSON).body(body)
                 .when().post("/api/auth/login")
                 .then().statusCode(403)
-                .body("actualRole", equalTo("DOCTOR"))
+                .body("actualRole", nullValue())
                 .body("expectedRole", equalTo("COO"));
     }
 
@@ -99,7 +99,7 @@ class AuthResourceIT {
         given().contentType(ContentType.JSON).body(new HashMap<>())
                 .when().post("/api/auth/login")
                 .then().statusCode(403)
-                .body("actualRole", equalTo("COO"))
+                .body("actualRole", nullValue())
                 .body("expectedRole", equalTo("DOCTOR"));
     }
 
@@ -115,6 +115,20 @@ class AuthResourceIT {
         given().contentType(ContentType.JSON).body(body)
                 .when().post("/api/auth/login")
                 .then().statusCode(200);
+    }
+
+    @Test
+    @DisplayName("expectedRole con caracteres inválidos → 400 (Pattern violation)")
+    void loginInvalidRolePattern() {
+        User doctor = stubUserWithRole("DOCTOR");
+        when(userContext.getCurrentUser()).thenReturn(new UserWithRole(doctor, "DOCTOR"));
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("expectedRole", "'; DROP TABLE roles;--");
+
+        given().contentType(ContentType.JSON).body(body)
+                .when().post("/api/auth/login")
+                .then().statusCode(400);
     }
 
     @Test

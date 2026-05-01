@@ -6,7 +6,7 @@ import com.google.firebase.auth.FirebaseToken;
 import itesm.medsync.application.security.AuthenticatedUserContext;
 import itesm.medsync.domain.user.model.UserWithRole;
 import itesm.medsync.domain.user.usecase.LoginOrRegisterUserUseCase;
-import itesm.medsync.infrastructure.config.ErrorResponse;
+import itesm.medsync.interfaces.rest.common.ErrorResponse;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.HttpMethod;
@@ -15,6 +15,7 @@ import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 import java.util.List;
@@ -33,6 +34,9 @@ public class FirebaseAuthFilter implements ContainerRequestFilter {
     private final LoginOrRegisterUserUseCase loginOrRegister;
     private final AuthenticatedUserContext userContext;
 
+    @ConfigProperty(name = "medsync.security.firebase-filter.enabled", defaultValue = "true")
+    boolean enabled;
+
     @Inject
     public FirebaseAuthFilter(LoginOrRegisterUserUseCase loginOrRegister,
                               AuthenticatedUserContext userContext) {
@@ -42,6 +46,11 @@ public class FirebaseAuthFilter implements ContainerRequestFilter {
 
     @Override
     public void filter(ContainerRequestContext requestContext) {
+        if (!enabled) {
+            // Permite que tests con @InjectMock AuthenticatedUserContext controlen el usuario actual
+            // sin tener que adjuntar tokens reales de Firebase. Producción y dev mantienen enabled=true.
+            return;
+        }
         if (isPublicRequest(requestContext)) {
             return;
         }

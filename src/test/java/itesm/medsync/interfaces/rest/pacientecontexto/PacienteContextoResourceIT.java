@@ -1,11 +1,14 @@
 package itesm.medsync.interfaces.rest.pacientecontexto;
 
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
+import itesm.medsync.application.security.AuthenticatedUserContext;
 import itesm.medsync.domain.patient.model.Patient;
 import itesm.medsync.domain.patient.repository.PatientRepository;
 import itesm.medsync.domain.user.model.Role;
 import itesm.medsync.domain.user.model.User;
+import itesm.medsync.domain.user.model.UserWithRole;
 import itesm.medsync.domain.user.repository.RoleRepository;
 import itesm.medsync.domain.user.repository.UserRepository;
 import jakarta.inject.Inject;
@@ -20,6 +23,7 @@ import java.util.UUID;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
+import static org.mockito.Mockito.when;
 
 @QuarkusTest
 class PacienteContextoResourceIT {
@@ -32,6 +36,9 @@ class PacienteContextoResourceIT {
 
     @Inject
     PatientRepository patientRepository;
+
+    @InjectMock
+    AuthenticatedUserContext userContext;
 
     private UUID patientId;
 
@@ -46,6 +53,8 @@ class PacienteContextoResourceIT {
                 Patient.create("EXP-IT-CTX-" + UUID.randomUUID(),
                         "Paciente IT", LocalDate.of(1990, 1, 1), "F", medico.getId()));
         patientId = p.getId();
+
+        when(userContext.getCurrentUser()).thenReturn(new UserWithRole(medico, "DOCTOR"));
     }
 
     private Map<String, Object> validPayload(String tipo, String valor) {
@@ -150,5 +159,40 @@ class PacienteContextoResourceIT {
     void deleteNotFound() {
         given().when().delete("/api/patients/" + patientId + "/contextos/" + UUID.randomUUID())
                 .then().statusCode(404);
+    }
+
+    @Test
+    @DisplayName("DELETE de contexto que pertenece a otro paciente devuelve 404 (no enumeration)")
+    void deleteCrossPatient() {
+        String contextoId = given().contentType(ContentType.JSON)
+                .body(validPayload("sintoma", "Mareo"))
+                .when().post("/api/patients/" + patientId + "/contextos")
+                .then().statusCode(201)
+                .extract().path("id");
+
+        UUID otherPatient = UUID.randomUUID();
+        given().when().delete("/api/patients/" + otherPatient + "/contextos/" + contextoId)
+                .then().statusCode(404);
+
+        given().when().get("/api/patients/" + patientId + "/contextos")
+                .then().statusCode(200)
+                .body("findAll { it.id == '" + contextoId + "' }", hasSize(1));
+    }
+
+    @Test
+    @DisplayName("Sin autenticación → 401 en todos los endpoints")
+    void requiresAuth() {
+        when(userContext.getCurrentUser()).thenReturn(null);
+
+        given().when().get("/api/patients/" + patientId + "/contextos")
+                .then().statusCode(401);
+
+        given().contentType(ContentType.JSON)
+                .body(validPayload("enfermedad", "x"))
+                .when().post("/api/patients/" + patientId + "/contextos")
+                .then().statusCode(401);
+
+        given().when().delete("/api/patients/" + patientId + "/contextos/" + UUID.randomUUID())
+                .then().statusCode(401);
     }
 }

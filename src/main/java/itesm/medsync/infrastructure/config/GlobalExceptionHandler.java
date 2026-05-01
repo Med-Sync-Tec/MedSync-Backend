@@ -13,9 +13,17 @@ import itesm.medsync.domain.shared.exception.InvalidTipoClinicoException;
 import itesm.medsync.domain.patient.exception.DuplicatePatientException;
 import itesm.medsync.domain.patient.exception.InvalidPatientDataException;
 import itesm.medsync.domain.patient.exception.PatientNotFoundException;
+import itesm.medsync.domain.medicamento.exception.DuplicateMedicamentoException;
+import itesm.medsync.domain.medicamento.exception.EstadoNotFoundException;
+import itesm.medsync.domain.medicamento.exception.InvalidMedicamentoDataException;
+import itesm.medsync.domain.medicamento.exception.MedicamentoNotFoundException;
 import itesm.medsync.domain.user.exception.InvalidUserDataException;
 import itesm.medsync.domain.user.exception.RoleMismatchException;
+import itesm.medsync.domain.user.exception.RoleNotFoundException;
+import itesm.medsync.domain.user.exception.UserAlreadyExistsException;
 import itesm.medsync.domain.user.exception.UserNotFoundException;
+import itesm.medsync.interfaces.rest.common.ErrorResponse;
+import itesm.medsync.interfaces.rest.common.RoleMismatchErrorResponse;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
@@ -91,6 +99,56 @@ public final class GlobalExceptionHandler {
     }
 
     @Provider
+    public static class MedicamentoNotFoundMapper implements ExceptionMapper<MedicamentoNotFoundException> {
+        @Override
+        public Response toResponse(MedicamentoNotFoundException ex) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(404, "Not Found", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class DuplicateMedicamentoMapper implements ExceptionMapper<DuplicateMedicamentoException> {
+        @Override
+        public Response toResponse(DuplicateMedicamentoException ex) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(new ErrorResponse(409, "Conflict", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class InvalidMedicamentoDataMapper implements ExceptionMapper<InvalidMedicamentoDataException> {
+        @Override
+        public Response toResponse(InvalidMedicamentoDataException ex) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class EstadoNotFoundMapper implements ExceptionMapper<EstadoNotFoundException> {
+        @Override
+        public Response toResponse(EstadoNotFoundException ex) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(404, "Not Found", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class UserAlreadyExistsMapper implements ExceptionMapper<UserAlreadyExistsException> {
+        @Override
+        public Response toResponse(UserAlreadyExistsException ex) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(new ErrorResponse(409, "Conflict", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
     public static class UserNotFoundMapper implements ExceptionMapper<UserNotFoundException> {
         @Override
         public Response toResponse(UserNotFoundException ex) {
@@ -112,15 +170,27 @@ public final class GlobalExceptionHandler {
 
     @Provider
     public static class RoleMismatchMapper implements ExceptionMapper<RoleMismatchException> {
+        private static final Logger LOG = Logger.getLogger(RoleMismatchMapper.class);
+
         @Override
         public Response toResponse(RoleMismatchException ex) {
+            LOG.debugf("Role mismatch: actual=%s expected=%s", ex.getActualRole(), ex.getExpectedRole());
             return Response.status(Response.Status.FORBIDDEN)
                     .entity(new RoleMismatchErrorResponse(
                             403,
                             "Forbidden",
                             ex.getMessage(),
-                            ex.getActualRole(),
                             ex.getExpectedRole()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class RoleNotFoundMapper implements ExceptionMapper<RoleNotFoundException> {
+        @Override
+        public Response toResponse(RoleNotFoundException ex) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
                     .build();
         }
     }

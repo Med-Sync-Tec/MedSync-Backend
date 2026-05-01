@@ -1,4 +1,4 @@
-package itesm.medsync.infrastructure.config;
+package itesm.medsync.interfaces.rest.common;
 
 import java.time.Instant;
 
@@ -7,14 +7,12 @@ public record RoleMismatchErrorResponse(
         int status,
         String error,
         String message,
-        String actualRole,
         String expectedRole
 ) {
     public RoleMismatchErrorResponse(int status,
                                      String error,
                                      String message,
-                                     String actualRole,
                                      String expectedRole) {
-        this(Instant.now(), status, error, message, actualRole, expectedRole);
+        this(Instant.now(), status, error, message, expectedRole);
     }
 }

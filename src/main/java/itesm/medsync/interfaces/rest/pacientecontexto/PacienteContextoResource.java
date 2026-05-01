@@ -1,5 +1,6 @@
 package itesm.medsync.interfaces.rest.pacientecontexto;
 
+import itesm.medsync.application.security.AuthenticatedUserContext;
 import itesm.medsync.domain.pacientecontexto.model.PacienteContexto;
 import itesm.medsync.domain.pacientecontexto.usecase.AddPacienteContextoUseCase;
 import itesm.medsync.domain.pacientecontexto.usecase.DeletePacienteContextoUseCase;
@@ -14,6 +15,7 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -35,24 +37,35 @@ public class PacienteContextoResource {
     private final AddPacienteContextoUseCase addContexto;
     private final ListPacienteContextosByPacienteUseCase listContextos;
     private final DeletePacienteContextoUseCase deleteContexto;
+    private final AuthenticatedUserContext userContext;
 
     @Inject
     public PacienteContextoResource(AddPacienteContextoUseCase addContexto,
                                     ListPacienteContextosByPacienteUseCase listContextos,
-                                    DeletePacienteContextoUseCase deleteContexto) {
+                                    DeletePacienteContextoUseCase deleteContexto,
+                                    AuthenticatedUserContext userContext) {
         this.addContexto = addContexto;
         this.listContextos = listContextos;
         this.deleteContexto = deleteContexto;
+        this.userContext = userContext;
+    }
+
+    private void requireAuthenticated() {
+        if (userContext.getCurrentUser() == null) {
+            throw new WebApplicationException("Authentication required", Response.Status.UNAUTHORIZED);
+        }
     }
 
     @POST
     @Operation(summary = "Agregar contexto clínico al paciente")
     @APIResponse(responseCode = "201", description = "Contexto creado")
     @APIResponse(responseCode = "400", description = "Datos inválidos")
+    @APIResponse(responseCode = "401", description = "No autenticado")
     @APIResponse(responseCode = "404", description = "Paciente no encontrado")
     public Response add(@PathParam("patientId") UUID patientId,
                         @Valid AddPacienteContextoRequest request,
                         @Context UriInfo uriInfo) {
+        requireAuthenticated();
         TipoClinico tipo = TipoClinico.fromString(request.tipo);
         PacienteContexto created = addContexto.execute(patientId, tipo, request.valor);
 
@@ -65,8 +78,10 @@ public class PacienteContextoResource {
     @GET
     @Operation(summary = "Listar contextos clínicos del paciente")
     @APIResponse(responseCode = "200", description = "Lista de contextos")
+    @APIResponse(responseCode = "401", description = "No autenticado")
     @APIResponse(responseCode = "404", description = "Paciente no encontrado")
     public List<PacienteContextoResponse> listByPaciente(@PathParam("patientId") UUID patientId) {
+        requireAuthenticated();
         return listContextos.execute(patientId).stream()
                 .map(PacienteContextoRestMapper::toResponse)
                 .toList();
@@ -74,12 +89,14 @@ public class PacienteContextoResource {
 
     @DELETE
     @Path("/{contextoId}")
-    @Operation(summary = "Eliminar un contexto clínico")
+    @Operation(summary = "Eliminar un contexto clínico del paciente del path")
     @APIResponse(responseCode = "204", description = "Contexto eliminado")
-    @APIResponse(responseCode = "404", description = "Contexto no encontrado")
+    @APIResponse(responseCode = "401", description = "No autenticado")
+    @APIResponse(responseCode = "404", description = "Contexto no encontrado o no pertenece al paciente")
     public Response delete(@PathParam("patientId") UUID patientId,
                            @PathParam("contextoId") UUID contextoId) {
-        deleteContexto.execute(contextoId);
+        requireAuthenticated();
+        deleteContexto.execute(patientId, contextoId);
         return Response.noContent().build();
     }
 }

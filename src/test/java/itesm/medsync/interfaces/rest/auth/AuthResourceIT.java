@@ -118,6 +118,20 @@ class AuthResourceIT {
     }
 
     @Test
+    @DisplayName("expectedRole con caracteres inválidos → 400 (Pattern violation)")
+    void loginInvalidRolePattern() {
+        User doctor = stubUserWithRole("DOCTOR");
+        when(userContext.getCurrentUser()).thenReturn(new UserWithRole(doctor, "DOCTOR"));
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("expectedRole", "'; DROP TABLE roles;--");
+
+        given().contentType(ContentType.JSON).body(body)
+                .when().post("/api/auth/login")
+                .then().statusCode(400);
+    }
+
+    @Test
     @DisplayName("Sin usuario en context (sin token) → 401")
     void loginNoAuth() {
         when(userContext.getCurrentUser()).thenReturn(null);

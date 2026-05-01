@@ -17,6 +17,8 @@ import itesm.medsync.domain.user.exception.RoleMismatchException;
 import itesm.medsync.domain.user.exception.RoleNotFoundException;
 import itesm.medsync.domain.user.exception.UserAlreadyExistsException;
 import itesm.medsync.domain.user.exception.UserNotFoundException;
+import itesm.medsync.interfaces.rest.common.ErrorResponse;
+import itesm.medsync.interfaces.rest.common.RoleMismatchErrorResponse;
 import jakarta.validation.ConstraintViolationException;
 import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;

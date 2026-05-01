@@ -6,7 +6,7 @@ import com.google.firebase.auth.FirebaseToken;
 import itesm.medsync.application.security.AuthenticatedUserContext;
 import itesm.medsync.domain.user.model.UserWithRole;
 import itesm.medsync.domain.user.usecase.LoginOrRegisterUserUseCase;
-import itesm.medsync.infrastructure.config.ErrorResponse;
+import itesm.medsync.interfaces.rest.common.ErrorResponse;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.Priorities;

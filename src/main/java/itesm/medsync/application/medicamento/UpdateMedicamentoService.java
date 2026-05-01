@@ -31,7 +31,7 @@ public class UpdateMedicamentoService implements UpdateMedicamentoUseCase {
     @Override
     @Transactional
     public MedicamentoWithEstado execute(UUID id, String nombre, String estadoNombre, String descripcion) {
-        MedicamentoWithEstado existing = medicamentoRepository.findById(id)
+        MedicamentoWithEstado existing = medicamentoRepository.findByUuid(id)
                 .orElseThrow(() -> new MedicamentoNotFoundException(id));
 
         medicamentoRepository.findByNombre(nombre).ifPresent(found -> {

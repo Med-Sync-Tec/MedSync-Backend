@@ -22,7 +22,7 @@ public class DeleteMedicamentoService implements DeleteMedicamentoUseCase {
     @Override
     @Transactional
     public void execute(UUID id) {
-        medicamentoRepository.findById(id)
+        medicamentoRepository.findByUuid(id)
                 .orElseThrow(() -> new MedicamentoNotFoundException(id));
         medicamentoRepository.delete(id);
     }

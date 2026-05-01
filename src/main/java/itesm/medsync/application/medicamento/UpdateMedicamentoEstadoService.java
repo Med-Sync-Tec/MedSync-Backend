@@ -30,7 +30,7 @@ public class UpdateMedicamentoEstadoService implements UpdateMedicamentoEstadoUs
     @Override
     @Transactional
     public MedicamentoWithEstado execute(UUID medicamentoId, String nuevoEstadoNombre) {
-        MedicamentoWithEstado existing = medicamentoRepository.findById(medicamentoId)
+        MedicamentoWithEstado existing = medicamentoRepository.findByUuid(medicamentoId)
                 .orElseThrow(() -> new MedicamentoNotFoundException(medicamentoId));
 
         MedicamentoEstado nuevoEstado = estadoRepository.findByNombre(nuevoEstadoNombre)

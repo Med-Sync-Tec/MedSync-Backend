@@ -11,7 +11,7 @@ import java.util.UUID;
 public interface MedicamentoRepository {
     List<MedicamentoWithEstado> findAll();
     MedicamentosPage findPaginated(String nombre, String estado, int page, int size);
-    Optional<MedicamentoWithEstado> findById(UUID id);
+    Optional<MedicamentoWithEstado> findByUuid(UUID id);
     Optional<MedicamentoWithEstado> findByNombre(String nombre);
     Medicamento save(Medicamento medicamento);
     Medicamento update(Medicamento medicamento);

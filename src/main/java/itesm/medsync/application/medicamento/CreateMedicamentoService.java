@@ -4,6 +4,7 @@ import itesm.medsync.domain.medicamento.exception.DuplicateMedicamentoException;
 import itesm.medsync.domain.medicamento.exception.EstadoNotFoundException;
 import itesm.medsync.domain.medicamento.model.Medicamento;
 import itesm.medsync.domain.medicamento.model.MedicamentoEstado;
+import itesm.medsync.domain.medicamento.model.MedicamentoEstadoNames;
 import itesm.medsync.domain.medicamento.model.MedicamentoWithEstado;
 import itesm.medsync.domain.medicamento.repository.MedicamentoEstadoRepository;
 import itesm.medsync.domain.medicamento.repository.MedicamentoRepository;
@@ -15,7 +16,7 @@ import jakarta.transaction.Transactional;
 @ApplicationScoped
 public class CreateMedicamentoService implements CreateMedicamentoUseCase {
 
-    private static final String DEFAULT_ESTADO = "vigente";
+    private static final String DEFAULT_ESTADO = MedicamentoEstadoNames.VIGENTE;
 
     private final MedicamentoRepository medicamentoRepository;
     private final MedicamentoEstadoRepository estadoRepository;

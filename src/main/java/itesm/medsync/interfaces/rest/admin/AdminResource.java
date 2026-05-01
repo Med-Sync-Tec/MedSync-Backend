@@ -1,8 +1,10 @@
 package itesm.medsync.interfaces.rest.admin;
 
 import itesm.medsync.application.security.AuthenticatedUserContext;
+import itesm.medsync.domain.user.model.KnownRoles;
 import itesm.medsync.domain.user.model.UserWithRole;
 import itesm.medsync.domain.user.usecase.CreateAdminUserUseCase;
+import itesm.medsync.interfaces.rest.common.ErrorResponse;
 import itesm.medsync.interfaces.rest.user.UserRestMapper;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -49,10 +51,9 @@ public class AdminResource {
         if (caller == null) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
-        if (!"COO".equalsIgnoreCase(caller.roleName())) {
+        if (!KnownRoles.COO.equalsIgnoreCase(caller.roleName())) {
             return Response.status(Response.Status.FORBIDDEN)
-                    .entity(new itesm.medsync.infrastructure.config.ErrorResponse(
-                            403, "Forbidden", "Solo el COO puede crear usuarios"))
+                    .entity(new ErrorResponse(403, "Forbidden", "Solo el COO puede crear usuarios"))
                     .build();
         }
 

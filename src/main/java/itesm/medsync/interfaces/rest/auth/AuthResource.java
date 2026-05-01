@@ -2,6 +2,7 @@ package itesm.medsync.interfaces.rest.auth;
 
 import itesm.medsync.application.security.AuthenticatedUserContext;
 import itesm.medsync.domain.user.exception.RoleMismatchException;
+import itesm.medsync.domain.user.model.KnownRoles;
 import itesm.medsync.domain.user.model.UserWithRole;
 import itesm.medsync.interfaces.rest.user.UserRestMapper;
 import jakarta.inject.Inject;
@@ -22,7 +23,7 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Tag(name = "Auth", description = "Login con verificación de rol esperado")
 public class AuthResource {
 
-    private static final String DEFAULT_EXPECTED_ROLE = "DOCTOR";
+    private static final String DEFAULT_EXPECTED_ROLE = KnownRoles.DOCTOR;
 
     private final AuthenticatedUserContext userContext;
 

@@ -1,5 +1,6 @@
 package itesm.medsync.infrastructure.persistence.medicamento;
 
+import io.quarkus.hibernate.orm.panache.PanacheRepositoryBase;
 import itesm.medsync.domain.medicamento.exception.EstadoNotFoundException;
 import itesm.medsync.domain.medicamento.exception.MedicamentoNotFoundException;
 import itesm.medsync.domain.medicamento.model.Medicamento;
@@ -19,16 +20,20 @@ import java.util.UUID;
 
 @ApplicationScoped
 @Transactional
-public class MedicamentoRepositoryImpl implements MedicamentoRepository {
+public class MedicamentoRepositoryImpl
+        implements MedicamentoRepository, PanacheRepositoryBase<MedicamentoEntity, UUID> {
+
+    private static final String ENTITY_GRAPH_WITH_ESTADO = "Medicamento.withEstado";
+    private static final String FETCH_GRAPH_HINT = "jakarta.persistence.fetchgraph";
 
     @Inject
     EntityManager em;
 
     @Override
     public List<MedicamentoWithEstado> findAll() {
-        EntityGraph<?> graph = em.getEntityGraph("Medicamento.withEstado");
+        EntityGraph<?> graph = em.getEntityGraph(ENTITY_GRAPH_WITH_ESTADO);
         return em.createQuery("SELECT m FROM MedicamentoEntity m", MedicamentoEntity.class)
-                .setHint("jakarta.persistence.fetchgraph", graph)
+                .setHint(FETCH_GRAPH_HINT, graph)
                 .getResultList()
                 .stream()
                 .map(MedicamentoPersistenceMapper::toDomain)
@@ -49,11 +54,12 @@ public class MedicamentoRepositoryImpl implements MedicamentoRepository {
             params.add(new Object[]{"estado", estado});
         }
 
-        String base = "FROM MedicamentoEntity m" + (whereClause.isEmpty() ? "" : " WHERE 1=1" + whereClause);
+        String base = "FROM MedicamentoEntity m"
+                + (whereClause.isEmpty() ? "" : " WHERE 1=1" + whereClause);
 
-        EntityGraph<?> graph = em.getEntityGraph("Medicamento.withEstado");
+        EntityGraph<?> graph = em.getEntityGraph(ENTITY_GRAPH_WITH_ESTADO);
         var dataQuery = em.createQuery("SELECT m " + base, MedicamentoEntity.class)
-                .setHint("jakarta.persistence.fetchgraph", graph)
+                .setHint(FETCH_GRAPH_HINT, graph)
                 .setFirstResult(page * size)
                 .setMaxResults(size);
 
@@ -76,11 +82,11 @@ public class MedicamentoRepositoryImpl implements MedicamentoRepository {
     }
 
     @Override
-    public Optional<MedicamentoWithEstado> findById(UUID id) {
-        EntityGraph<?> graph = em.getEntityGraph("Medicamento.withEstado");
+    public Optional<MedicamentoWithEstado> findByUuid(UUID id) {
+        EntityGraph<?> graph = em.getEntityGraph(ENTITY_GRAPH_WITH_ESTADO);
         return em.createQuery("SELECT m FROM MedicamentoEntity m WHERE m.id = :id", MedicamentoEntity.class)
                 .setParameter("id", id)
-                .setHint("jakarta.persistence.fetchgraph", graph)
+                .setHint(FETCH_GRAPH_HINT, graph)
                 .getResultStream()
                 .findFirst()
                 .map(MedicamentoPersistenceMapper::toDomain);
@@ -88,10 +94,10 @@ public class MedicamentoRepositoryImpl implements MedicamentoRepository {
 
     @Override
     public Optional<MedicamentoWithEstado> findByNombre(String nombre) {
-        EntityGraph<?> graph = em.getEntityGraph("Medicamento.withEstado");
+        EntityGraph<?> graph = em.getEntityGraph(ENTITY_GRAPH_WITH_ESTADO);
         return em.createQuery("SELECT m FROM MedicamentoEntity m WHERE m.nombre = :nombre", MedicamentoEntity.class)
                 .setParameter("nombre", nombre)
-                .setHint("jakarta.persistence.fetchgraph", graph)
+                .setHint(FETCH_GRAPH_HINT, graph)
                 .getResultStream()
                 .findFirst()
                 .map(MedicamentoPersistenceMapper::toDomain);
@@ -104,16 +110,14 @@ public class MedicamentoRepositoryImpl implements MedicamentoRepository {
             throw new EstadoNotFoundException(medicamento.getEstadoId().toString());
         }
         MedicamentoEntity entity = MedicamentoPersistenceMapper.toEntity(medicamento, estadoEntity);
-        em.persist(entity);
+        persist(entity);
         return medicamento;
     }
 
     @Override
     public Medicamento update(Medicamento medicamento) {
-        MedicamentoEntity entity = em.find(MedicamentoEntity.class, medicamento.getId());
-        if (entity == null) {
-            throw new MedicamentoNotFoundException(medicamento.getId());
-        }
+        MedicamentoEntity entity = findByIdOptional(medicamento.getId())
+                .orElseThrow(() -> new MedicamentoNotFoundException(medicamento.getId()));
         MedicamentoEstadoEntity estadoEntity = em.find(MedicamentoEstadoEntity.class, medicamento.getEstadoId());
         if (estadoEntity == null) {
             throw new EstadoNotFoundException(medicamento.getEstadoId().toString());
@@ -126,9 +130,6 @@ public class MedicamentoRepositoryImpl implements MedicamentoRepository {
 
     @Override
     public void delete(UUID id) {
-        MedicamentoEntity entity = em.find(MedicamentoEntity.class, id);
-        if (entity != null) {
-            em.remove(entity);
-        }
+        deleteById(id);
     }
 }

@@ -21,7 +21,7 @@ public class GetMedicamentoByIdService implements GetMedicamentoByIdUseCase {
 
     @Override
     public MedicamentoWithEstado execute(UUID id) {
-        return medicamentoRepository.findById(id)
+        return medicamentoRepository.findByUuid(id)
                 .orElseThrow(() -> new MedicamentoNotFoundException(id));
     }
 }

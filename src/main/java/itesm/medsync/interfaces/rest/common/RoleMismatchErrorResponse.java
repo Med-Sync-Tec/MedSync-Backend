@@ -1,4 +1,4 @@
-package itesm.medsync.infrastructure.config;
+package itesm.medsync.interfaces.rest.common;
 
 import java.time.Instant;
 

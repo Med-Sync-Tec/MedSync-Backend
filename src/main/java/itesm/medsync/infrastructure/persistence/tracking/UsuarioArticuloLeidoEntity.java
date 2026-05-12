@@ -21,12 +21,12 @@ public class UsuarioArticuloLeidoEntity {
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "usuario_id", nullable = false)
+    @JoinColumn(name = "usuario_id", columnDefinition = "BINARY(16)", nullable = false)
     private UserEntity usuario;
 
     @Id
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "articulo_id", nullable = false)
+    @JoinColumn(name = "articulo_id", columnDefinition = "BINARY(16)", nullable = false)
     private ArticleEntity articulo;
 
     @CreationTimestamp

@@ -36,7 +36,7 @@ class RegisterUserServiceTest {
     @Test
     @DisplayName("Usuario existe → devuelve existente con rol cargado, no consulta rol ni guarda")
     void loginExistingUser() {
-        User existing = new User(UUID.randomUUID(), "Juan", "juan@tec.mx", UUID.randomUUID(), true, null);
+        User existing = new User(UUID.randomUUID(), "Juan", "juan@tec.mx", null, UUID.randomUUID(), true, null);
         UserWithRole existingWithRole = new UserWithRole(existing, "DOCTOR");
         when(userRepository.findByEmail("juan@tec.mx")).thenReturn(Optional.of(existingWithRole));
 

@@ -31,7 +31,7 @@ public class SyncPubmedArticlesService implements SyncPubmedArticlesUseCase {
 
     private static final String DB = "pubmed";
     private static final String TERM = "(trending[sb]) OR (2024:2025[pdat] AND medicine[all])";
-    private static final int RET_MAX = 1000;
+    private static final int RET_MAX = 100;
     private static final String RET_MODE_JSON = "json";
     private static final String RET_MODE_XML = "xml";
     private static final String RET_TYPE = "abstract";

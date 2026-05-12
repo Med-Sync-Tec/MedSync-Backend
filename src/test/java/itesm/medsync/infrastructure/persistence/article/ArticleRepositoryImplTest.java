@@ -115,11 +115,11 @@ class ArticleRepositoryImplTest {
     void crossQueryWorks() {
         UUID doctorRoleId = roleRepository.findByNombre("DOCTOR")
                 .map(Role::getId).orElseThrow();
-        User medico = userRepository.save(
-                User.create("M", "match-" + UUID.randomUUID() + "@tec.mx", doctorRoleId));
+        User medicoMatch = userRepository.save(
+                User.create("M", "match-" + UUID.randomUUID() + "@tec.mx", null, doctorRoleId));
         Patient paciente = patientRepository.save(
                 Patient.create("EXP-MATCH-" + UUID.randomUUID(),
-                        "P", LocalDate.of(1990, 1, 1), "F", medico.getId()));
+                        "P", LocalDate.of(1990, 1, 1), "F", medicoMatch.getId()));
 
         contextoRepository.save(PacienteContexto.create(
                 paciente.getId(), TipoClinico.ENFERMEDAD, "Hipertensión"));
@@ -150,11 +150,11 @@ class ArticleRepositoryImplTest {
     void crossQueryEmpty() {
         UUID doctorRoleId = roleRepository.findByNombre("DOCTOR")
                 .map(Role::getId).orElseThrow();
-        User medico = userRepository.save(
-                User.create("M", "empty-" + UUID.randomUUID() + "@tec.mx", doctorRoleId));
+        User medicoEmpty = userRepository.save(
+                User.create("M", "empty-" + UUID.randomUUID() + "@tec.mx", null, doctorRoleId));
         Patient paciente = patientRepository.save(
                 Patient.create("EXP-EMPTY-" + UUID.randomUUID(),
-                        "P", LocalDate.of(1990, 1, 1), "F", medico.getId()));
+                        "P", LocalDate.of(1990, 1, 1), "F", medicoEmpty.getId()));
 
         repository.save(newArticle("10.1234/lonely").withTagAdded(
                 ArticleTag.create(TipoClinico.ENFERMEDAD, "X")));

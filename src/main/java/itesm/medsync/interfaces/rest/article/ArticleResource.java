@@ -137,7 +137,7 @@ public class ArticleResource {
     /**
      * POST /api/articles/sync
      * Dispara la sincronización manual con la API de PubMed (esearch + efetch).
-     * En producción la sincronización ocurre automáticamente cada 5 minutos
+     * En producción la sincronización ocurre automáticamente una vez al día a las 12:00
      * via el scheduler. Este endpoint permite forzarla de forma inmediata.
      */
     @POST

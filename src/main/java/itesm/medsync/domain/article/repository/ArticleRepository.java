@@ -17,6 +17,8 @@ public interface ArticleRepository {
 
     boolean existsByDoi(String doi);
 
+    boolean existsByUrl(String url);
+
     List<Article> findMatchingArticlesForPaciente(UUID pacienteId, int limit);
 
     /**

@@ -99,6 +99,16 @@ public class ArticleRepositoryImpl
     }
 
     @Override
+    public boolean existsByUrl(String url) {
+        if (url == null || url.isBlank()) return false;
+        Long count = getEntityManager()
+                .createQuery("SELECT COUNT(a) FROM ArticleEntity a WHERE a.url = :url", Long.class)
+                .setParameter("url", url)
+                .getSingleResult();
+        return count > 0;
+    }
+
+    @Override
     public List<Article> findMatchingArticlesForPaciente(UUID pacienteId, int limit) {
         List<UUID> ids = getEntityManager().createQuery(
                 "SELECT DISTINCT a.id FROM ArticleEntity a JOIN a.tags at " +

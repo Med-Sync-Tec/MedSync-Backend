@@ -1,8 +1,10 @@
 package itesm.medsync.infrastructure.pubmed;
 
+import io.quarkus.runtime.StartupEvent;
 import io.quarkus.scheduler.Scheduled;
 import itesm.medsync.domain.article.usecase.SyncPubmedArticlesUseCase;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
 
@@ -25,6 +27,14 @@ public class PubmedSyncScheduler {
     @Inject
     public PubmedSyncScheduler(SyncPubmedArticlesUseCase syncUseCase) {
         this.syncUseCase = syncUseCase;
+    }
+
+    /**
+     * Dispara una sincronización inicial al arrancar la aplicación.
+     */
+    void onStart(@Observes StartupEvent ev) {
+        LOG.info("Startup: disparando sincronización inicial de PubMed...");
+        syncPubmedArticles();
     }
 
     @Scheduled(cron = "0 0/5 * * * ?", identity = "pubmed-sync-job")

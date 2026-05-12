@@ -30,7 +30,7 @@ public class SyncPubmedArticlesService implements SyncPubmedArticlesUseCase {
     private static final Logger LOG = Logger.getLogger(SyncPubmedArticlesService.class);
 
     private static final String DB = "pubmed";
-    private static final String TERM = "trending[sb]";
+    private static final String TERM = "(trending[sb]) OR (2024:2025[pdat] AND medicine[all])";
     private static final int RET_MAX = 1000;
     private static final String RET_MODE_JSON = "json";
     private static final String RET_MODE_XML = "xml";
@@ -120,6 +120,12 @@ public class SyncPubmedArticlesService implements SyncPubmedArticlesUseCase {
             // DOI ya existe → saltamos (los datos ya están)
             return;
         }
+
+        // Si no tiene DOI, checamos por URL para evitar duplicados en la misma sincronización
+        if (articleRepository.existsByUrl(data.url())) {
+            return;
+        }
+
         articleRepository.save(article);
     }
 

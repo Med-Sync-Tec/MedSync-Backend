@@ -46,7 +46,7 @@ class PacienteContextoRepositoryImplTest {
                 .map(Role::getId)
                 .orElseThrow(() -> new AssertionError("DOCTOR role debe existir (seed V3)"));
         User medico = userRepository.save(
-                User.create("Repo Medico Ctx", "ctx-" + UUID.randomUUID() + "@tec.mx", doctorRoleId));
+                User.create("Repo Medico Ctx", "ctx-" + UUID.randomUUID() + "@tec.mx", null, doctorRoleId));
         Patient p = patientRepository.save(
                 Patient.create("EXP-CTX-" + UUID.randomUUID(),
                         "Paciente Ctx",
@@ -85,7 +85,7 @@ class PacienteContextoRepositoryImplTest {
     @DisplayName("findByPacienteId devuelve solo los del paciente, ordenados por createdAt desc")
     void findByPacienteIdScoped() {
         UUID otroDoctor = userRepository.save(
-                User.create("Otro Medico Ctx", "ctx2-" + UUID.randomUUID() + "@tec.mx",
+                User.create("Otro Medico Ctx", "ctx2-" + UUID.randomUUID() + "@tec.mx", null,
                         roleRepository.findByNombre("DOCTOR").map(Role::getId).orElseThrow()))
                 .getId();
         UUID otroPaciente = patientRepository.save(

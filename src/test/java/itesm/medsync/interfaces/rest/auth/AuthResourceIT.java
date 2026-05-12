@@ -39,7 +39,7 @@ class AuthResourceIT {
                 .orElseThrow(() -> new AssertionError(roleName + " role debe existir (seed V3)"));
         return userRepository.save(
                 User.create(roleName + " User", roleName.toLowerCase() + "-" + UUID.randomUUID() + "@tec.mx",
-                        roleRepository.findByNombre(roleName).map(Role::getId).orElseThrow()));
+                        null, roleRepository.findByNombre(roleName).map(Role::getId).orElseThrow()));
     }
 
     @BeforeEach

@@ -46,7 +46,7 @@ class AdminResourceIT {
         return userRepository.save(
                 User.create(roleName + " caller",
                         roleName.toLowerCase() + "-admin-" + UUID.randomUUID() + "@tec.mx",
-                        roleId));
+                        null, roleId));
     }
 
     @BeforeEach

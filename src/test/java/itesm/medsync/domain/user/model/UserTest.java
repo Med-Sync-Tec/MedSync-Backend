@@ -20,14 +20,14 @@ class UserTest {
     private static final String VALID_CORREO = "juan@tec.mx";
 
     private User newValidUser() {
-        return new User(VALID_ID, VALID_NOMBRE, VALID_CORREO, VALID_ROL_ID, true, null);
+        return new User(VALID_ID, VALID_NOMBRE, VALID_CORREO, null, VALID_ROL_ID, true, null);
     }
 
     @Test
     @DisplayName("Constructor válido crea instancia con todos los campos")
     void constructorValid() {
         LocalDateTime now = LocalDateTime.now();
-        User u = new User(VALID_ID, VALID_NOMBRE, VALID_CORREO, VALID_ROL_ID, true, now);
+        User u = new User(VALID_ID, VALID_NOMBRE, VALID_CORREO, null, VALID_ROL_ID, true, now);
         assertEquals(VALID_ID, u.getId());
         assertEquals(VALID_NOMBRE, u.getNombre());
         assertEquals(VALID_CORREO, u.getCorreo());
@@ -40,7 +40,7 @@ class UserTest {
     @DisplayName("id null lanza InvalidUserDataException")
     void constructorIdNull() {
         assertThrows(InvalidUserDataException.class,
-                () -> new User(null, VALID_NOMBRE, VALID_CORREO, VALID_ROL_ID, true, null));
+                () -> new User(null, VALID_NOMBRE, VALID_CORREO, null, VALID_ROL_ID, true, null));
     }
 
     @ParameterizedTest(name = "nombre inválido: [{0}]")
@@ -49,7 +49,7 @@ class UserTest {
     @DisplayName("nombre null/blank lanza InvalidUserDataException")
     void constructorNombreBlank(String invalid) {
         assertThrows(InvalidUserDataException.class,
-                () -> new User(VALID_ID, invalid, VALID_CORREO, VALID_ROL_ID, true, null));
+                () -> new User(VALID_ID, invalid, VALID_CORREO, null, VALID_ROL_ID, true, null));
     }
 
     @ParameterizedTest(name = "correo inválido: [{0}]")
@@ -58,20 +58,20 @@ class UserTest {
     @DisplayName("correo null/blank/malformado lanza InvalidUserDataException")
     void constructorCorreoInvalid(String invalid) {
         assertThrows(InvalidUserDataException.class,
-                () -> new User(VALID_ID, VALID_NOMBRE, invalid, VALID_ROL_ID, true, null));
+                () -> new User(VALID_ID, VALID_NOMBRE, invalid, null, VALID_ROL_ID, true, null));
     }
 
     @Test
     @DisplayName("rolId null lanza InvalidUserDataException")
     void constructorRolIdNull() {
         assertThrows(InvalidUserDataException.class,
-                () -> new User(VALID_ID, VALID_NOMBRE, VALID_CORREO, null, true, null));
+                () -> new User(VALID_ID, VALID_NOMBRE, VALID_CORREO, null, null, true, null));
     }
 
     @Test
     @DisplayName("User.create genera UUID nuevo, activo=true, createdAt null")
     void factoryCreate() {
-        User u = User.create(VALID_NOMBRE, VALID_CORREO, VALID_ROL_ID);
+        User u = User.create(VALID_NOMBRE, VALID_CORREO, null, VALID_ROL_ID);
         assertNotNull(u.getId());
         assertEquals(VALID_NOMBRE, u.getNombre());
         assertEquals(VALID_CORREO, u.getCorreo());
@@ -96,9 +96,9 @@ class UserTest {
     @Test
     @DisplayName("equals/hashCode basados en id")
     void equalsAndHashCode() {
-        User a = new User(VALID_ID, "Juan", "juan@tec.mx", VALID_ROL_ID, true, null);
-        User b = new User(VALID_ID, "Otro", "otro@tec.mx", UUID.randomUUID(), false, LocalDateTime.now());
-        User c = new User(UUID.randomUUID(), "Juan", "juan@tec.mx", VALID_ROL_ID, true, null);
+        User a = new User(VALID_ID, "Juan", "juan@tec.mx", null, VALID_ROL_ID, true, null);
+        User b = new User(VALID_ID, "Otro", "otro@tec.mx", null, UUID.randomUUID(), false, LocalDateTime.now());
+        User c = new User(UUID.randomUUID(), "Juan", "juan@tec.mx", null, VALID_ROL_ID, true, null);
 
         assertEquals(a, b);
         assertEquals(a.hashCode(), b.hashCode());

@@ -48,7 +48,7 @@ class PacienteContextoResourceIT {
                 .map(Role::getId)
                 .orElseThrow(() -> new AssertionError("DOCTOR role debe existir (seed V3)"));
         User medico = userRepository.save(
-                User.create("IT Medico", "it-ctx-" + UUID.randomUUID() + "@tec.mx", doctorRoleId));
+                User.create("IT Medico", "it-ctx-" + UUID.randomUUID() + "@tec.mx", null, doctorRoleId));
         Patient p = patientRepository.save(
                 Patient.create("EXP-IT-CTX-" + UUID.randomUUID(),
                         "Paciente IT", LocalDate.of(1990, 1, 1), "F", medico.getId()));

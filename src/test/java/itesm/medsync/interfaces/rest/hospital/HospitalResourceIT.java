@@ -44,7 +44,7 @@ class HospitalResourceIT {
                 .map(Role::getId)
                 .orElseThrow(() -> new AssertionError("DOCTOR role debe existir (seed V3)"));
         User testMedico = userRepository.save(
-                User.create("Hosp IT Medico", "hosp-it-" + UUID.randomUUID() + "@tec.mx", doctorRoleId));
+                User.create("Hosp IT Medico", "hosp-it-" + UUID.randomUUID() + "@tec.mx", null, doctorRoleId));
         when(userContext.getCurrentUser()).thenReturn(new UserWithRole(testMedico, "DOCTOR"));
     }
 

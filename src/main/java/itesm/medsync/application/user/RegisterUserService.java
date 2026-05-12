@@ -35,7 +35,7 @@ public class RegisterUserService implements LoginOrRegisterUserUseCase {
     private UserWithRole createDefaultUser(String email, String name) {
         Role role = roleRepository.findByNombre(DEFAULT_ROLE)
                 .orElseThrow(() -> new RoleNotFoundException(DEFAULT_ROLE));
-        User newUser = User.create(name, email, role.getId());
+        User newUser = User.create(name, email, null, role.getId());
         User saved = userRepository.save(newUser);
         return new UserWithRole(saved, role.getNombre());
     }

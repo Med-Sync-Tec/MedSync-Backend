@@ -300,6 +300,15 @@ LIMIT :limit
 
 The new `AND c.especialidad_id = a.especialidad_id` clause means **rows on either side with NULL `especialidad_id` are excluded** (SQL NULL ≠ NULL). This is the intended behavior — un-analyzed articles and un-tagged contexts are not part of the matching pipeline until they are explicitly enriched.
 
+### Database-side support (from `database-objects`)
+
+The [`12-05-2026-database-objects/`](../12-05-2026-database-objects/) snapshot ships two MySQL-side objects that interact with this feature:
+
+1. **`tr_article_tags_bump_updated_at_{ins,upd,del}`** — bumps `articulos_cientificos.updated_at` whenever the article's tag list changes. Without it, the AI-replacement flow (Hibernate `cascade = ALL, orphanRemoval = true` on `@OneToMany`) emits DELETE-old + INSERT-new on `articulo_tags` without touching the parent row, so `@UpdateTimestamp` does not fire and the matching query's `ORDER BY a.updated_at DESC` silently misorders. The triggers are the fix.
+2. **`sp_match_articles_for_patient(p_patient_id, p_limit)`** — a parallel MySQL procedure that mirrors the JPQL query above. It is **not** called from `ArticleRepositoryImpl` (which would break H2); it exists for Workbench-side demos and as the canonical SQL definition of the matching rules. When this feature ships and the join clause changes, both `ArticleRepositoryImpl.findMatchingArticlesForPaciente` AND `sp_match_articles_for_patient` must be updated together.
+
+Both objects are MySQL-only. On H2 the triggers are absent and `updated_at` stays stale on cascaded tag changes — acceptable in dev/test because the matching-order assertion is not exercised by any current test.
+
 ## Cross-feature impact
 
 | Existing feature   | Affected artifact                            | Change                                                                                                                | Migration that lands it |

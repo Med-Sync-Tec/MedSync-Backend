@@ -54,6 +54,7 @@ The link points to the latest snapshot.
 | `patient-context`      | Implemented    | [1-05-2026-patient-context/](1-05-2026-patient-context/)                       |
 | `specialty`            | Implemented    | [12-05-2026-specialty/](12-05-2026-specialty/)                                 |
 | `medical-vocabulary`   | Implemented    | [12-05-2026-medical-vocabulary/](12-05-2026-medical-vocabulary/)               |
+| `database-objects`     | Implemented    | [12-05-2026-database-objects/](12-05-2026-database-objects/)                   |
 | `article-ai-analysis`  | Spec drafted   | [12-05-2026-article-ai-analysis/](12-05-2026-article-ai-analysis/)             |
 | `consulta-ai-analysis` | Spec drafted   | [12-05-2026-consulta-ai-analysis/](12-05-2026-consulta-ai-analysis/)           |
 | `alert`                | Planned        | *(spec not yet written)*                                                       |

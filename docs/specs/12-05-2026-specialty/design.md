@@ -292,6 +292,10 @@ These three changes ship together with this spec's migrations. They modify the s
 
 The new bulk endpoint `POST /api/patients/{patientId}/contextos/bulk` and the matching-query filter (`AND a.especialidad_id = c.especialidad_id`) are introduced by features 3 and 4 — they are not in scope for this spec.
 
+### Database-side enforcement (from `database-objects`)
+
+The [`12-05-2026-database-objects/`](../12-05-2026-database-objects/) spec adds a MySQL-only `BEFORE UPDATE` trigger `tr_specialty_soft_delete_guard` that rejects a soft-delete (`activo` TRUE → FALSE) while any article or `paciente_contexto` row still references the specialty. The trigger lives in `db/vendor_mysql/V13__add_database_objects.sql` and complements `SoftDeleteSpecialtyService` — the application service still runs, but on MySQL a soft-delete with dangling references surfaces as a `SQLException` from the JDBC layer (currently mapped to 500 by `FallbackMapper`; a clean 409 mapping is deferred). On H2 dev / `@QuarkusTest`, the trigger is absent and the dangling-reference case is silent — the application is expected to call this out via the COO UI before invoking the delete.
+
 > **Note.** The existing `specs/1-05-2026-<feature>/` spec remains the canonical record for unchanged behavior; modified behavior will be re-snapshotted as `specs/<implementation-date>-<feature>/` when this work ships.
 
 ## Key technical decisions

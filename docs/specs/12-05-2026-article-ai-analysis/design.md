@@ -18,17 +18,27 @@ Supporting types (all in `domain/shared/model/`):
 
 ```java
 // Request to analyze an article — drives both classification and extraction in one call.
+// At least ONE of titulo / abstractText / keywords must be non-blank (caller's
+// responsibility); the gateway concatenates whichever are non-blank into the LLM prompt.
+// PubMed letters, editorials, and older records frequently lack an abstract; the
+// gateway degrades gracefully to title + keywords instead of failing.
 public record ArticleAnalysisRequest(
-    String titulo,                        // optional input signal, may be blank
-    String abstractText,                  // required, non-blank
-    String keywords,                      // optional input signal, may be blank
+    String titulo,                        // may be blank
+    String abstractText,                  // may be blank (PubMed letters / editorials)
+    String keywords,                      // may be blank
     List<SpecialtyDescriptor> candidateSpecialties,
     Map<UUID, Vocabulary> vocabulariesById
-) {}
+) {
+    public boolean hasAbstract() {
+        return abstractText != null && !abstractText.isBlank();
+    }
+}
 
 public record SpecialtyDescriptor(UUID id, String nombre, String slug, String descripcion) {}
 
-public record ArticleAnalysisResult(UUID especialidadId, List<ExtractedTag> tags) {}
+// hadAbstract echoes whether the gateway was able to use the abstract; the REST
+// layer surfaces it so the frontend can show a low-confidence disclaimer.
+public record ArticleAnalysisResult(UUID especialidadId, List<ExtractedTag> tags, boolean hadAbstract) {}
 
 public record ExtractedTag(TipoClinico tipo, String valor) {}
 
@@ -106,7 +116,8 @@ record AnalyzeArticleResponse(
     List<AnalyzedTagResponse> tags,
     String modelUsed,
     int promptTokens,
-    int completionTokens
+    int completionTokens,
+    boolean hadAbstract            // false when the article was analyzed from title + keywords only
 )
 
 record AnalyzedTagResponse(UUID id, String tipo, String valor)
@@ -120,11 +131,14 @@ public record ArticleAnalysisResult(
     List<ExtractedTag> tags,
     String modelUsed,
     int promptTokens,
-    int completionTokens
+    int completionTokens,
+    boolean hadAbstract            // echoes ArticleAnalysisRequest.hasAbstract()
 ) {}
 ```
 
-`ConsultaAnalysisResult` carries the same observability triple.
+`hadAbstract` lets the frontend render a disclaimer like "Analyzed without abstract — fewer tags than usual" when the source article had only title and/or keywords. The boolean is sufficient for that purpose; if we ever need finer provenance (e.g. "title only" vs "title + keywords"), we can promote it to an enum later.
+
+`ConsultaAnalysisResult` carries the same observability triple (no `hadAbstract` equivalent — the consulta flow always has SOAP text or it fails at the 400 step).
 
 ## Groq HTTP integration
 
@@ -179,7 +193,7 @@ Required prerequisite of JSON mode: the system prompt must instruct the model to
 
 The article method makes **two** sequential HTTP calls:
 
-**Step 1 — Specialty classification.** Prompt asks the model to pick one specialty id from a JSON-formatted list of `{id, nombre, slug, descripcion}` candidates given the article's `titulo + abstractText + keywords`. Required response shape (enforced by JSON mode):
+**Step 1 — Specialty classification.** Prompt asks the model to pick one specialty id from a JSON-formatted list of `{id, nombre, slug, descripcion}` candidates given the article's available text fields. The gateway concatenates whichever of `titulo`, `abstractText`, and `keywords` are non-blank under labelled headers (`[TÍTULO]`, `[ABSTRACT]`, `[KEYWORDS]`). PubMed letters/editorials without an abstract still classify well from the title alone — the title is unusually descriptive in biomedical literature. Required response shape (enforced by JSON mode):
 
 ```json
 { "especialidadId": "00000000-0000-2000-8000-000000000001" }
@@ -205,20 +219,20 @@ The gateway:
 3. Parses the inner JSON via Jackson.
 4. For step 1: asserts `especialidadId` is a valid UUID and is present in the input `candidateSpecialties`. Otherwise → `AiAnalysisException`.
 5. For step 2: for each returned tag, asserts `tipo` is a valid `TipoClinico` and `vocabulary.containsTerm(tipo, valor)` is true. Unknown tags are **filtered out** (not fatal); a count is logged. If the filtered list is empty, → `AiAnalysisException` ("no valid tags after vocabulary filter").
-6. Captures `usage.prompt_tokens` and `usage.completion_tokens` from the Groq response into the `ArticleAnalysisResult`.
+6. Captures `usage.prompt_tokens` and `usage.completion_tokens` from the Groq response, and sets `hadAbstract = request.hasAbstract()` on the `ArticleAnalysisResult`.
 
 Timeout enforcement: `HttpClient.newBuilder().connectTimeout(...)` plus per-request `HttpRequest.newBuilder().timeout(Duration.ofSeconds(...))`. On `HttpTimeoutException` → `AiAnalysisTimeoutException`.
 
 ### Token estimate (informational)
 
-Per article: ~1k input tokens (abstract + 16 specialty descriptors) + ~500 output tokens for step 1; ~500 input tokens (vocabulary slice) + ~200 output tokens for step 2. Combined ~2.2k tokens. Groq's free tier at the time of writing allows ~12k tokens/min on `llama-3.3-70b-versatile`, so a single analysis fits comfortably within one minute's budget. The same budget is shared across all users of the same API key — multi-doctor concurrent demos may need to slow down.
+Per article (full input): ~1k input tokens (abstract + 16 specialty descriptors) + ~500 output tokens for step 1; ~500 input tokens (vocabulary slice) + ~200 output tokens for step 2. Combined ~2.2k tokens. An abstract-less article (title + keywords only) is roughly half that. Groq's free tier at the time of writing allows ~12k tokens/min on `llama-3.3-70b-versatile`, so a single analysis fits comfortably within one minute's budget. The same budget is shared across all users of the same API key — multi-doctor concurrent demos may need to slow down.
 
 ## Validation
 
 | Level     | Check                                                                       | Location                                                |
 |-----------|-----------------------------------------------------------------------------|---------------------------------------------------------|
 | App-level | Article exists                                                              | `AnalyzeArticleWithAiService`                           |
-| App-level | Article has non-blank `abstractText`                                        | `AnalyzeArticleWithAiService` (throws `InvalidArticleDataException`) |
+| App-level | At least one of `titulo`, `abstractText`, `keywords` is non-blank           | `AnalyzeArticleWithAiService` (throws `InvalidArticleDataException` only when **all three** are blank) |
 | App-level | Returned `especialidadId` belongs to active specialty set                   | `GroqAiAnalysisGateway`                                 |
 | App-level | Each returned tag exists in the chosen specialty's vocabulary               | `GroqAiAnalysisGateway` (filters silently, logs count) |
 | App-level | At least one tag survives the filter                                        | `GroqAiAnalysisGateway` (else `AiAnalysisException`)    |
@@ -229,7 +243,7 @@ Per article: ~1k input tokens (abstract + 16 specialty descriptors) + ~500 outpu
 | Exception                       | HTTP | Notes                                                                  |
 |---------------------------------|------|------------------------------------------------------------------------|
 | `ArticleNotFoundException`      | 404  | Reused from `article` feature.                                         |
-| `InvalidArticleDataException`   | 400  | Reused; new message "Article has no abstract — AI analysis requires non-empty abstractText". |
+| `InvalidArticleDataException`   | 400  | Reused; new message "Article has no analyzable text — titulo, abstractText, and keywords are all blank". |
 | `AiAnalysisException`           | 502  | New. Wraps Groq transport / parsing failures and free-tier 429s.       |
 | `AiAnalysisTimeoutException`    | 504  | New. Distinct from generic 502 so monitoring can alert on it.          |
 | `AiConfigurationException`      | (boot abort) | New. Thrown only at startup; not mapped to HTTP.               |
@@ -247,7 +261,7 @@ Doctor       ArticleAiResource     AnalyzeArticleService     ArticleRepo   SpecR
   │                  execute(id, caller) ───►                       │            │            │            │                          │
   │                                           findByUuid(id) ───────►                       │            │            │                          │
   │                                           ◄── Article (or 404) │                       │            │            │                          │
-  │                                           assert abstractText non-blank (else 400)      │            │            │                          │
+  │                                           assert at least one of titulo/abstractText/keywords is non-blank (else 400)              │            │                          │
   │                                           findAllActive() ────────────────►                          │            │            │                          │
   │                                           ◄── List<Specialty> ────────────│                         │            │            │                          │
   │                                           for each: getVocabularyFor(s.id) ─────────────►            │            │            │                          │
@@ -370,6 +384,14 @@ Groq exposes an OpenAI-compatible endpoint, so the request/response shapes are O
 ### 12. JSON mode over prompt-only structure
 
 Groq honors `response_format: { "type": "json_object" }` by constraining the model's decoder to emit only valid JSON. We rely on it for both classification and extraction calls. This removes a class of "the LLM wrapped the JSON in prose" parsing failures that the Anthropic-targeted earlier draft of this spec had to defend against with a brace-balanced extractor.
+
+### 13. Graceful degradation when the article has no abstract
+
+A non-trivial fraction of PubMed records — letters to the editor, editorials, news items, and older entries that were never abstract-ingested — arrive with `abstractText` null or blank. Rejecting these with a 400 would force the frontend to disable the "Analyze with AI" button on what looks (to a doctor) like a perfectly normal article, which is bad UX.
+
+Instead, the gateway concatenates whichever of `titulo`, `abstractText`, and `keywords` are non-blank into the prompt. PubMed titles are unusually descriptive ("Trastuzumab deruxtecan in HER2-low metastatic breast cancer: a phase 3 trial") so even title-only classification typically lands on the correct specialty. Tag extraction yields fewer tags from a thin input, but produces *correct* tags (the vocabulary filter still applies), and the response carries `hadAbstract=false` so the frontend can render a low-key disclaimer.
+
+The hard 400 is reserved for the case where **all three** text fields are blank — at that point the row is structurally not an article and there is nothing for the LLM to read.
 
 ## Open technical decisions / risks
 

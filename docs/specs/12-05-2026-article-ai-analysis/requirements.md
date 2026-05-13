@@ -22,22 +22,24 @@ This feature also tightens the article-to-patient matching query so it joins on 
 - The system shall constrain extracted tags to the set of canonical terms in the chosen specialty's `Vocabulary` (case-insensitive match per `Vocabulary.containsTerm`).
 - The system shall **replace** the article's existing tags atomically with the AI-extracted set on each invocation. The `articulo.especialidad_id` is overwritten with the AI's classification.
 - The system shall surface analysis observability — the gateway logs the model used, the token counts returned by the Groq API (`usage.prompt_tokens`, `usage.completion_tokens`), and the analyzed article id at INFO level for every successful call.
+- The system shall accept articles **with or without** an `abstractText`. Whichever of `titulo`, `abstractText`, and `keywords` are non-blank are concatenated into the LLM prompt. The response carries a boolean `hadAbstract` flag so the frontend can render a "fewer tags than usual — analyzed without abstract" disclaimer when appropriate.
 
 ### Event-driven
 
 - When a `POST /api/articles/{id}/analyze` request arrives from an authenticated user and the article exists, the system shall:
-  1. Load the article (with `abstractText`, `titulo`, `keywords`).
-  2. Load all active specialties and their vocabularies.
-  3. Call `AiAnalysisGateway.analyzeArticle(...)`, receiving `(especialidadId, List<ExtractedTag>)`.
-  4. Validate that `especialidadId` is in the active-specialty set and each `ExtractedTag` is in the chosen specialty's vocabulary.
-  5. Persist the article with the new `especialidad_id` and **replaced** tag list in one transaction.
-  6. Return `200 OK` with the analysis result.
+  1. Load the article (with `titulo`, `abstractText`, `keywords`).
+  2. Reject with `400` if all three text fields are blank (see "Conditional" below); otherwise continue.
+  3. Load all active specialties and their vocabularies.
+  4. Call `AiAnalysisGateway.analyzeArticle(...)` with whichever fields are non-blank, receiving `(especialidadId, List<ExtractedTag>, hadAbstract)`.
+  5. Validate that `especialidadId` is in the active-specialty set and each `ExtractedTag` is in the chosen specialty's vocabulary.
+  6. Persist the article with the new `especialidad_id` and **replaced** tag list in one transaction.
+  7. Return `200 OK` with the analysis result (including `hadAbstract`).
 - When the existing matching query `GET /api/patients/{patientId}/matching-articles` runs, the system shall additionally require `articulo.especialidad_id = paciente_contexto.especialidad_id` in the join.
 
 ### Conditional
 
 - If the path `{id}` does not match an existing article, the system shall return `404 Not Found` (`ArticleNotFoundException`).
-- If the article has no `abstractText` (null or empty after trim), the system shall return `400 Bad Request` (`InvalidArticleDataException` with message `"Article has no abstract — AI analysis requires non-empty abstractText"`).
+- If **all** of the article's `titulo`, `abstractText`, and `keywords` fields are null/blank after trim, the system shall return `400 Bad Request` (`InvalidArticleDataException` with message `"Article has no analyzable text — titulo, abstractText, and keywords are all blank"`). An article with at least one non-blank field is analyzable; the abstract is *preferred* but not *required*.
 - If the Groq API returns an unparseable response, an unknown specialty id, or no valid tags after filtering, the system shall return `502 Bad Gateway` (`AiAnalysisException`).
 - If the Groq API call exceeds the configured `ai.groq.timeout`, the system shall return `504 Gateway Timeout` (`AiAnalysisTimeoutException`).
 - If the unauthenticated, the system shall return `401 Unauthorized` (already enforced by the auth filter).

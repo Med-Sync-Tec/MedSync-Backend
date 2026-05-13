@@ -10,8 +10,8 @@ The operator runs all test commands.
 
 - [ ] Add `domain/shared/model/SpecialtyDescriptor.java` (record `(UUID id, String nombre, String slug, String descripcion)`)
 - [ ] Add `domain/shared/model/ExtractedTag.java` (record `(TipoClinico tipo, String valor)`)
-- [ ] Add `domain/shared/model/ArticleAnalysisRequest.java` (record per `design.md`)
-- [ ] Add `domain/shared/model/ArticleAnalysisResult.java` (record `(UUID especialidadId, List<ExtractedTag> tags, String modelUsed, int promptTokens, int completionTokens)`)
+- [ ] Add `domain/shared/model/ArticleAnalysisRequest.java` (record per `design.md`, with `hasAbstract()` helper)
+- [ ] Add `domain/shared/model/ArticleAnalysisResult.java` (record `(UUID especialidadId, List<ExtractedTag> tags, String modelUsed, int promptTokens, int completionTokens, boolean hadAbstract)`)
 - [ ] Add `domain/shared/model/ConsultaAnalysisRequest.java` (record `(String consultaText, Vocabulary vocabulary)`)
 - [ ] Add `domain/shared/model/ConsultaAnalysisResult.java` (record `(List<ExtractedTag> tags, String modelUsed, int promptTokens, int completionTokens)`)
 - [ ] Define `domain/shared/repository/AiAnalysisGateway.java` with the two methods listed in `design.md`
@@ -31,9 +31,11 @@ The operator runs all test commands.
 ## Application (`application/articleaianalysis/`)
 
 - [ ] Write `AnalyzeArticleWithAiServiceTest` (Mockito) covering:
-  - Happy path: article exists, abstract non-blank, gateway returns valid `(especialidadId, tags)`, repository called with replaced tags + new especialidadId.
+  - Happy path: article has abstract, gateway returns valid `(especialidadId, tags, hadAbstract=true)`, repository called with replaced tags + new especialidadId.
   - Article missing → `ArticleNotFoundException`.
-  - Article exists but `abstractText` is blank / null / whitespace-only → `InvalidArticleDataException`.
+  - **Abstract-less degraded path**: `abstractText` is blank but `titulo` is non-blank → service calls the gateway with the same request, gateway result has `hadAbstract=false`, repository called normally. Assert no exception.
+  - Title + keywords only (no abstract): same as above, `hadAbstract=false`.
+  - Article exists but `titulo`, `abstractText`, **and** `keywords` are all blank/null → `InvalidArticleDataException`. Gateway must not be called (`verifyNoInteractions(aiGateway)`).
   - Gateway throws `AiAnalysisException` → propagated.
   - Gateway throws `AiAnalysisTimeoutException` → propagated.
   - The vocabulary lookup is driven by the chosen specialty id (assert the mock interactions).
@@ -47,7 +49,9 @@ The operator runs all test commands.
 - [ ] Write `GroqAiAnalysisGatewayConfigTest` (unit, pure JUnit) covering: missing api-key → `AiConfigurationException`; blank api-key → `AiConfigurationException`; valid config → no throw → **RED**
 - [ ] Implement `GroqAiAnalysisGatewayConfig` (`@ApplicationScoped`, observes `StartupEvent`; validates config; exposes config record for the gateway to consume) → **GREEN**
 - [ ] Write `GroqAiAnalysisGatewayTest` (unit, pure JUnit, uses WireMock or a hand-rolled `HttpClient`-fake) covering:
-  - **Article happy path**: classify call returns `{ "especialidadId": "<known-uuid>" }` (Groq JSON mode), extract call returns 3 valid tags → returns `ArticleAnalysisResult` with 3 tags.
+  - **Article happy path (full input)**: request has non-blank `titulo` + `abstractText` + `keywords`; classify call returns `{ "especialidadId": "<known-uuid>" }` (Groq JSON mode), extract call returns 3 valid tags → returns `ArticleAnalysisResult` with 3 tags and `hadAbstract=true`. Prompt body sent to Groq contains all three labelled sections (`[TÍTULO]`, `[ABSTRACT]`, `[KEYWORDS]`) — assert via WireMock request-body matcher.
+  - **Article degraded path (no abstract)**: request has non-blank `titulo` (and optional `keywords`) but blank `abstractText`; classify and extract still succeed → result has `hadAbstract=false`. Prompt body contains `[TÍTULO]` (and `[KEYWORDS]` if present) but no `[ABSTRACT]` section.
+  - **Article degraded path (title only)**: request has only `titulo` non-blank; same behavior — `hadAbstract=false`, prompt body contains only `[TÍTULO]`.
   - Unknown `especialidadId` (not in candidates) → `AiAnalysisException`.
   - Classify response is valid JSON but missing the `especialidadId` field → `AiAnalysisException`.
   - Extract response is valid JSON but missing the `tags` field → `AiAnalysisException`.
@@ -68,9 +72,10 @@ The operator runs all test commands.
   - Owns two prompt template files under `src/main/resources/prompts/`: `classify-article.txt`, `extract-tags.txt`.
   - JSON envelope (de)serialization via Jackson.
   - Sends Bearer auth header and `response_format: { type: "json_object" }` on every call.
-  - `analyzeArticle(request)` executes step 1 (classify) then step 2 (extract using the chosen vocabulary).
+  - Builds the article-prompt input by concatenating whichever of `titulo`, `abstractText`, `keywords` are non-blank under labelled headers (`[TÍTULO]`, `[ABSTRACT]`, `[KEYWORDS]`); skips blank sections entirely so the prompt does not contain empty headers.
+  - `analyzeArticle(request)` executes step 1 (classify) then step 2 (extract using the chosen vocabulary). Sets `hadAbstract = request.hasAbstract()` on the returned result.
   - `analyzeConsultaText(request)` executes one extract call.
-  - Logs at INFO on success (article id or consulta excerpt hash, model, `prompt_tokens`, `completion_tokens`); at WARN on filtered terms; at ERROR on transport failures before wrapping into the domain exception.
+  - Logs at INFO on success (article id or consulta excerpt hash, model, `prompt_tokens`, `completion_tokens`, `hadAbstract` for article calls); at WARN on filtered terms; at ERROR on transport failures before wrapping into the domain exception.
   → **GREEN**
 - [ ] Add `infrastructure/ai/GroqEnvelope` records (small Jackson-mapped types for the OpenAI-compatible request/response shape — not exposed outside this package). Includes `GroqChatRequest`, `GroqMessage`, `GroqResponseFormat`, `GroqChatResponse`, `GroqChoice`, `GroqUsage`.
 - [ ] Add `src/main/resources/prompts/classify-article.txt` and `extract-tags.txt` with the prompt templates documented in `design.md`. Use `{{placeholder}}` syntax for substitution. Both prompts must explicitly instruct the model to "respond with a single JSON object matching the schema below" — required by Groq's JSON mode.
@@ -90,13 +95,14 @@ The operator runs all test commands.
 ## REST (`interfaces/rest/articleaianalysis/`)
 
 - [ ] Write `AnalyzeArticleResourceIT` (`@QuarkusTest` + RestAssured) covering one test per status code:
-  - 200 happy path (mock the gateway via `QuarkusMock.installMockForType(...)` to return a fixed `ArticleAnalysisResult`).
-  - 400 on article with no abstract.
+  - 200 happy path with abstract (mock the gateway via `QuarkusMock.installMockForType(...)` to return a fixed `ArticleAnalysisResult` with `hadAbstract=true`) — response body includes `hadAbstract: true`.
+  - 200 abstract-less path: article fixture has blank `abstractText` but non-blank `titulo`; mocked gateway returns `hadAbstract=false`; response body includes `hadAbstract: false` and a non-empty `tags` array.
+  - 400 when the article fixture has `titulo`, `abstractText`, and `keywords` all blank/null.
   - 401 unauthenticated.
   - 404 on unknown article id.
   - 502 when the mocked gateway throws `AiAnalysisException`.
   - 504 when the mocked gateway throws `AiAnalysisTimeoutException`.
-  - Response body includes `articleId`, `especialidadId`, `especialidadNombre`, `tags`, `modelUsed`, `promptTokens`, `completionTokens`.
+  - Response body includes `articleId`, `especialidadId`, `especialidadNombre`, `tags`, `modelUsed`, `promptTokens`, `completionTokens`, `hadAbstract`.
   - Tags are persisted: a follow-up `GET /api/articles/{id}` shows the new tag list and `especialidadId`.
   → **RED**
 - [ ] Implement `interfaces/rest/articleaianalysis/AnalyzedTagResponse.java` (record per `design.md`)
@@ -117,10 +123,10 @@ The operator runs all test commands.
 - [ ] `./mvnw verify -DskipITs=false` all green
 - [ ] Coverage ≥ 80% on `domain/articleaianalysis` and `application/articleaianalysis`
 - [ ] Manual smoke test (operator, with `GROQ_API_KEY` set in env — obtain a free key at <https://console.groq.com/keys>):
-  - Trigger `POST /api/articles/{id}/analyze` for one of the PubMed-imported cardiología articles via Swagger.
-  - Confirm `200 OK` with non-empty tags and `especialidadId = cardiología`.
-  - Confirm `GET /api/articles/{id}` reflects the saved state.
-  - Confirm `GET /api/patients/{p}/matching-articles` now returns this article for a cardiology-tagged patient.
+  - Trigger `POST /api/articles/{id}/analyze` for one of the PubMed-imported cardiología articles via Swagger. Confirm `200 OK` with non-empty tags, `especialidadId = cardiología`, and `hadAbstract: true`.
+  - Pick a PubMed-imported article whose `abstractText` is empty (letter / editorial — easy to find via SQL `SELECT id FROM articulos_cientificos WHERE abstract_text IS NULL OR TRIM(abstract_text) = '' LIMIT 1`). Trigger `POST /api/articles/{id}/analyze` on it. Confirm `200 OK` with `hadAbstract: false` and at least one tag.
+  - Confirm `GET /api/articles/{id}` reflects the saved state for both cases.
+  - Confirm `GET /api/patients/{p}/matching-articles` now returns these articles for a cardiology-tagged patient.
 - [ ] Negative smoke test: unset `GROQ_API_KEY` and confirm `./mvnw quarkus:dev` aborts at boot with `AiConfigurationException`.
 
 ## Wrap-up

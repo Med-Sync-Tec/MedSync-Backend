@@ -2,7 +2,7 @@
 
 ## Overview
 
-A doctor-triggered endpoint that reads a consultation from the hospital database, joins its SOAP fields (motivo, subjetivo, objetivo, evaluación, plan, prescripción, diagnóstico) into a single text blob, and uses Claude Haiku 4.5 to extract a constrained list of `(tipo, valor)` clinical-context suggestions drawn from **the authenticated doctor's specialty vocabulary**.
+A doctor-triggered endpoint that reads a consultation from the hospital database, joins its SOAP fields (motivo, subjetivo, objetivo, evaluación, plan, prescripción, diagnóstico) into a single text blob, and uses **Groq Llama 3.3 70B Versatile** (via the shared `AiAnalysisGateway` from feature 3) to extract a constrained list of `(tipo, valor)` clinical-context suggestions drawn from **the authenticated doctor's specialty vocabulary**.
 
 Unlike the article flow, this endpoint **does not persist** the AI output. It returns the suggestions, the frontend shows them to the doctor for confirmation, and the doctor selects which ones to accept. A separate bulk endpoint (`POST /api/patients/{patientId}/contextos/bulk`, added to the existing `patient-context` feature) persists the accepted subset. Every persisted `paciente_contexto` row inherits the doctor's specialty (same rule introduced in feature 1).
 
@@ -19,7 +19,7 @@ Unlike the article flow, this endpoint **does not persist** the AI output. It re
 
 - The system shall expose `POST /api/consultas/{consultaId}/analyze` to any authenticated user with an assigned specialty.
 - The system shall expose `POST /api/patients/{patientId}/contextos/bulk` to any authenticated user (cross-feature addition to `patient-context`).
-- The system shall use the same `AiAnalysisGateway` (Anthropic Claude Haiku 4.5 via raw HTTP) introduced by feature 3 — no separate gateway, no separate model configuration.
+- The system shall use the same `AiAnalysisGateway` (Groq Llama 3.3 70B Versatile via raw HTTP, OpenAI-compatible API) introduced by feature 3 — no separate gateway, no separate model configuration.
 - The system shall scope vocabulary selection by the **authenticated user's** `User.especialidadId` (the original consulta doctor recorded in the hospital DB is **not** consulted).
 - The system shall **not** persist any data from the analyze endpoint — the response is purely suggestions for the frontend to display.
 - The system shall persist accepted entries in a single transaction at the bulk endpoint — all entries succeed together or none do.
@@ -45,8 +45,8 @@ Unlike the article flow, this endpoint **does not persist** the AI output. It re
 - If the joined consulta text is blank (all SOAP and adjunct fields are null or empty), the system shall return `400 Bad Request` (`InvalidConsultaDataException`, new) with a message naming the consulta id.
 - If the authenticated user has no `especialidadId`, the system shall return `400 Bad Request` (`UserHasNoSpecialtyException`, new) — the doctor must have a specialty before the AI flow can choose a vocabulary.
 - If the doctor's specialty exists but has an **empty** vocabulary (no JSON file or all four `TipoClinico` buckets empty), the system shall return `200 OK` with `suggestions: []` and a clear `vocabularyStatus: "empty"` flag in the response — this is not an error, it is a degraded mode.
-- If the Anthropic API returns malformed output, the system shall return `502 Bad Gateway` (reuses `AiAnalysisException` from feature 3).
-- If the Anthropic API call exceeds the configured timeout, the system shall return `504 Gateway Timeout` (reuses `AiAnalysisTimeoutException`).
+- If the Groq API returns malformed output, the system shall return `502 Bad Gateway` (reuses `AiAnalysisException` from feature 3).
+- If the Groq API call exceeds the configured timeout, the system shall return `504 Gateway Timeout` (reuses `AiAnalysisTimeoutException`).
 - If unauthenticated, the system shall return `401 Unauthorized`.
 
 ### Conditional (`/contextos/bulk`)
@@ -59,9 +59,9 @@ Unlike the article flow, this endpoint **does not persist** the AI output. It re
 
 ## Non-functional requirements
 
-- **Latency**: P95 analyze call ≤ 6 seconds (one Anthropic round-trip).
-- **Cost**: each analyze call consumes one Haiku 4.5 input window (consulta text + vocabulary slice). Estimated < $0.01 per call.
-- **No data leaves the boundary except via the gateway**: the consulta text contains PHI; we send it to Anthropic. This is the same trust boundary as feature 3's abstract-sending and is documented in the AI vendor agreement, not re-litigated here.
+- **Latency**: P95 analyze call ≤ 6 seconds (one Groq round-trip; typical latency is 1–3 s).
+- **Cost**: each analyze call consumes one Llama 3.3 70B input window (consulta text + vocabulary slice). At the project's scale this stays inside Groq's free-tier quota (~12k tokens/min on `llama-3.3-70b-versatile` at the time of writing); a single consulta is comfortably under 4k tokens combined.
+- **No data leaves the boundary except via the gateway**: the consulta text contains PHI; we send it to Groq Cloud. This is the same trust boundary as feature 3's abstract-sending and is documented in the AI vendor agreement, not re-litigated here.
 - **Test coverage**: ≥ 80% on `domain/consultaaianalysis` and `application/consultaaianalysis`. The bulk-endpoint additions to `patient-context` are covered by additions to the existing patient-context test suites.
 
 ## Out of scope (explicit)
@@ -77,5 +77,5 @@ Unlike the article flow, this endpoint **does not persist** the AI output. It re
 
 ## Open questions
 
-- Should the analyze response include a `confidence` score per suggestion? *Not blocking — Anthropic Haiku does not natively return calibrated confidences without further prompting. Revisit if doctors ask for it.*
-- Should we cap consulta text length sent to Anthropic to avoid token blowouts on very long records? *Yes — truncate at 50,000 chars (the upper-bound of a verbose multi-page consulta) and log a warning. Detail in design.md.*
+- Should the analyze response include a `confidence` score per suggestion? *Not blocking — `llama-3.3-70b-versatile` does not natively return calibrated confidences without further prompting. Revisit if doctors ask for it.*
+- Should we cap consulta text length sent to Groq to avoid token blowouts on very long records? *Yes — truncate at 50,000 chars (the upper-bound of a verbose multi-page consulta) and log a warning. Detail in design.md.*

@@ -37,11 +37,11 @@ public record ConsultaAnalysisRequest(String consultaText, Vocabulary vocabulary
 public record ConsultaAnalysisResult(List<ExtractedTag> tags) {}
 ```
 
-`AiAnalysisGateway` is a `*Gateway` (external system over HTTP) per [ADR 0002](../../../architecture/decisions/0002-gateway-vs-repository.md). The implementation is `ClaudeAiAnalysisGateway` in `infrastructure/ai/`, shared by both features 3 and 4.
+`AiAnalysisGateway` is a `*Gateway` (external system over HTTP) per [ADR 0002](../../../architecture/decisions/0002-gateway-vs-repository.md). The implementation is `GroqAiAnalysisGateway` in `infrastructure/ai/`, shared by both features 3 and 4. The port name is provider-agnostic so a future migration to a different LLM vendor would not break domain or application layers — only the impl is swapped.
 
 ### Why one gateway with two methods, not three
 
-The prompt mandates "single `AiAnalysisGateway` with two methods (`analyzeArticle`, `analyzeConsultaText`)". The article method internally orchestrates two HTTP calls to Claude (classify → extract); the consulta method makes one. Both call paths share authentication, error mapping, timeout policy, and observability. Splitting into three port methods would force callers to know about the classify/extract decomposition that is purely an implementation detail of the Anthropic-backed adapter.
+The prompt mandates "single `AiAnalysisGateway` with two methods (`analyzeArticle`, `analyzeConsultaText`)". The article method internally orchestrates two HTTP calls to Groq (classify → extract); the consulta method makes one. Both call paths share authentication, error mapping, timeout policy, and observability. Splitting into three port methods would force callers to know about the classify/extract decomposition that is purely an implementation detail of the Groq-backed adapter.
 
 ## Domain model (article-side additions)
 
@@ -61,7 +61,7 @@ The `Article` aggregate (defined in [specs/article/1-05-2026/design.md](../../ar
 
 | Exception                       | HTTP | When                                              |
 |---------------------------------|------|---------------------------------------------------|
-| `AiAnalysisException`           | 502  | Anthropic returns garbage / unknown specialty id / no valid tags after vocab filter |
+| `AiAnalysisException`           | 502  | Groq returns garbage / unknown specialty id / no valid tags after vocab filter |
 | `AiAnalysisTimeoutException`    | 504  | The configured timeout elapses before the API responds |
 | `AiConfigurationException`      | (boot abort) | API key missing or blank at startup       |
 
@@ -105,40 +105,42 @@ record AnalyzeArticleResponse(
     String especialidadNombre,
     List<AnalyzedTagResponse> tags,
     String modelUsed,
-    int inputTokens,
-    int outputTokens
+    int promptTokens,
+    int completionTokens
 )
 
 record AnalyzedTagResponse(UUID id, String tipo, String valor)
 ```
 
-The `modelUsed` / `inputTokens` / `outputTokens` fields are surface-level observability — they help the frontend show "Analyzed with claude-haiku-4-5-20251001 in 1.2k tokens" so the doctor has a sense of provenance. The gateway captures these from the Anthropic response envelope and propagates them through `ArticleAnalysisResult` (extended below) — `ArticleAnalysisResult` becomes:
+The `modelUsed` / `promptTokens` / `completionTokens` fields are surface-level observability — they help the frontend show "Analyzed with llama-3.3-70b-versatile in 1.2k tokens" so the doctor has a sense of provenance. The gateway captures these from the Groq response envelope (`usage.prompt_tokens` + `usage.completion_tokens`) and propagates them through `ArticleAnalysisResult` (extended below) — `ArticleAnalysisResult` becomes:
 
 ```java
 public record ArticleAnalysisResult(
     UUID especialidadId,
     List<ExtractedTag> tags,
     String modelUsed,
-    int inputTokens,
-    int outputTokens
+    int promptTokens,
+    int completionTokens
 ) {}
 ```
 
 `ConsultaAnalysisResult` carries the same observability triple.
 
-## Anthropic HTTP integration
+## Groq HTTP integration
 
 ### Configuration (`application.properties`)
 
 ```properties
-ai.anthropic.api-key=${ANTHROPIC_API_KEY:}
-ai.anthropic.model=claude-haiku-4-5-20251001
-ai.anthropic.max-tokens=2048
-ai.anthropic.timeout=30s
-ai.anthropic.base-url=https://api.anthropic.com/v1
+ai.groq.api-key=${GROQ_API_KEY:}
+ai.groq.model=llama-3.3-70b-versatile
+ai.groq.max-tokens=2048
+ai.groq.timeout=30s
+ai.groq.base-url=https://api.groq.com/openai/v1
 ```
 
-The default `api-key` is empty — at `@Startup`, `ClaudeAiAnalysisGateway` checks for non-blank and throws `AiConfigurationException` if missing. This is the fail-fast behavior required.
+The default `api-key` is empty — at `@Startup`, `GroqAiAnalysisGateway` checks for non-blank and throws `AiConfigurationException` if missing. This is the fail-fast behavior required.
+
+`GROQ_API_KEY` is obtained from the free Groq Cloud console at <https://console.groq.com/keys> — no credit card required for the free tier used by this project.
 
 ### Transport
 
@@ -150,29 +152,37 @@ Use the JDK 21 `java.net.http.HttpClient` directly. Reasons:
 
 ### Request shape
 
+Groq exposes the OpenAI-compatible Chat Completions API. Authentication is a standard Bearer token; the request and response shapes are OpenAI-style, **not** the Anthropic Messages shape — there is no `anthropic-version` header and no top-level `system` field.
+
 ```http
-POST {base-url}/messages
-x-api-key: {api-key}
-anthropic-version: 2023-06-01
-content-type: application/json
+POST {base-url}/chat/completions
+Authorization: Bearer {api-key}
+Content-Type: application/json
 
 {
-  "model": "claude-haiku-4-5-20251001",
+  "model": "llama-3.3-70b-versatile",
   "max_tokens": 2048,
+  "temperature": 0,
+  "response_format": { "type": "json_object" },
   "messages": [
-    { "role": "user", "content": "<system prompt + payload>" }
+    { "role": "system", "content": "<system prompt>" },
+    { "role": "user",   "content": "<payload>" }
   ]
 }
 ```
+
+The `response_format: { "type": "json_object" }` directive enables Groq's JSON mode, which forces the model to return a syntactically valid JSON object. This simplifies the gateway's parser — we still validate the *shape* of the JSON, but we no longer need a brace-balanced extractor to fish JSON out of prose.
+
+Required prerequisite of JSON mode: the system prompt must instruct the model to respond with JSON; otherwise Groq returns an error. Our gateway prompts include "Respond with a single JSON object matching the schema below." for both calls.
 
 ### Two-step article flow inside `analyzeArticle`
 
 The article method makes **two** sequential HTTP calls:
 
-**Step 1 — Specialty classification.** Prompt asks the model to pick one specialty id from a JSON-formatted list of `{id, nombre, slug, descripcion}` candidates given the article's `titulo + abstractText + keywords`. Required response shape (we enforce structured output via prompt — Anthropic responds in plain text, our parser extracts the JSON block):
+**Step 1 — Specialty classification.** Prompt asks the model to pick one specialty id from a JSON-formatted list of `{id, nombre, slug, descripcion}` candidates given the article's `titulo + abstractText + keywords`. Required response shape (enforced by JSON mode):
 
 ```json
-{ "especialidadId": "00000000-0000-1000-8000-000000000001" }
+{ "especialidadId": "00000000-0000-2000-8000-000000000001" }
 ```
 
 **Step 2 — Tag extraction.** With the chosen specialty's `Vocabulary` (flattened into `Map<String tipoName, List<String valores>>`), the second prompt asks for `(tipo, valor)` extractions strictly drawn from the provided terms. Required response:
@@ -190,18 +200,18 @@ The article method makes **two** sequential HTTP calls:
 
 The gateway:
 
-1. Asserts the HTTP status is `2xx`. Non-2xx → `AiAnalysisException` carrying the upstream status code in the message.
-2. Parses the Anthropic envelope's `content[0].text` field.
-3. Extracts the first JSON object from the text (the LLM may include prose around it — we strip non-JSON prefixes/suffixes using a brace-balanced extractor).
+1. Asserts the HTTP status is `2xx`. Non-2xx → `AiAnalysisException` carrying the upstream status code in the message. A 429 (free-tier rate limit) maps the same way; an empty body or 5xx surfaces as 502.
+2. Parses the Groq response envelope and extracts `choices[0].message.content`. With JSON mode, this string is itself a valid JSON document.
+3. Parses the inner JSON via Jackson.
 4. For step 1: asserts `especialidadId` is a valid UUID and is present in the input `candidateSpecialties`. Otherwise → `AiAnalysisException`.
 5. For step 2: for each returned tag, asserts `tipo` is a valid `TipoClinico` and `vocabulary.containsTerm(tipo, valor)` is true. Unknown tags are **filtered out** (not fatal); a count is logged. If the filtered list is empty, → `AiAnalysisException` ("no valid tags after vocabulary filter").
-6. Captures `usage.input_tokens` and `usage.output_tokens` from the Anthropic response into the `ArticleAnalysisResult`.
+6. Captures `usage.prompt_tokens` and `usage.completion_tokens` from the Groq response into the `ArticleAnalysisResult`.
 
 Timeout enforcement: `HttpClient.newBuilder().connectTimeout(...)` plus per-request `HttpRequest.newBuilder().timeout(Duration.ofSeconds(...))`. On `HttpTimeoutException` → `AiAnalysisTimeoutException`.
 
-### Cost / token estimate (informational)
+### Token estimate (informational)
 
-Per article: ~1k input tokens (abstract + 16 specialty descriptors) + ~500 output tokens for step 1; ~500 input tokens (vocabulary slice) + ~200 output tokens for step 2. Combined ~2.2k tokens. Haiku 4.5 input/output pricing puts this under $0.01 per analysis at current rates.
+Per article: ~1k input tokens (abstract + 16 specialty descriptors) + ~500 output tokens for step 1; ~500 input tokens (vocabulary slice) + ~200 output tokens for step 2. Combined ~2.2k tokens. Groq's free tier at the time of writing allows ~12k tokens/min on `llama-3.3-70b-versatile`, so a single analysis fits comfortably within one minute's budget. The same budget is shared across all users of the same API key — multi-doctor concurrent demos may need to slow down.
 
 ## Validation
 
@@ -209,10 +219,10 @@ Per article: ~1k input tokens (abstract + 16 specialty descriptors) + ~500 outpu
 |-----------|-----------------------------------------------------------------------------|---------------------------------------------------------|
 | App-level | Article exists                                                              | `AnalyzeArticleWithAiService`                           |
 | App-level | Article has non-blank `abstractText`                                        | `AnalyzeArticleWithAiService` (throws `InvalidArticleDataException`) |
-| App-level | Returned `especialidadId` belongs to active specialty set                   | `ClaudeAiAnalysisGateway`                               |
-| App-level | Each returned tag exists in the chosen specialty's vocabulary               | `ClaudeAiAnalysisGateway` (filters silently, logs count) |
-| App-level | At least one tag survives the filter                                        | `ClaudeAiAnalysisGateway` (else `AiAnalysisException`)  |
-| Config    | `ai.anthropic.api-key` non-blank                                            | `ClaudeAiAnalysisGateway` `@Startup`                    |
+| App-level | Returned `especialidadId` belongs to active specialty set                   | `GroqAiAnalysisGateway`                                 |
+| App-level | Each returned tag exists in the chosen specialty's vocabulary               | `GroqAiAnalysisGateway` (filters silently, logs count) |
+| App-level | At least one tag survives the filter                                        | `GroqAiAnalysisGateway` (else `AiAnalysisException`)    |
+| Config    | `ai.groq.api-key` non-blank                                                 | `GroqAiAnalysisGateway` `@Startup`                      |
 
 ## Exceptions
 
@@ -220,7 +230,7 @@ Per article: ~1k input tokens (abstract + 16 specialty descriptors) + ~500 outpu
 |---------------------------------|------|------------------------------------------------------------------------|
 | `ArticleNotFoundException`      | 404  | Reused from `article` feature.                                         |
 | `InvalidArticleDataException`   | 400  | Reused; new message "Article has no abstract — AI analysis requires non-empty abstractText". |
-| `AiAnalysisException`           | 502  | New. Wrap Anthropic transport / parsing failures.                      |
+| `AiAnalysisException`           | 502  | New. Wraps Groq transport / parsing failures and free-tier 429s.       |
 | `AiAnalysisTimeoutException`    | 504  | New. Distinct from generic 502 so monitoring can alert on it.          |
 | `AiConfigurationException`      | (boot abort) | New. Thrown only at startup; not mapped to HTTP.               |
 
@@ -231,7 +241,7 @@ All three new exceptions are wired into `GlobalExceptionHandler`.
 ### Analyze article
 
 ```
-Doctor       ArticleAiResource     AnalyzeArticleService     ArticleRepo   SpecRepo   VocabRepo   AiGateway                  Anthropic
+Doctor       ArticleAiResource     AnalyzeArticleService     ArticleRepo   SpecRepo   VocabRepo   AiGateway                  Groq
   │ POST /api/articles/{id}/analyze         │                       │            │            │            │                          │
   │ ────────────────────────►                │                       │            │            │            │                          │
   │                  execute(id, caller) ───►                       │            │            │            │                          │
@@ -243,9 +253,9 @@ Doctor       ArticleAiResource     AnalyzeArticleService     ArticleRepo   SpecR
   │                                           for each: getVocabularyFor(s.id) ─────────────►            │            │            │                          │
   │                                           ◄── Map<UUID, Vocabulary> ────────────────────│            │            │            │                          │
   │                                           analyzeArticle(request) ───────────────────────────────────►            │            │                          │
-  │                                                            POST /v1/messages (classify) ─────────────────────────►│                          │
+  │                                                            POST /chat/completions (classify) ───────────────────►│                          │
   │                                                            ◄── { especialidadId } ────────────────────────────── │                          │
-  │                                                            POST /v1/messages (extract using chosen vocab) ──────►│                          │
+  │                                                            POST /chat/completions (extract using chosen vocab) ─►│                          │
   │                                                            ◄── { tags: [...] } ──────────────────────────────── │                          │
   │                                           ◄── ArticleAnalysisResult ───────────────────────────────│            │            │                          │
   │                                           article ← article.withAiAnalysis(esp, tags)              │            │            │                          │
@@ -255,7 +265,7 @@ Doctor       ArticleAiResource     AnalyzeArticleService     ArticleRepo   SpecR
   │ ◄── 200 + body ──│                                                  │                       │            │            │            │                          │
 ```
 
-Transaction boundary: the whole `execute(...)` method is `@Transactional`. The Anthropic HTTP calls happen **inside** the transaction. This means a slow Anthropic response holds a DB connection longer than ideal. Trade-off accepted: keeping HTTP outside the transaction would require splitting the flow into "analyze (no DB)" + "save (no AI)" with potential race conditions on re-invocation. At MVP scale (manual trigger, low concurrency), the simpler model wins.
+Transaction boundary: the whole `execute(...)` method is `@Transactional`. The Groq HTTP calls happen **inside** the transaction. This means a slow Groq response holds a DB connection longer than ideal. Trade-off accepted: keeping HTTP outside the transaction would require splitting the flow into "analyze (no DB)" + "save (no AI)" with potential race conditions on re-invocation. At MVP scale (manual trigger, low concurrency), the simpler model wins. Groq is typically fast (1–3 s per call), which mitigates the concern in practice.
 
 ### Updated matching query (`GetMatchingArticlesByPatient`)
 
@@ -286,7 +296,7 @@ The new `AND c.especialidad_id = a.especialidad_id` clause means **rows on eithe
 | `article`          | `GetMatchingArticlesByPatientService`        | No code change — the service delegates to the repository; the SQL change happens in the impl.                          | (no change)             |
 | `article`          | `ArticleResponse` DTO                        | **Already** updated by feature 1 to expose `especialidadId` + `especialidadNombre`. No further change in feature 3.    | (no change)             |
 | `infrastructure/config` | `GlobalExceptionHandler`                 | Adds mappings for `AiAnalysisException → 502`, `AiAnalysisTimeoutException → 504`.                                    | (code only)             |
-| `application.properties` | AI configuration block                 | Adds `ai.anthropic.*` keys with defaults; documents required env var `ANTHROPIC_API_KEY`.                              | (code only)             |
+| `application.properties` | AI configuration block                 | Adds `ai.groq.*` keys with defaults; documents required env var `GROQ_API_KEY`.                                       | (code only)             |
 
 > **Note.** The existing `specs/article/1-05-2026/` spec remains the canonical record for unchanged behavior; modified behavior will be re-snapshotted as `specs/article/<implementation-date>/` when this work ships.
 
@@ -296,7 +306,7 @@ No database migration is required for this feature — feature 1 already added `
 
 ### 1. Two-step LLM flow inside the gateway
 
-Classifying and extracting in one prompt with all 16 vocabularies' worth of terms (~3,200 lines) would exceed Haiku 4.5's reasonable input window and pay for unused tokens (15 of 16 vocabularies are irrelevant once the specialty is chosen). Splitting into two calls keeps each prompt under 2 KB of input and lets us reuse `analyzeConsultaText`'s extraction logic conceptually for step 2.
+Classifying and extracting in one prompt with all 16 vocabularies' worth of terms (~3,200 lines) would inflate every prompt with content that is irrelevant once the specialty is chosen (15 of 16 vocabularies). Splitting into two calls keeps each prompt under 2 KB of input, stays well inside the free-tier per-minute token budget, and lets us reuse `analyzeConsultaText`'s extraction logic conceptually for step 2.
 
 ### 2. Replace, not append, on every invocation
 
@@ -317,9 +327,10 @@ Unlike tags, the classification result must be one of the candidate specialties.
 
 ### 5. AI calls inside the DB transaction
 
-`AnalyzeArticleWithAiService` is `@Transactional`. The Anthropic round-trips happen inside the transaction. This is a known anti-pattern (long-held DB connection) but is acceptable here because:
+`AnalyzeArticleWithAiService` is `@Transactional`. The Groq round-trips happen inside the transaction. This is a known anti-pattern (long-held DB connection) but is acceptable here because:
 
 - Manual trigger only — no high concurrency.
+- Groq is fast (typically <3 s per call), making the held connection short-lived.
 - The alternative (split flow) introduces races and complexity that don't pay off at MVP scale.
 - If concurrency becomes a problem, we revisit by introducing a "stage analysis result, then commit" two-phase flow.
 
@@ -331,11 +342,11 @@ JDK 21's `HttpClient` gives us per-request timeouts, native async support, and z
 
 ### 7. Observability via response fields, not metrics
 
-`modelUsed`, `inputTokens`, `outputTokens` are surfaced in the API response. We considered Prometheus counters but kept them out of this MVP — usage analysis can be done by tailing the gateway's INFO logs which include the same data. When usage grows, a `Metrics` instrument is a small follow-up.
+`modelUsed`, `promptTokens`, `completionTokens` are surfaced in the API response. We considered Prometheus counters but kept them out of this MVP — usage analysis can be done by tailing the gateway's INFO logs which include the same data. When usage grows, a `Metrics` instrument is a small follow-up.
 
 ### 8. Fail-fast on missing API key at boot
 
-A misconfigured `ai.anthropic.api-key` would otherwise surface as a 502 on the first analyze call — confusing for the operator and visible to the doctor. Failing at boot puts the error in the deployment log where operators look first.
+A misconfigured `ai.groq.api-key` would otherwise surface as a 502 on the first analyze call — confusing for the operator and visible to the doctor. Failing at boot puts the error in the deployment log where operators look first.
 
 ### 9. The matching query loses NULL-on-either-side rows
 
@@ -352,9 +363,18 @@ articleRepo.save(article);
 
 If a future test needs to construct an analyzed article from scratch, the same method works.
 
+### 11. Groq's OpenAI-compatible API, not a multi-provider abstraction
+
+Groq exposes an OpenAI-compatible endpoint, so the request/response shapes are OpenAI-style (Bearer auth, `messages` array with `system` + `user` roles, `usage.prompt_tokens` / `usage.completion_tokens`). We deliberately do **not** add a provider-agnostic abstraction (e.g. a "ChatCompletion" interface with Anthropic / OpenAI / Groq backends) — YAGNI. The domain port `AiAnalysisGateway` is provider-agnostic at the *behavior* level (it talks about "analyze article", not "POST chat completion"); the impl is hard-wired to Groq. If a second provider becomes a real requirement, a new spec introduces the abstraction at that point.
+
+### 12. JSON mode over prompt-only structure
+
+Groq honors `response_format: { "type": "json_object" }` by constraining the model's decoder to emit only valid JSON. We rely on it for both classification and extraction calls. This removes a class of "the LLM wrapped the JSON in prose" parsing failures that the Anthropic-targeted earlier draft of this spec had to defend against with a brace-balanced extractor.
+
 ## Open technical decisions / risks
 
-- **Anthropic API outage / 429 rate limiting.** No retries with backoff in MVP — a 429 surfaces as a 502 to the doctor with a clear message. If rate limiting becomes a real issue (multiple doctors clicking simultaneously), we add exponential backoff inside the gateway.
+- **Free-tier 429 rate limiting.** No retries with backoff in MVP — a 429 surfaces as a 502 to the doctor with a clear message ("AI service rate limit exceeded, try again in a minute"). If demos hit this regularly, we add exponential backoff inside the gateway and surface a 503 with `Retry-After` instead.
 - **Prompt injection in article abstracts.** Hostile abstracts could try to manipulate the LLM (`"Ignore previous instructions and …"`). Mitigations: we wrap the abstract in clear delimiters in the prompt and instruct the LLM to treat the inner text as data. We do not have a perfect defense; the worst case is a wrong tag, which the doctor catches and removes.
 - **Specialty drift.** If new specialties are added at runtime (via feature 1's COO endpoint) without vocabulary JSON files, they appear in the classification candidates but have an empty vocabulary. Step 2 would then produce zero tags → `AiAnalysisException` 502. The operator must ship a vocabulary file in the next release. Flagged in the requirements but not blocking.
 - **LLM picks an extinct vocabulary for an article that better fits a stub specialty.** Because the prompt presents all specialty descriptors equally, a borderline article might be classified into a stub specialty with 4 terms, then step 2 finds nothing. Mitigation: the gateway includes `descripcion` in the descriptor; richer descriptions improve classification. Long-term mitigation: fill in vocabularies.
+- **Provider lock-in.** Hard-wiring the impl to Groq means a migration to another provider is a rewrite of `GroqAiAnalysisGateway`. Acceptable for MVP — the rewrite scope is one class plus the config block; the domain layer is unaffected.

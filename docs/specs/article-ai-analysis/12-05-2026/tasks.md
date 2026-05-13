@@ -11,9 +11,9 @@ The operator runs all test commands.
 - [ ] Add `domain/shared/model/SpecialtyDescriptor.java` (record `(UUID id, String nombre, String slug, String descripcion)`)
 - [ ] Add `domain/shared/model/ExtractedTag.java` (record `(TipoClinico tipo, String valor)`)
 - [ ] Add `domain/shared/model/ArticleAnalysisRequest.java` (record per `design.md`)
-- [ ] Add `domain/shared/model/ArticleAnalysisResult.java` (record `(UUID especialidadId, List<ExtractedTag> tags, String modelUsed, int inputTokens, int outputTokens)`)
+- [ ] Add `domain/shared/model/ArticleAnalysisResult.java` (record `(UUID especialidadId, List<ExtractedTag> tags, String modelUsed, int promptTokens, int completionTokens)`)
 - [ ] Add `domain/shared/model/ConsultaAnalysisRequest.java` (record `(String consultaText, Vocabulary vocabulary)`)
-- [ ] Add `domain/shared/model/ConsultaAnalysisResult.java` (record `(List<ExtractedTag> tags, String modelUsed, int inputTokens, int outputTokens)`)
+- [ ] Add `domain/shared/model/ConsultaAnalysisResult.java` (record `(List<ExtractedTag> tags, String modelUsed, int promptTokens, int completionTokens)`)
 - [ ] Define `domain/shared/repository/AiAnalysisGateway.java` with the two methods listed in `design.md`
 
 ## Domain (`domain/articleaianalysis/`)
@@ -42,34 +42,38 @@ The operator runs all test commands.
 
 ## Infrastructure (`infrastructure/ai/`)
 
-- [ ] Add `application.properties` keys: `ai.anthropic.api-key`, `ai.anthropic.model`, `ai.anthropic.max-tokens`, `ai.anthropic.timeout`, `ai.anthropic.base-url` (with defaults per `design.md`)
-- [ ] Add `%test.ai.anthropic.api-key=test-stub` to `application.properties` so `@QuarkusTest` boots without a real key (the gateway is mocked in tests)
-- [ ] Write `ClaudeAiAnalysisGatewayConfigTest` (unit, pure JUnit) covering: missing api-key → `AiConfigurationException`; blank api-key → `AiConfigurationException`; valid config → no throw → **RED**
-- [ ] Implement `ClaudeAiAnalysisGatewayConfig` (`@ApplicationScoped`, observes `StartupEvent`; validates config; exposes config record for the gateway to consume) → **GREEN**
-- [ ] Write `ClaudeAiAnalysisGatewayTest` (unit, pure JUnit, uses WireMock or a hand-rolled `HttpClient`-fake) covering:
-  - **Article happy path**: classify call returns `{ "especialidadId": "<known-uuid>" }`, extract call returns 3 valid tags → returns `ArticleAnalysisResult` with 3 tags.
+- [ ] Add `application.properties` keys: `ai.groq.api-key`, `ai.groq.model`, `ai.groq.max-tokens`, `ai.groq.timeout`, `ai.groq.base-url` (with defaults per `design.md`)
+- [ ] Add `%test.ai.groq.api-key=test-stub` to `application.properties` so `@QuarkusTest` boots without a real key (the gateway is mocked in tests)
+- [ ] Write `GroqAiAnalysisGatewayConfigTest` (unit, pure JUnit) covering: missing api-key → `AiConfigurationException`; blank api-key → `AiConfigurationException`; valid config → no throw → **RED**
+- [ ] Implement `GroqAiAnalysisGatewayConfig` (`@ApplicationScoped`, observes `StartupEvent`; validates config; exposes config record for the gateway to consume) → **GREEN**
+- [ ] Write `GroqAiAnalysisGatewayTest` (unit, pure JUnit, uses WireMock or a hand-rolled `HttpClient`-fake) covering:
+  - **Article happy path**: classify call returns `{ "especialidadId": "<known-uuid>" }` (Groq JSON mode), extract call returns 3 valid tags → returns `ArticleAnalysisResult` with 3 tags.
   - Unknown `especialidadId` (not in candidates) → `AiAnalysisException`.
-  - Malformed JSON in classify response (e.g. text with no JSON object) → `AiAnalysisException`.
-  - Malformed JSON in extract response → `AiAnalysisException`.
+  - Classify response is valid JSON but missing the `especialidadId` field → `AiAnalysisException`.
+  - Extract response is valid JSON but missing the `tags` field → `AiAnalysisException`.
   - Extract returns 3 tags, 2 are not in the vocabulary → result has only the 1 valid tag, WARN logged for each filtered tag.
   - Extract returns only tags that fail the vocabulary check → `AiAnalysisException` ("no valid tags after vocabulary filter").
-  - Anthropic returns HTTP 429 → `AiAnalysisException` carrying the status in the message.
-  - Anthropic returns HTTP 500 → `AiAnalysisException`.
-  - Request exceeds `ai.anthropic.timeout` → `AiAnalysisTimeoutException`.
-  - `usage.input_tokens` and `usage.output_tokens` from the Anthropic response are captured in the result.
+  - Groq returns HTTP 429 (free-tier rate limit) → `AiAnalysisException` carrying the status in the message.
+  - Groq returns HTTP 500 → `AiAnalysisException`.
+  - Groq returns HTTP 401 (invalid api-key) → `AiAnalysisException` with a hint that the key is wrong.
+  - Request exceeds `ai.groq.timeout` → `AiAnalysisTimeoutException`.
+  - `usage.prompt_tokens` and `usage.completion_tokens` from the Groq response are captured in the result.
+  - Request body sent to Groq includes `response_format: { type: "json_object" }`, the configured `model`, and the configured `max_tokens` (assert via WireMock request matchers).
+  - Request includes `Authorization: Bearer <api-key>` header.
   - **Consulta happy path**: extract returns 2 valid tags → returns `ConsultaAnalysisResult` with 2 tags.
-  - Consulta extract: malformed JSON / vocabulary-filtered-to-empty cases mirror the article extract behavior.
+  - Consulta extract: missing-fields / vocabulary-filtered-to-empty cases mirror the article extract behavior.
   → **RED**
-- [ ] Implement `infrastructure/ai/ClaudeAiAnalysisGateway` (`@ApplicationScoped` implements `AiAnalysisGateway`):
+- [ ] Implement `infrastructure/ai/GroqAiAnalysisGateway` (`@ApplicationScoped` implements `AiAnalysisGateway`):
   - Builds a single `HttpClient` with `connectTimeout` from config.
   - Owns two prompt template files under `src/main/resources/prompts/`: `classify-article.txt`, `extract-tags.txt`.
   - JSON envelope (de)serialization via Jackson.
+  - Sends Bearer auth header and `response_format: { type: "json_object" }` on every call.
   - `analyzeArticle(request)` executes step 1 (classify) then step 2 (extract using the chosen vocabulary).
   - `analyzeConsultaText(request)` executes one extract call.
-  - Logs at INFO on success (article id or consulta excerpt hash, model, token counts); at WARN on filtered terms; at ERROR on transport failures before wrapping into the domain exception.
+  - Logs at INFO on success (article id or consulta excerpt hash, model, `prompt_tokens`, `completion_tokens`); at WARN on filtered terms; at ERROR on transport failures before wrapping into the domain exception.
   → **GREEN**
-- [ ] Add `infrastructure/ai/AnthropicEnvelope` records (small Jackson-mapped types for the request/response shape — not exposed outside this package)
-- [ ] Add `src/main/resources/prompts/classify-article.txt` and `extract-tags.txt` with the prompt templates documented in `design.md`. Use `{{placeholder}}` syntax for substitution.
+- [ ] Add `infrastructure/ai/GroqEnvelope` records (small Jackson-mapped types for the OpenAI-compatible request/response shape — not exposed outside this package). Includes `GroqChatRequest`, `GroqMessage`, `GroqResponseFormat`, `GroqChatResponse`, `GroqChoice`, `GroqUsage`.
+- [ ] Add `src/main/resources/prompts/classify-article.txt` and `extract-tags.txt` with the prompt templates documented in `design.md`. Use `{{placeholder}}` syntax for substitution. Both prompts must explicitly instruct the model to "respond with a single JSON object matching the schema below" — required by Groq's JSON mode.
 
 ## Article repository update (cross-feature)
 
@@ -92,7 +96,7 @@ The operator runs all test commands.
   - 404 on unknown article id.
   - 502 when the mocked gateway throws `AiAnalysisException`.
   - 504 when the mocked gateway throws `AiAnalysisTimeoutException`.
-  - Response body includes `articleId`, `especialidadId`, `especialidadNombre`, `tags`, `modelUsed`, `inputTokens`, `outputTokens`.
+  - Response body includes `articleId`, `especialidadId`, `especialidadNombre`, `tags`, `modelUsed`, `promptTokens`, `completionTokens`.
   - Tags are persisted: a follow-up `GET /api/articles/{id}` shows the new tag list and `especialidadId`.
   → **RED**
 - [ ] Implement `interfaces/rest/articleaianalysis/AnalyzedTagResponse.java` (record per `design.md`)
@@ -112,12 +116,12 @@ The operator runs all test commands.
 - [ ] `./mvnw test` all green
 - [ ] `./mvnw verify -DskipITs=false` all green
 - [ ] Coverage ≥ 80% on `domain/articleaianalysis` and `application/articleaianalysis`
-- [ ] Manual smoke test (operator, with `ANTHROPIC_API_KEY` set in env):
+- [ ] Manual smoke test (operator, with `GROQ_API_KEY` set in env — obtain a free key at <https://console.groq.com/keys>):
   - Trigger `POST /api/articles/{id}/analyze` for one of the PubMed-imported cardiología articles via Swagger.
   - Confirm `200 OK` with non-empty tags and `especialidadId = cardiología`.
   - Confirm `GET /api/articles/{id}` reflects the saved state.
   - Confirm `GET /api/patients/{p}/matching-articles` now returns this article for a cardiology-tagged patient.
-- [ ] Negative smoke test: unset `ANTHROPIC_API_KEY` and confirm `./mvnw quarkus:dev` aborts at boot with `AiConfigurationException`.
+- [ ] Negative smoke test: unset `GROQ_API_KEY` and confirm `./mvnw quarkus:dev` aborts at boot with `AiConfigurationException`.
 
 ## Wrap-up
 

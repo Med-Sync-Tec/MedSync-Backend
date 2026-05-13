@@ -1,6 +1,6 @@
 # Feature: Consulta AI Analysis — Design
 
-> Spec name: `consulta-ai-analysis`. Java package: `consultaaianalysis`. Depends on features 1 (`specialty`), 2 (`medical-vocabulary`), and **the shared `AiAnalysisGateway` introduced in feature 3** (`article-ai-analysis`). This spec adds no new gateway, no new model, no new Anthropic configuration — it reuses the integration shipped by feature 3. Cross-feature impact also extends `patient-context` with a new bulk endpoint.
+> Spec name: `consulta-ai-analysis`. Java package: `consultaaianalysis`. Depends on features 1 (`specialty`), 2 (`medical-vocabulary`), and **the shared `AiAnalysisGateway` introduced in feature 3** (`article-ai-analysis`). This spec adds no new gateway, no new model, no new Groq configuration — it reuses the integration shipped by feature 3. Cross-feature impact also extends `patient-context` with a new bulk endpoint.
 
 ## Shared AI gateway (already defined by feature 3)
 
@@ -28,8 +28,8 @@ A small in-memory record returned by the analyze service. Not persisted.
 | vocabularyStatus  | `VocabularyStatus`    | enum `POPULATED` or `EMPTY`                                         |
 | suggestions       | `List<ExtractedTag>`  | possibly empty                                                      |
 | modelUsed         | `String`              | echoes from `ConsultaAnalysisResult.modelUsed`; `""` if empty vocab |
-| inputTokens       | `int`                 | 0 if vocab was empty (no LLM call made)                             |
-| outputTokens      | `int`                 | 0 if vocab was empty                                                |
+| promptTokens      | `int`                 | 0 if vocab was empty (no LLM call made)                             |
+| completionTokens  | `int`                 | 0 if vocab was empty                                                |
 
 ### `VocabularyStatus` enum
 
@@ -77,7 +77,7 @@ The service builds the LLM input from the `Consulta` domain model's fields in th
 
 If, after substituting `"(no registrado)"` for every null/blank field, **all seven fields are placeholders**, the joined text is treated as effectively blank and the service throws `InvalidConsultaDataException`. (A consulta with no actual content is not meaningful to analyze.)
 
-The joined text is truncated to **50,000 characters** before being sent to Anthropic. If truncation occurs, the gateway logs `WARN ai.consulta.truncated consultaId=... originalLength=... truncatedAt=50000`. Doctors will almost never hit this limit; the safety cap protects token budget for extreme cases.
+The joined text is truncated to **50,000 characters** before being sent to Groq. If truncation occurs, the gateway logs `WARN ai.consulta.truncated consultaId=... originalLength=... truncatedAt=50000`. Doctors will almost never hit this limit; the safety cap protects token budget for extreme cases.
 
 ## Output ports
 
@@ -118,8 +118,8 @@ record ConsultaAnalysisResponse(
     String vocabularyStatus,                 // "POPULATED" or "EMPTY"
     List<SuggestionResponse> suggestions,
     String modelUsed,
-    int inputTokens,
-    int outputTokens
+    int promptTokens,
+    int completionTokens
 )
 
 record SuggestionResponse(String tipo, String valor)
@@ -177,7 +177,7 @@ The existing `PacienteContextoResponse` record is reused for the bulk response (
 ### Analyze consulta
 
 ```
-Doctor      ConsultaAiResource     AnalyzeConsultaService     HospitalGateway   VocabRepo   AiGateway                 Anthropic
+Doctor      ConsultaAiResource     AnalyzeConsultaService     HospitalGateway   VocabRepo   AiGateway                 Groq
   │ POST /api/consultas/{id}/analyze        │                          │                │            │                            │
   │ ─────────────────────►                   │                          │                │            │                            │
   │                  caller ← AuthenticatedUserContext.get()             │                │            │                            │
@@ -191,7 +191,7 @@ Doctor      ConsultaAiResource     AnalyzeConsultaService     HospitalGateway   
   │                                  if vocabulary.totalTerms() == 0:                                  │            │                            │
   │                                      return ConsultaAnalysis(POPULATED→EMPTY, suggestions=[])    │            │                            │
   │                                  analyzeConsultaText(req) ──────────────────────────────────────►│                            │
-  │                                                  POST /v1/messages ──────────────────────────────────────────►│                            │
+  │                                                  POST /chat/completions ─────────────────────────────────────►│                            │
   │                                                  ◄── { tags: [...] } ─────────────────────────────────────── │                            │
   │                                  ◄── ConsultaAnalysisResult ──────────────────────────────────── │                            │
   │                  ◄── ConsultaAnalysisResponse ─────                  │                          │            │                            │
@@ -230,7 +230,7 @@ The `@Transactional` annotation on the service guarantees that a `TipoClinico` p
 | `patient-context`  | `BulkAddPacienteContextoRequest`                   | New DTO with `entries` list.                                                                                                          | (code only) |
 | `patient-context`  | `PacienteContextoResource`                         | Adds `POST /api/patients/{patientId}/contextos/bulk` mapped to the new use case.                                                       | (code only) |
 | `infrastructure/config` | `GlobalExceptionHandler`                       | Adds mappings for `UserHasNoSpecialtyException → 400`, `InvalidConsultaDataException → 400`.                                          | (code only) |
-| `article-ai-analysis` | `AiAnalysisGateway` & `ClaudeAiAnalysisGateway` | **No change** — the `analyzeConsultaText` method was already defined and tested in feature 3's spec.                                  | (no change) |
+| `article-ai-analysis` | `AiAnalysisGateway` & `GroqAiAnalysisGateway` | **No change** — the `analyzeConsultaText` method was already defined and tested in feature 3's spec.                                  | (no change) |
 
 No new Flyway migration is required. The `paciente_contexto` table already has the nullable `especialidad_id` column added by feature 1's V11.
 
@@ -254,9 +254,9 @@ We considered combining them into a single "analyze and save" endpoint with a `?
 
 ### 4. `vocabularyStatus = EMPTY` short-circuits the LLM call
 
-If the doctor's specialty has no terms, the LLM has nothing to constrain to and would either return zero tags or hallucinate freely. Both outcomes are bad UX. Returning `{ suggestions: [], vocabularyStatus: "EMPTY" }` without calling Anthropic:
+If the doctor's specialty has no terms, the LLM has nothing to constrain to and would either return zero tags or hallucinate freely. Both outcomes are bad UX. Returning `{ suggestions: [], vocabularyStatus: "EMPTY" }` without calling Groq:
 
-- Saves cost.
+- Saves a free-tier round-trip from the quota.
 - Gives the frontend a clear signal to render "No vocabulary available for your specialty yet — ask your COO to load one."
 - Avoids confusing the doctor with an empty suggestions list that looks like an AI failure.
 

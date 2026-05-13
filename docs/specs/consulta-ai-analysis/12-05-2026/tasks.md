@@ -2,7 +2,7 @@
 
 Execute in order. Each item ≈ one commit. Use TDD per [conventions/testing.md](../../../conventions/testing.md).
 
-Depends on features 1 (`specialty`), 2 (`medical-vocabulary`), and 3 (`article-ai-analysis`) being merged. The shared `AiAnalysisGateway` and `ClaudeAiAnalysisGateway` from feature 3 are reused as-is. This feature adds:
+Depends on features 1 (`specialty`), 2 (`medical-vocabulary`), and 3 (`article-ai-analysis`) being merged. The shared `AiAnalysisGateway` and `GroqAiAnalysisGateway` from feature 3 are reused as-is. This feature adds:
 
 - A new analyze endpoint under `/api/consultas/{consultaId}/analyze`.
 - A new bulk endpoint under `/api/patients/{patientId}/contextos/bulk` (cross-feature addition to `patient-context`).
@@ -42,7 +42,7 @@ The operator runs all test commands.
 ## REST (`interfaces/rest/consultaaianalysis/`)
 
 - [ ] Write `AnalyzeConsultaResourceIT` (`@QuarkusTest` + RestAssured; uses `QuarkusMock` to install a stub `AiAnalysisGateway`) covering:
-  - 200 happy path with populated vocabulary — response contains `consultaId`, `especialidadId`, `especialidadSlug`, `vocabularyStatus: "POPULATED"`, `suggestions` array, `modelUsed`, `inputTokens`, `outputTokens`.
+  - 200 happy path with populated vocabulary — response contains `consultaId`, `especialidadId`, `especialidadSlug`, `vocabularyStatus: "POPULATED"`, `suggestions` array, `modelUsed`, `promptTokens`, `completionTokens`.
   - 200 with `vocabularyStatus: "EMPTY"` and `suggestions: []` when the caller's specialty has an empty vocabulary (drive by a test-only seeded specialty with no JSON file).
   - 400 `USER_HAS_NO_SPECIALTY` when the caller's user has `especialidadId = null`.
   - 400 `INVALID_CONSULTA_DATA` when the hospital returns a consulta with all-blank SOAP fields.
@@ -98,7 +98,7 @@ The operator runs all test commands.
 - [ ] `./mvnw test` all green
 - [ ] `./mvnw verify -DskipITs=false` all green
 - [ ] Coverage ≥ 80% on `domain/consultaaianalysis`, `application/consultaaianalysis`, and the added `BulkAddPacienteContextoService` in `application/pacientecontexto`
-- [ ] Manual smoke test (operator, with `ANTHROPIC_API_KEY` set):
+- [ ] Manual smoke test (operator, with `GROQ_API_KEY` set — free key at <https://console.groq.com/keys>):
   - Pick a consulta id from the hospital dev DB.
   - As a cardiology doctor (whose `User.especialidadId = cardiología`), call `POST /api/consultas/{id}/analyze`.
   - Confirm 200 with non-empty suggestions (assuming `cardiologia.json` is populated).

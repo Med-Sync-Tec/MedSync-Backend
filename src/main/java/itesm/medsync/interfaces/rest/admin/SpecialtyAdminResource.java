@@ -31,6 +31,13 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import java.net.URI;
 import java.util.UUID;
 
+/**
+ * Write-only REST surface for the specialty catalog (COO-only).
+ *
+ * Authentication is enforced per-method via {@link #enforceCoo()} — the request
+ * is rejected with 401 if no authenticated user is present and 403 if the user
+ * is authenticated but not the COO. Read operations live in {@code SpecialtyResource}.
+ */
 @Path("/api/admin/especialidades")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -103,6 +110,14 @@ public class SpecialtyAdminResource {
         return Response.noContent().build();
     }
 
+    /**
+     * Returns {@code null} when the caller is authorized; otherwise returns the
+     * pre-built 401 or 403 response the handler should send back.
+     *
+     * Pattern is duplicated across admin resources rather than extracted into a
+     * filter because role checks here are simple and per-endpoint visibility is
+     * easier to audit than a centralized filter.
+     */
     private Response enforceCoo() {
         UserWithRole caller = userContext.getCurrentUser();
         if (caller == null) {

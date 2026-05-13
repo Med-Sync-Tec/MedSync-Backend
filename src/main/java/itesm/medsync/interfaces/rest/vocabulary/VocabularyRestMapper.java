@@ -8,6 +8,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Translates a {@link Vocabulary} aggregate to the outbound {@link VocabularyResponse}.
+ *
+ * Sorts each bucket alphabetically (case-insensitive) so the JSON payload is stable
+ * for human inspection and idempotent for any consumer that diffs responses.
+ */
 public final class VocabularyRestMapper {
 
     private VocabularyRestMapper() {

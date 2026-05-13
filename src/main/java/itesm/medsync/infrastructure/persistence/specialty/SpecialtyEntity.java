@@ -11,6 +11,17 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+/**
+ * JPA entity for the {@code especialidades} table.
+ *
+ * Soft-delete: the class-level {@link SQLRestriction} filters {@code activo = false}
+ * rows from every read query — Hibernate appends the predicate automatically. To see
+ * soft-deleted rows (e.g. for slug-uniqueness checks across history), bypass the
+ * filter via a native query in {@link SpecialtyRepositoryImpl}.
+ *
+ * The {@code BINARY(16)} column definition lets Hibernate store {@link UUID} values
+ * compactly on MySQL; H2 in {@code MODE=MySQL} accepts the same definition for dev.
+ */
 @Entity
 @Table(name = "especialidades")
 @SQLRestriction("activo = true")

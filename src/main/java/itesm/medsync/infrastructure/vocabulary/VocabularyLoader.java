@@ -23,6 +23,25 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Stream;
 
+/**
+ * Boot-time loader: enumerates {@code vocabulary/*.json} on the classpath,
+ * parses each file, builds {@link Vocabulary} aggregates, and installs the
+ * resulting map into {@link VocabularyRepositoryImpl}.
+ *
+ * <p><strong>Fail-fast vs. soft-skip policy</strong> (see design.md §3 / §4):
+ * <ul>
+ *   <li>Schema violations (typo in a TipoClinico key, duplicate term, oversize value)
+ *       throw and abort application startup. A clinical-content mistake must never
+ *       silently degrade AI extraction in production.</li>
+ *   <li>Cross-reference mismatches (JSON for a specialty that no longer exists in the
+ *       DB; specialty in the DB with no JSON yet) only log — they are legitimate
+ *       operational states during onboarding or after a specialty soft-delete.</li>
+ * </ul>
+ *
+ * <p>The {@link #build(Map, List)} method is package-private to expose a pure
+ * seam for unit tests; the {@link #onStart} observer wraps it with classpath I/O
+ * and CDI wiring.
+ */
 @ApplicationScoped
 public class VocabularyLoader {
 
@@ -43,11 +62,19 @@ public class VocabularyLoader {
         this.repository = repository;
     }
 
+    /** Test-only constructor: lets unit tests drive {@link #build(Map, List)} without CDI. */
     VocabularyLoader(VocabularyJsonReader reader) {
         this(reader, null, null);
     }
 
+    /**
+     * Quarkus startup observer. Failure here aborts the application boot, which is
+     * the intended behavior for any schema violation in a vocabulary file.
+     */
     void onStart(@Observes StartupEvent ev) {
+        // Query the DB first: the loader pairs files to specialties by slug, so the
+        // DB roster is the source of truth for which slugs are valid. A specialty
+        // without a file is allowed; a file without a matching specialty is skipped.
         List<Specialty> specialties = specialtyRepository.findAllActive();
         Map<String, UUID> slugToId = new HashMap<>();
         for (Specialty s : specialties) {
@@ -75,6 +102,12 @@ public class VocabularyLoader {
         }
     }
 
+    /**
+     * Enumerates classpath resources under {@code vocabulary/}. Uses Quarkus's
+     * {@link ClassPathUtils} so it works uniformly in dev mode (filesystem),
+     * tests, and packaged JARs (entries inside the jar). Catastrophic failures
+     * (classpath unreadable) propagate and rightly abort the boot.
+     */
     private List<RawFile> readClasspathFiles() {
         List<RawFile> files = new ArrayList<>();
         try {
@@ -105,6 +138,15 @@ public class VocabularyLoader {
         }
     }
 
+    /**
+     * Pure-logic seam: takes the already-resolved slug → id map and the
+     * already-read file bytes, and returns the result. Exposed at
+     * package-private visibility so unit tests can drive every branch
+     * (valid file, stale slug, malformed JSON) without booting Quarkus.
+     *
+     * Parse exceptions bubble up unchanged — the boot observer relies on that
+     * to abort startup with a clear message.
+     */
     BuildResult build(Map<String, UUID> slugToId, List<RawFile> files) {
         Map<UUID, Vocabulary> loaded = new HashMap<>();
         List<String> stale = new ArrayList<>();
@@ -113,6 +155,8 @@ public class VocabularyLoader {
             ParsedVocabularyFile parsed = reader.parse(file.slug(), file.bytes());
             UUID specialtyId = slugToId.get(parsed.slug());
             if (specialtyId == null) {
+                // Soft-skip: file is structurally valid but its specialty no longer
+                // exists in the DB. Typically a stale file for a soft-deleted specialty.
                 stale.add(parsed.slug());
                 continue;
             }
@@ -134,9 +178,11 @@ public class VocabularyLoader {
         return new Vocabulary(specialtyId, parsed.slug(), parsed.version(), termsByType);
     }
 
+    /** A vocabulary file read from the classpath: its slug (from the filename) and its raw bytes. */
     public record RawFile(String slug, byte[] bytes) {
     }
 
+    /** Outcome of {@link #build(Map, List)}: the loaded map plus any file slugs that had no matching specialty. */
     record BuildResult(Map<UUID, Vocabulary> loaded, List<String> staleSlugs) {
     }
 }

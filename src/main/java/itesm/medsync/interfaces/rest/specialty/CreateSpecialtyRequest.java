@@ -4,6 +4,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+/**
+ * Inbound DTO for {@code POST /api/admin/especialidades}.
+ *
+ * Bean Validation handles format-level errors (length, pattern, blank). Domain-level
+ * invariants (uniqueness across history, etc.) are enforced by the service layer.
+ */
 public class CreateSpecialtyRequest {
 
     @NotBlank

@@ -11,6 +11,12 @@ import jakarta.inject.Inject;
 import java.util.Objects;
 import java.util.UUID;
 
+/**
+ * Application service that replaces the editable fields of an existing specialty.
+ *
+ * Uniqueness checks skip the current row's own values, so a no-op rename does not
+ * trip the duplicate guard against itself.
+ */
 @ApplicationScoped
 public class UpdateSpecialtyService implements UpdateSpecialtyUseCase {
 
@@ -26,6 +32,8 @@ public class UpdateSpecialtyService implements UpdateSpecialtyUseCase {
         Specialty current = repository.findByUuid(id)
                 .orElseThrow(() -> new SpecialtyNotFoundException(id));
 
+        // Skip the duplicate guard when the value is unchanged: otherwise the
+        // current row would collide with itself.
         if (nombre != null && !Objects.equals(nombre, current.getNombre())
                 && repository.existsByNombreActive(nombre)) {
             throw new DuplicateSpecialtyException("nombre", nombre);

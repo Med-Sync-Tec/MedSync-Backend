@@ -1,5 +1,15 @@
 package itesm.medsync.domain.vocabulary.exception;
 
+/**
+ * Thrown by the JSON loader when a vocabulary file violates the schema (missing
+ * field, slug mismatch, unknown TipoClinico key, duplicate term, malformed JSON).
+ *
+ * Fires exclusively at application startup, so it is intentionally NOT wired into
+ * {@code GlobalExceptionHandler} — by the time HTTP is up, parsing has finished.
+ * Letting the exception propagate out of the startup observer aborts the boot,
+ * which is the desired behavior: a typo in clinical vocabulary should never
+ * silently degrade AI extraction in production.
+ */
 public class VocabularyParseException extends RuntimeException {
 
     private final String filename;

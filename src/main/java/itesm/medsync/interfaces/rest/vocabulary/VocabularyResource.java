@@ -19,6 +19,15 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import java.util.UUID;
 
+/**
+ * Debug / audit endpoint exposing the loaded vocabulary for a specialty (COO-only).
+ *
+ * Lives in its own resource class — and not as a sub-path of {@code SpecialtyResource} —
+ * so the read endpoint can stay public to all authenticated users while this admin
+ * endpoint enforces a COO role check. The nested URL
+ * {@code /api/especialidades/{id}/vocabulary} preserves the parent–child relationship
+ * in OpenAPI documentation without coupling the two resource classes.
+ */
 @Path("/api/especialidades/{id}/vocabulary")
 @Produces(MediaType.APPLICATION_JSON)
 @Tag(name = "Admin", description = "Operaciones administrativas")

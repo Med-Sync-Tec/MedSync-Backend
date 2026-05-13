@@ -8,6 +8,12 @@ import jakarta.inject.Inject;
 
 import java.util.List;
 
+/**
+ * Application service that returns every active specialty.
+ *
+ * Trivial passthrough — the use case exists so the REST resource depends on a
+ * stable port rather than on the repository directly.
+ */
 @ApplicationScoped
 public class ListActiveSpecialtiesService implements ListActiveSpecialtiesUseCase {
 

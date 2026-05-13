@@ -15,6 +15,19 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Stateless parser for vocabulary JSON files. Validates every schema rule and
+ * fails fast on the first violation with a {@link VocabularyParseException} that
+ * names the file and the offending field — so a typo at boot produces a log
+ * entry that points directly at the line a developer needs to fix.
+ *
+ * Schema rules (see {@code docs/specs/medical-vocabulary/12-05-2026/design.md}):
+ * required {@code especialidadSlug} matching the filename, required {@code version},
+ * required {@code terms} object with only the four known {@link TipoClinico} keys,
+ * terms in {@code 1..500} chars and non-blank, case-insensitive dedup within each
+ * bucket, and an optional {@code $schema} field that must equal
+ * {@code "medsync.vocabulary.v1"} when present.
+ */
 @ApplicationScoped
 public class VocabularyJsonReader {
 
@@ -23,6 +36,15 @@ public class VocabularyJsonReader {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
+    /**
+     * Parses {@code jsonBytes} and verifies it matches {@code expectedSlug}.
+     *
+     * @param expectedSlug the slug taken from the filename (without {@code .json})
+     * @param jsonBytes    raw UTF-8 bytes of the file
+     * @return the validated intermediate representation
+     * @throws VocabularyParseException on any schema violation; the message names
+     *                                  the offending field and the file
+     */
     public ParsedVocabularyFile parse(String expectedSlug, byte[] jsonBytes) {
         String filename = expectedSlug + ".json";
         JsonNode root;
@@ -104,6 +126,9 @@ public class VocabularyJsonReader {
                     throw new VocabularyParseException(filename, "terms." + key + "[" + i + "]",
                             "term exceeds " + VocabularyTerm.MAX_VALOR_LENGTH + " characters");
                 }
+                // Dedup is case-insensitive and trim-tolerant on the lookup key, but the
+                // error message reports both canonical forms so a clinical reviewer can
+                // see exactly which two lines collided.
                 String normalized = valor.trim().toLowerCase();
                 String previous = seen.put(normalized, valor);
                 if (previous != null) {

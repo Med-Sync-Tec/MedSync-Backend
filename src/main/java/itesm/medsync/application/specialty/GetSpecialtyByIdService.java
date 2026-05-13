@@ -9,6 +9,7 @@ import jakarta.inject.Inject;
 
 import java.util.UUID;
 
+/** Application service that fetches an active specialty or throws {@link SpecialtyNotFoundException}. */
 @ApplicationScoped
 public class GetSpecialtyByIdService implements GetSpecialtyByIdUseCase {
 

@@ -19,6 +19,12 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Read-only REST surface for the specialty catalog. Available to any authenticated user.
+ *
+ * Write operations (create / update / delete) live in {@code SpecialtyAdminResource}
+ * under {@code /api/admin/especialidades}, which enforces the COO-only check.
+ */
 @Path("/api/especialidades")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)

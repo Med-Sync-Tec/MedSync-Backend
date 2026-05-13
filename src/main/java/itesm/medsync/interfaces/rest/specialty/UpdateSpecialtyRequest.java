@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+/** Inbound DTO for {@code PUT /api/admin/especialidades/{id}}. Same shape as create — all fields are replaced. */
 public class UpdateSpecialtyRequest {
 
     @NotBlank

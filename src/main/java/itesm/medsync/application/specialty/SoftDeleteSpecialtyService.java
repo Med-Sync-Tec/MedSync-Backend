@@ -9,6 +9,10 @@ import jakarta.inject.Inject;
 
 import java.util.UUID;
 
+/**
+ * Application service that flips {@code activo} to false. The row is preserved for
+ * audit; the entity's {@code @SQLRestriction} filter hides it from subsequent reads.
+ */
 @ApplicationScoped
 public class SoftDeleteSpecialtyService implements SoftDeleteSpecialtyUseCase {
 

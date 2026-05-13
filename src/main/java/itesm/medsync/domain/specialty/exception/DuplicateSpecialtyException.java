@@ -1,5 +1,6 @@
 package itesm.medsync.domain.specialty.exception;
 
+/** Thrown when creating or updating a specialty would collide with an existing one. Maps to HTTP 409. */
 public class DuplicateSpecialtyException extends RuntimeException {
 
     private final String field;

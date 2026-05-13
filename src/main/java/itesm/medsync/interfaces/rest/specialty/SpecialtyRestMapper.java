@@ -4,6 +4,7 @@ import itesm.medsync.domain.specialty.model.Specialty;
 
 import java.util.List;
 
+/** Translates between the {@link Specialty} domain aggregate and outbound {@link SpecialtyResponse} DTO. */
 public final class SpecialtyRestMapper {
 
     private SpecialtyRestMapper() {

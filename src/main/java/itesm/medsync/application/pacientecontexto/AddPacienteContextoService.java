@@ -25,10 +25,11 @@ public class AddPacienteContextoService implements AddPacienteContextoUseCase {
     }
 
     @Override
-    public PacienteContexto execute(UUID pacienteId, TipoClinico tipo, String valor) {
+    public PacienteContexto execute(UUID pacienteId, TipoClinico tipo, String valor,
+                                    UUID especialidadId) {
         patientRepository.findByUuid(pacienteId)
                 .orElseThrow(() -> new PatientNotFoundException(pacienteId));
-        PacienteContexto contexto = PacienteContexto.create(pacienteId, tipo, valor);
+        PacienteContexto contexto = PacienteContexto.create(pacienteId, tipo, valor, especialidadId);
         return repository.save(contexto);
     }
 }

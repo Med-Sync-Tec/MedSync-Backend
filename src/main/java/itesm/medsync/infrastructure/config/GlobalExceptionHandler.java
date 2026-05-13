@@ -10,6 +10,9 @@ import itesm.medsync.domain.hospital.exception.InvalidHospitalDataException;
 import itesm.medsync.domain.pacientecontexto.exception.InvalidPacienteContextoDataException;
 import itesm.medsync.domain.pacientecontexto.exception.PacienteContextoNotFoundException;
 import itesm.medsync.domain.shared.exception.InvalidTipoClinicoException;
+import itesm.medsync.domain.specialty.exception.DuplicateSpecialtyException;
+import itesm.medsync.domain.specialty.exception.InvalidSpecialtyDataException;
+import itesm.medsync.domain.specialty.exception.SpecialtyNotFoundException;
 import itesm.medsync.domain.patient.exception.DuplicatePatientException;
 import itesm.medsync.domain.patient.exception.InvalidPatientDataException;
 import itesm.medsync.domain.patient.exception.PatientNotFoundException;
@@ -249,6 +252,36 @@ public final class GlobalExceptionHandler {
     public static class InvalidArticleDataMapper implements ExceptionMapper<InvalidArticleDataException> {
         @Override
         public Response toResponse(InvalidArticleDataException ex) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class SpecialtyNotFoundMapper implements ExceptionMapper<SpecialtyNotFoundException> {
+        @Override
+        public Response toResponse(SpecialtyNotFoundException ex) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(404, "Not Found", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class DuplicateSpecialtyMapper implements ExceptionMapper<DuplicateSpecialtyException> {
+        @Override
+        public Response toResponse(DuplicateSpecialtyException ex) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(new ErrorResponse(409, "Conflict", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class InvalidSpecialtyDataMapper implements ExceptionMapper<InvalidSpecialtyDataException> {
+        @Override
+        public Response toResponse(InvalidSpecialtyDataException ex) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
                     .build();

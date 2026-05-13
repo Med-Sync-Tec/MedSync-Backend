@@ -15,6 +15,7 @@ public final class PacienteContexto {
     private final UUID pacienteId;
     private final TipoClinico tipo;
     private final String valor;
+    private final UUID especialidadId;
     private final LocalDateTime createdAt;
 
     public PacienteContexto(UUID id,
@@ -22,20 +23,36 @@ public final class PacienteContexto {
                             TipoClinico tipo,
                             String valor,
                             LocalDateTime createdAt) {
+        this(id, pacienteId, tipo, valor, null, createdAt);
+    }
+
+    public PacienteContexto(UUID id,
+                            UUID pacienteId,
+                            TipoClinico tipo,
+                            String valor,
+                            UUID especialidadId,
+                            LocalDateTime createdAt) {
         validate(id, pacienteId, tipo, valor);
         this.id = id;
         this.pacienteId = pacienteId;
         this.tipo = tipo;
         this.valor = valor.trim();
+        this.especialidadId = especialidadId;
         this.createdAt = createdAt;
     }
 
     public static PacienteContexto create(UUID pacienteId, TipoClinico tipo, String valor) {
+        return create(pacienteId, tipo, valor, null);
+    }
+
+    public static PacienteContexto create(UUID pacienteId, TipoClinico tipo, String valor,
+                                          UUID especialidadId) {
         return new PacienteContexto(
                 UUID.randomUUID(),
                 pacienteId,
                 tipo,
                 valor,
+                especialidadId,
                 null);
     }
 
@@ -72,6 +89,10 @@ public final class PacienteContexto {
 
     public String getValor() {
         return valor;
+    }
+
+    public UUID getEspecialidadId() {
+        return especialidadId;
     }
 
     public LocalDateTime getCreatedAt() {

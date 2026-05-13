@@ -13,7 +13,7 @@ public final class UserPersistenceMapper {
         entity.setId(user.getId());
         entity.setNombre(user.getNombre());
         entity.setCorreo(user.getCorreo());
-        entity.setEspecialidad(user.getEspecialidad());
+        entity.setEspecialidadId(user.getEspecialidadId());
         entity.setRolId(user.getRolId());
         entity.setActivo(user.isActivo());
         entity.setCreatedAt(user.getCreatedAt());
@@ -23,7 +23,7 @@ public final class UserPersistenceMapper {
     public static void copyInto(User user, UserEntity entity) {
         entity.setNombre(user.getNombre());
         entity.setCorreo(user.getCorreo());
-        entity.setEspecialidad(user.getEspecialidad());
+        entity.setEspecialidadId(user.getEspecialidadId());
         entity.setRolId(user.getRolId());
         entity.setActivo(user.isActivo());
     }
@@ -33,7 +33,7 @@ public final class UserPersistenceMapper {
                 entity.getId(),
                 entity.getNombre(),
                 entity.getCorreo(),
-                entity.getEspecialidad(),
+                entity.getEspecialidadId(),
                 entity.getRolId(),
                 entity.isActivo(),
                 entity.getCreatedAt());

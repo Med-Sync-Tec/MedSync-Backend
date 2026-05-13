@@ -67,7 +67,8 @@ public class PacienteContextoResource {
                         @Context UriInfo uriInfo) {
         requireAuthenticated();
         TipoClinico tipo = TipoClinico.fromString(request.tipo);
-        PacienteContexto created = addContexto.execute(patientId, tipo, request.valor);
+        UUID especialidadId = userContext.getCurrentUser().user().getEspecialidadId();
+        PacienteContexto created = addContexto.execute(patientId, tipo, request.valor, especialidadId);
 
         URI location = uriInfo.getAbsolutePathBuilder().path(created.getId().toString()).build();
         return Response.created(location)

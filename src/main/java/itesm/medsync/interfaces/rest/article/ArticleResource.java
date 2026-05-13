@@ -8,8 +8,11 @@ import itesm.medsync.domain.article.usecase.GetArticleByIdUseCase;
 import itesm.medsync.domain.article.usecase.GetRecentArticlesUseCase;
 import itesm.medsync.domain.article.usecase.ListArticlesUseCase;
 import itesm.medsync.domain.article.usecase.MarkArticleAsReadUseCase;
+import itesm.medsync.domain.article.usecase.GetSavedArticlesUseCase;
 import itesm.medsync.domain.article.usecase.RemoveTagFromArticleUseCase;
+import itesm.medsync.domain.article.usecase.SaveArticleUseCase;
 import itesm.medsync.domain.article.usecase.SyncPubmedArticlesUseCase;
+import itesm.medsync.domain.article.usecase.UnsaveArticleUseCase;
 import itesm.medsync.application.security.AuthenticatedUserContext;
 import itesm.medsync.domain.shared.model.TipoClinico;
 import jakarta.inject.Inject;
@@ -52,6 +55,9 @@ public class ArticleResource {
     private final RemoveTagFromArticleUseCase removeTag;
     private final SyncPubmedArticlesUseCase syncPubmed;
     private final MarkArticleAsReadUseCase markAsRead;
+    private final SaveArticleUseCase saveArticle;
+    private final UnsaveArticleUseCase unsaveArticle;
+    private final GetSavedArticlesUseCase getSavedArticles;
 
     @Inject
     public ArticleResource(CreateArticleUseCase createArticle,
@@ -61,7 +67,10 @@ public class ArticleResource {
                            AddTagToArticleUseCase addTag,
                            RemoveTagFromArticleUseCase removeTag,
                            SyncPubmedArticlesUseCase syncPubmed,
-                           MarkArticleAsReadUseCase markAsRead) {
+                           MarkArticleAsReadUseCase markAsRead,
+                           SaveArticleUseCase saveArticle,
+                           UnsaveArticleUseCase unsaveArticle,
+                           GetSavedArticlesUseCase getSavedArticles) {
         this.createArticle = createArticle;
         this.getArticleById = getArticleById;
         this.listArticles = listArticles;
@@ -70,6 +79,9 @@ public class ArticleResource {
         this.removeTag = removeTag;
         this.syncPubmed = syncPubmed;
         this.markAsRead = markAsRead;
+        this.saveArticle = saveArticle;
+        this.unsaveArticle = unsaveArticle;
+        this.getSavedArticles = getSavedArticles;
     }
 
     // -------------------------------------------------------------------------
@@ -139,6 +151,21 @@ public class ArticleResource {
     }
 
     // -------------------------------------------------------------------------
+    // NUEVO: Artículos guardados por el usuario
+    // -------------------------------------------------------------------------
+
+    @GET
+    @Path("/saved")
+    @Operation(summary = "Artículos guardados por el usuario actual",
+               description = "Devuelve los artículos que el usuario ha guardado para leer después, ordenados por fecha de guardado descendente.")
+    @APIResponse(responseCode = "200", description = "Página de artículos guardados")
+    public PagedArticlesResponse saved(@QueryParam("page") @DefaultValue("0") int page,
+                                       @QueryParam("size") @DefaultValue("20") int size) {
+        UUID userId = authContext.getCurrentUser().user().getId();
+        return ArticleRestMapper.toPagedResponse(getSavedArticles.execute(userId, page, size));
+    }
+
+    // -------------------------------------------------------------------------
     // NUEVO: Disparo manual de sincronización con PubMed
     // -------------------------------------------------------------------------
 
@@ -172,6 +199,34 @@ public class ArticleResource {
     public Response markAsRead(@PathParam("id") UUID articleId) {
         UUID userId = authContext.getCurrentUser().user().getId();
         markAsRead.execute(userId, articleId);
+        return Response.noContent().build();
+    }
+
+    // -------------------------------------------------------------------------
+    // Guardar / Quitar artículo (Noticias Guardadas)
+    // -------------------------------------------------------------------------
+
+    @POST
+    @Path("/{id}/save")
+    @Operation(summary = "Guardar artículo para después",
+               description = "Registra que el usuario autenticado ha guardado el artículo.")
+    @APIResponse(responseCode = "204", description = "Artículo guardado")
+    @APIResponse(responseCode = "404", description = "Artículo no encontrado")
+    public Response saveArticle(@PathParam("id") UUID articleId) {
+        UUID userId = authContext.getCurrentUser().user().getId();
+        saveArticle.execute(userId, articleId);
+        return Response.noContent().build();
+    }
+
+    @DELETE
+    @Path("/{id}/save")
+    @Operation(summary = "Quitar artículo de guardados",
+               description = "Elimina el artículo de la lista de guardados del usuario.")
+    @APIResponse(responseCode = "204", description = "Artículo quitado de guardados")
+    @APIResponse(responseCode = "404", description = "Artículo no encontrado")
+    public Response unsaveArticle(@PathParam("id") UUID articleId) {
+        UUID userId = authContext.getCurrentUser().user().getId();
+        unsaveArticle.execute(userId, articleId);
         return Response.noContent().build();
     }
 

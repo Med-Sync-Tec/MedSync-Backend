@@ -170,5 +170,32 @@ public class ArticleRepositoryImpl
         List<Article> items = loadArticlesByIds(ids);
         return Page.of(items, total, page, size);
     }
+
+    @Override
+    public Page<Article> findSavedArticles(UUID userId, int page, int size) {
+        long total = getEntityManager()
+                .createQuery("SELECT COUNT(uag) FROM UsuarioArticuloGuardadoEntity uag WHERE uag.usuario.id = :userId", Long.class)
+                .setParameter("userId", userId)
+                .getSingleResult();
+        if (total == 0) {
+            return Page.of(List.of(), 0L, page, size);
+        }
+
+        List<UUID> ids = getEntityManager()
+                .createQuery(
+                        "SELECT uag.articulo.id FROM UsuarioArticuloGuardadoEntity uag WHERE uag.usuario.id = :userId ORDER BY uag.guardadoAt DESC, uag.articulo.id ASC",
+                        UUID.class)
+                .setParameter("userId", userId)
+                .setFirstResult(page * size)
+                .setMaxResults(size)
+                .getResultList();
+
+        if (ids.isEmpty()) {
+            return Page.of(List.of(), total, page, size);
+        }
+
+        List<Article> items = loadArticlesByIds(ids);
+        return Page.of(items, total, page, size);
+    }
 }
 

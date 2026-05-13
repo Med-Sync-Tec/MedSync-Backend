@@ -1,6 +1,6 @@
 package itesm.medsync.application.article;
 
-import itesm.medsync.domain.article.usecase.MarkArticleAsReadUseCase;
+import itesm.medsync.domain.article.usecase.SaveArticleUseCase;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
@@ -10,7 +10,7 @@ import java.nio.ByteBuffer;
 import java.util.UUID;
 
 @ApplicationScoped
-public class MarkArticleAsReadService implements MarkArticleAsReadUseCase {
+public class SaveArticleService implements SaveArticleUseCase {
 
     @Inject
     EntityManager em;
@@ -18,10 +18,10 @@ public class MarkArticleAsReadService implements MarkArticleAsReadUseCase {
     @Override
     @Transactional
     public void execute(UUID userId, UUID articleId) {
-        // INSERT IGNORE es idempotente: si ya existe la entrada, no hace nada
-        // Usamos byte[] de 16 bytes para que coincida con la columna BINARY(16)
+        // INSERT IGNORE es idempotente: si ya existe, no hace nada
+        // Pasamos los UUIDs como byte[] de 16 bytes para que coincidan con la columna BINARY(16)
         em.createNativeQuery(
-                "INSERT IGNORE INTO usuario_articulos_leidos (usuario_id, articulo_id, leido_at) " +
+                "INSERT IGNORE INTO usuario_articulos_guardados (usuario_id, articulo_id, guardado_at) " +
                 "VALUES (:userId, :articleId, NOW())")
           .setParameter("userId", toBytes(userId))
           .setParameter("articleId", toBytes(articleId))

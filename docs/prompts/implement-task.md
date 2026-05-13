@@ -7,12 +7,13 @@ Use this prompt when handing a single checklist item to an implementation agent 
 You are implementing one task from a MedSync Backend feature spec.
 
 **Feature**: `<<feature-name>>`
-**Task to execute**: `<<exact line from docs/specs/<feature>/tasks.md>>`
+**Spec folder**: `docs/specs/<<DD-MM-YYYY>>-<<feature-name>>/`
+**Task to execute**: `<<exact line from that folder's tasks.md>>`
 
 **Authoritative references** (read before changing any file):
 
-1. `docs/specs/<<feature-name>>/requirements.md` — what the feature must do.
-2. `docs/specs/<<feature-name>>/design.md` — how we agreed to build it.
+1. `docs/specs/<<DD-MM-YYYY>>-<<feature-name>>/requirements.md` — what the feature must do.
+2. `docs/specs/<<DD-MM-YYYY>>-<<feature-name>>/design.md` — how we agreed to build it.
 3. `docs/conventions/*.md` — coding rules. The relevant ones for this task: <<naming | persistence | validation | testing | exceptions | migrations>>.
 4. `CLAUDE.md` — project-level operator instructions.
 

@@ -1,6 +1,6 @@
 # Feature: Medical Vocabulary — Implementation Tasks
 
-Execute in order. Each item ≈ one commit. Use TDD per [conventions/testing.md](../../../conventions/testing.md).
+Execute in order. Each item ≈ one commit. Use TDD per [conventions/testing.md](../../conventions/testing.md).
 
 Depends on feature 1 (`specialty`) being implemented and merged. The loader queries `SpecialtyRepository` and the debug-endpoint service depends on `GetSpecialtyByIdUseCase`.
 
@@ -89,7 +89,7 @@ The operator runs all test commands; the agent writes the tests and waits.
 
 - [ ] Create `src/main/resources/vocabulary/cardiologia.json` populated with **50–80 representative terms** distributed across all four `TipoClinico` buckets. Use canonical Spanish forms with accents. `version: "2026-05-12"`.
 - [ ] Create the 15 stub files (one per remaining seeded specialty: `endocrinologia.json`, `neurologia.json`, `oncologia.json`, `pediatria.json`, `gastroenterologia.json`, `neumologia.json`, `dermatologia.json`, `ginecologia.json`, `urologia.json`, `psiquiatria.json`, `reumatologia.json`, `oftalmologia.json`, `hematologia.json`, `medicina-interna.json`, `infectologia.json`). Each contains exactly 4 placeholder terms (one per `TipoClinico` bucket) with `version: "2026-05-12-stub"`. Mark each file with a top-of-file comment-equivalent (since JSON has no comments, prefix the `$schema` value or `version` value with `stub` so it is greppable) — using `version: "2026-05-12-stub"` is sufficient.
-- [ ] Add a CI / `README` note (not a runtime check) listing the stub files so subsequent PRs can find them: append a short paragraph to `docs/specs/medical-vocabulary/12-05-2026/design.md`'s "Vocabulary file fixtures" section if not already there. (Already present — verify the list is accurate before merging.)
+- [ ] Add a CI / `README` note (not a runtime check) listing the stub files so subsequent PRs can find them: append a short paragraph to `docs/specs/12-05-2026-medical-vocabulary/design.md`'s "Vocabulary file fixtures" section if not already there. (Already present — verify the list is accurate before merging.)
 
 ## Verification
 

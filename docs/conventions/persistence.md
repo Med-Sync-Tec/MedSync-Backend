@@ -44,7 +44,7 @@ public boolean existsByExpedienteExternoId(String value) {
 }
 ```
 
-`@SQLRestriction` is bypassed by native SQL. See [specs/patient/1-05-2026/design.md](../specs/patient/1-05-2026/design.md) for the full pattern.
+`@SQLRestriction` is bypassed by native SQL. See [specs/1-05-2026-patient/design.md](../specs/1-05-2026-patient/design.md) for the full pattern.
 
 ## Auditing (`createdAt`, `updatedAt`)
 

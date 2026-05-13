@@ -1,6 +1,6 @@
 # Feature: Medical Vocabulary — Design
 
-> Spec name: `medical-vocabulary`. Java package: `vocabulary` (single-noun, English from day one). The domain port is named `VocabularyRepository`, not `MedicalVocabularyRepository`, to match the dominant noun in the codebase. This is a deliberate spec-name ↔ package asymmetry — analogous to (but cleaner than) the legacy `patient-context` ↔ `pacientecontexto` case in [conventions/naming.md](../../../conventions/naming.md#legacy-spanish-packages).
+> Spec name: `medical-vocabulary`. Java package: `vocabulary` (single-noun, English from day one). The domain port is named `VocabularyRepository`, not `MedicalVocabularyRepository`, to match the dominant noun in the codebase. This is a deliberate spec-name ↔ package asymmetry — analogous to (but cleaner than) the legacy `patient-context` ↔ `pacientecontexto` case in [conventions/naming.md](../../conventions/naming.md#legacy-spanish-packages).
 
 ## Domain model
 
@@ -50,7 +50,7 @@ public interface VocabularyRepository {
 
 One method. The factory `Vocabulary.empty(...)` lives on the domain model, not on the port.
 
-`VocabularyRepository` is a `*Repository` (own data — the JSON resources are owned by this codebase, committed to git, deployed as part of the application artifact). It is **not** a `*Gateway` despite being I/O-backed at startup, because [ADR 0002](../../../architecture/decisions/0002-gateway-vs-repository.md) distinguishes by *ownership*, not by storage medium. We own these files.
+`VocabularyRepository` is a `*Repository` (own data — the JSON resources are owned by this codebase, committed to git, deployed as part of the application artifact). It is **not** a `*Gateway` despite being I/O-backed at startup, because [ADR 0002](../../architecture/decisions/0002-gateway-vs-repository.md) distinguishes by *ownership*, not by storage medium. We own these files.
 
 ## Use cases
 
@@ -281,7 +281,7 @@ None on existing features (1-05-2026 snapshots remain canonical).
 
 This feature **depends on feature 1** (`specialty`): the loader queries `SpecialtyRepository.findAllActive()` and the debug endpoint validates `especialidadId` via `GetSpecialtyByIdUseCase`. Both dependencies are one-way — `vocabulary` imports from `specialty`, not vice versa.
 
-> **Note.** The existing `specs/<feature>/1-05-2026/` spec remains the canonical record for unchanged behavior; modified behavior will be re-snapshotted as `specs/<feature>/<implementation-date>/` when this work ships.
+> **Note.** The existing `specs/1-05-2026-<feature>/` spec remains the canonical record for unchanged behavior; modified behavior will be re-snapshotted as `specs/<implementation-date>-<feature>/` when this work ships.
 
 ## Key technical decisions
 
@@ -324,14 +324,14 @@ Returning `Vocabulary.empty(...)` instead of `Optional.empty()` simplifies every
 
 ### 7. `VocabularyRepository`, not `VocabularyGateway`
 
-We own these JSON files. They are deployed inside our artifact. They are in our git history. By the [ADR 0002](../../../architecture/decisions/0002-gateway-vs-repository.md) criterion (ownership, not storage medium), this is a `*Repository`. We do not need timeout / retry / circuit-breaker semantics because there is no network or external system in the loop.
+We own these JSON files. They are deployed inside our artifact. They are in our git history. By the [ADR 0002](../../architecture/decisions/0002-gateway-vs-repository.md) criterion (ownership, not storage medium), this is a `*Repository`. We do not need timeout / retry / circuit-breaker semantics because there is no network or external system in the loop.
 
 ### 8. No use case for the AI hot path
 
 Features 3 and 4 inject `VocabularyRepository` directly rather than going through `GetVocabularyByEspecialidadUseCase`. Reasons:
 
 - The AI services orchestrate a multi-step flow (specialty resolve → vocabulary load → LLM call → save). A use case named "Get vocabulary by specialty" carries no orchestration of its own — it would be a one-line passthrough.
-- One-service-per-use-case is a [project rule](../../../conventions/naming.md#class-names); adding a use case here just to satisfy the rule would create an empty layer.
+- One-service-per-use-case is a [project rule](../../conventions/naming.md#class-names); adding a use case here just to satisfy the rule would create an empty layer.
 - The use case **is** kept for the debug REST endpoint, where it does its job: validate the specialty exists with the right exception, then read. That is the use-case-shaped operation.
 
 ### 9. The loader injects `SpecialtyRepository`, not `GetSpecialtyByIdService`

@@ -31,7 +31,7 @@ You are helping me write the specification for a new feature in the MedSync Back
 **Your job**:
 
 1. Read `docs/specs/README.md` for the spec lifecycle.
-2. Create `docs/specs/<<feature-name>>/requirements.md` following the EARS format (When/While/If/Where … the system shall …).
+2. Create `docs/specs/<<DD-MM-YYYY>>-<<feature-name>>/requirements.md` following the EARS format (When/While/If/Where … the system shall …).
 3. Stop. Wait for me to approve `requirements.md` before writing `design.md` or `tasks.md`.
 
 **Don't**:

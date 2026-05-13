@@ -42,9 +42,9 @@ public interface SpecialtyRepository {
 }
 ```
 
-`existsBySlugAcrossAllRows` mirrors the `existsByExpedienteExternoId` pattern from `patient` — slugs must be unique across both active and soft-deleted rows because they back filesystem resources (see [conventions/persistence.md](../../../conventions/persistence.md#gotcha-sqlrestriction-also-hides-soft-deleted-rows-from-count-and-uniqueness-checks)).
+`existsBySlugAcrossAllRows` mirrors the `existsByExpedienteExternoId` pattern from `patient` — slugs must be unique across both active and soft-deleted rows because they back filesystem resources (see [conventions/persistence.md](../../conventions/persistence.md#gotcha-sqlrestriction-also-hides-soft-deleted-rows-from-count-and-uniqueness-checks)).
 
-`SpecialtyRepository` is a **`*Repository`** (own data, full CRUD), per [ADR 0002](../../../architecture/decisions/0002-gateway-vs-repository.md).
+`SpecialtyRepository` is a **`*Repository`** (own data, full CRUD), per [ADR 0002](../../architecture/decisions/0002-gateway-vs-repository.md).
 
 ## Use cases
 
@@ -68,7 +68,7 @@ public interface SpecialtyRepository {
 | PUT    | `/api/admin/especialidades/{id}`      | `UpdateSpecialtyRequest` | `SpecialtyResponse`        | 200 / 400 / 401 / 403 / 404 / 409 |
 | DELETE | `/api/admin/especialidades/{id}`      | —                        | —                          | 204 / 401 / 403 / 404     |
 
-Swagger tags: `Specialties` (public listing) and `Admin` (CRUD). All endpoints require `AuthenticatedUserContext`; admin endpoints additionally check `caller.roleName().equalsIgnoreCase("COO")` — same manual-check pattern as `CreateAdminUserService` (see [specs/user/1-05-2026/design.md](../../user/1-05-2026/design.md#3-manual-role-checks-not-rolesallowed)).
+Swagger tags: `Specialties` (public listing) and `Admin` (CRUD). All endpoints require `AuthenticatedUserContext`; admin endpoints additionally check `caller.roleName().equalsIgnoreCase("COO")` — same manual-check pattern as `CreateAdminUserService` (see [specs/1-05-2026-user/design.md](../1-05-2026-user/design.md#3-manual-role-checks-not-rolesallowed)).
 
 ### DTOs (`interfaces/rest/specialty/`)
 
@@ -99,9 +99,9 @@ Indexes:
 
 Uniqueness on `nombre` is **not** enforced at the DB level — it is checked at the service layer against active rows only (`SpecialtyRepository.existsByNombreActive`). This intentional asymmetry mirrors the soft-delete behavior: a deleted specialty's `nombre` is freed for reuse, but its `slug` is locked forever (because the JSON vocabulary file on disk may persist).
 
-Annotated with `@SQLRestriction("activo = true")` so soft-deleted rows are filtered out of all JPQL queries by default — same pattern as `PatientEntity`. The `existsBySlugAcrossAllRows` method uses a native query to bypass the restriction (see [conventions/persistence.md](../../../conventions/persistence.md#gotcha-sqlrestriction-also-hides-soft-deleted-rows-from-count-and-uniqueness-checks)).
+Annotated with `@SQLRestriction("activo = true")` so soft-deleted rows are filtered out of all JPQL queries by default — same pattern as `PatientEntity`. The `existsBySlugAcrossAllRows` method uses a native query to bypass the restriction (see [conventions/persistence.md](../../conventions/persistence.md#gotcha-sqlrestriction-also-hides-soft-deleted-rows-from-count-and-uniqueness-checks)).
 
-The entity has no `@ManyToOne` relations — `Specialty` is a leaf reference target, not a parent. Owning entities (`UserEntity`, `PacienteContextoEntity`, `ArticleEntity`) point **to** it. Therefore no `@NamedEntityGraph` is needed on `SpecialtyEntity` itself (per [conventions/persistence.md](../../../conventions/persistence.md#fetch-strategy-always-use-entitygraph-never-rely-on-lazy-or-eager)).
+The entity has no `@ManyToOne` relations — `Specialty` is a leaf reference target, not a parent. Owning entities (`UserEntity`, `PacienteContextoEntity`, `ArticleEntity`) point **to** it. Therefore no `@NamedEntityGraph` is needed on `SpecialtyEntity` itself (per [conventions/persistence.md](../../conventions/persistence.md#fetch-strategy-always-use-entitygraph-never-rely-on-lazy-or-eager)).
 
 ### Migrations
 
@@ -292,7 +292,7 @@ These three changes ship together with this spec's migrations. They modify the s
 
 The new bulk endpoint `POST /api/patients/{patientId}/contextos/bulk` and the matching-query filter (`AND a.especialidad_id = c.especialidad_id`) are introduced by features 3 and 4 — they are not in scope for this spec.
 
-> **Note.** The existing `specs/<feature>/1-05-2026/` spec remains the canonical record for unchanged behavior; modified behavior will be re-snapshotted as `specs/<feature>/<implementation-date>/` when this work ships.
+> **Note.** The existing `specs/1-05-2026-<feature>/` spec remains the canonical record for unchanged behavior; modified behavior will be re-snapshotted as `specs/<implementation-date>-<feature>/` when this work ships.
 
 ## Key technical decisions
 
@@ -340,7 +340,7 @@ The 400 behavior is detailed in `consulta-ai-analysis/design.md` (feature 4).
 
 ### 6. Three migrations (V9, V10, V11), one concern each
 
-Per [conventions/migrations.md](../../../conventions/migrations.md#golden-rules):
+Per [conventions/migrations.md](../../conventions/migrations.md#golden-rules):
 
 - V9 — schema only (CREATE TABLE).
 - V10 — seed data (idempotent `ON DUPLICATE KEY UPDATE`).

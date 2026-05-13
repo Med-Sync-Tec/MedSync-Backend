@@ -1,6 +1,6 @@
 # Feature: Article AI Analysis — Implementation Tasks
 
-Execute in order. Each item ≈ one commit. Use TDD per [conventions/testing.md](../../../conventions/testing.md).
+Execute in order. Each item ≈ one commit. Use TDD per [conventions/testing.md](../../conventions/testing.md).
 
 Depends on features 1 (`specialty`) and 2 (`medical-vocabulary`) being merged. Feature 4 (`consulta-ai-analysis`) also uses the same `AiAnalysisGateway` shipped here — coordinate so both features land in the same release window.
 

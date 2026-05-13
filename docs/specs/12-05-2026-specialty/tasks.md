@@ -1,6 +1,6 @@
 # Feature: Specialty — Implementation Tasks
 
-Execute in order. Each item ≈ one commit. Use TDD per [conventions/testing.md](../../../conventions/testing.md).
+Execute in order. Each item ≈ one commit. Use TDD per [conventions/testing.md](../../conventions/testing.md).
 
 Per project preference, **the operator runs the test commands**. Each `→ RED` / `→ GREEN` step describes what should happen when you (the operator) execute `./mvnw test`; the agent does not execute them.
 

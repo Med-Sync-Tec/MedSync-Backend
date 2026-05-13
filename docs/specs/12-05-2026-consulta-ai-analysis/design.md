@@ -12,7 +12,7 @@ public interface AiAnalysisGateway {
 }
 ```
 
-The `ConsultaAnalysisRequest` and `ConsultaAnalysisResult` records were introduced in [specs/article-ai-analysis/12-05-2026/design.md](../../article-ai-analysis/12-05-2026/design.md#shared-ai-gateway-lives-in-domainshared) and live in `domain/shared/model/`. No additions to the shared types here.
+The `ConsultaAnalysisRequest` and `ConsultaAnalysisResult` records were introduced in [specs/12-05-2026-article-ai-analysis/design.md](../12-05-2026-article-ai-analysis/design.md#shared-ai-gateway-lives-in-domainshared) and live in `domain/shared/model/`. No additions to the shared types here.
 
 ## Domain model (consulta-side)
 
@@ -234,7 +234,7 @@ The `@Transactional` annotation on the service guarantees that a `TipoClinico` p
 
 No new Flyway migration is required. The `paciente_contexto` table already has the nullable `especialidad_id` column added by feature 1's V11.
 
-> **Note.** The existing `specs/patient-context/1-05-2026/` spec remains the canonical record for unchanged behavior; modified behavior will be re-snapshotted as `specs/patient-context/<implementation-date>/` when this work ships.
+> **Note.** The existing `specs/1-05-2026-patient-context/` spec remains the canonical record for unchanged behavior; modified behavior will be re-snapshotted as `specs/<implementation-date>-patient-context/` when this work ships.
 
 ## Key technical decisions
 

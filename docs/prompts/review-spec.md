@@ -4,12 +4,12 @@ Use this prompt when a `requirements.md` or `design.md` is "done" and you want a
 
 ---
 
-You are reviewing the spec for `docs/specs/<<feature-name>>/`. Your job is to find problems **before** implementation starts, when fixes are still cheap.
+You are reviewing the spec for `docs/specs/<<DD-MM-YYYY>>-<<feature-name>>/`. Your job is to find problems **before** implementation starts, when fixes are still cheap.
 
 **Authoritative references**:
 
-- `docs/specs/<<feature-name>>/requirements.md`
-- `docs/specs/<<feature-name>>/design.md`
+- `docs/specs/<<DD-MM-YYYY>>-<<feature-name>>/requirements.md`
+- `docs/specs/<<DD-MM-YYYY>>-<<feature-name>>/design.md`
 - `docs/architecture/overview.md` (dependency rule)
 - `docs/architecture/decisions/` (ADRs)
 - `docs/conventions/*.md`

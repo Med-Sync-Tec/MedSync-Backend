@@ -37,7 +37,7 @@ public record ConsultaAnalysisRequest(String consultaText, Vocabulary vocabulary
 public record ConsultaAnalysisResult(List<ExtractedTag> tags) {}
 ```
 
-`AiAnalysisGateway` is a `*Gateway` (external system over HTTP) per [ADR 0002](../../../architecture/decisions/0002-gateway-vs-repository.md). The implementation is `GroqAiAnalysisGateway` in `infrastructure/ai/`, shared by both features 3 and 4. The port name is provider-agnostic so a future migration to a different LLM vendor would not break domain or application layers — only the impl is swapped.
+`AiAnalysisGateway` is a `*Gateway` (external system over HTTP) per [ADR 0002](../../architecture/decisions/0002-gateway-vs-repository.md). The implementation is `GroqAiAnalysisGateway` in `infrastructure/ai/`, shared by both features 3 and 4. The port name is provider-agnostic so a future migration to a different LLM vendor would not break domain or application layers — only the impl is swapped.
 
 ### Why one gateway with two methods, not three
 
@@ -47,7 +47,7 @@ The prompt mandates "single `AiAnalysisGateway` with two methods (`analyzeArticl
 
 ### `Article` (updated)
 
-The `Article` aggregate (defined in [specs/article/1-05-2026/design.md](../../article/1-05-2026/design.md)) already has the fields needed. Two new behaviors land in this spec:
+The `Article` aggregate (defined in [specs/1-05-2026-article/design.md](../1-05-2026-article/design.md)) already has the fields needed. Two new behaviors land in this spec:
 
 - `Article.withAiAnalysis(UUID especialidadId, List<ArticleTag> newTags)` — returns a new instance with `especialidadId` set and the tag list **replaced**.
   - The existing `cascade = ALL, orphanRemoval = true` configuration on `@OneToMany` ensures that on save, the old `ArticleTagEntity` rows are deleted and the new ones inserted in one transaction.
@@ -298,7 +298,7 @@ The new `AND c.especialidad_id = a.especialidad_id` clause means **rows on eithe
 | `infrastructure/config` | `GlobalExceptionHandler`                 | Adds mappings for `AiAnalysisException → 502`, `AiAnalysisTimeoutException → 504`.                                    | (code only)             |
 | `application.properties` | AI configuration block                 | Adds `ai.groq.*` keys with defaults; documents required env var `GROQ_API_KEY`.                                       | (code only)             |
 
-> **Note.** The existing `specs/article/1-05-2026/` spec remains the canonical record for unchanged behavior; modified behavior will be re-snapshotted as `specs/article/<implementation-date>/` when this work ships.
+> **Note.** The existing `specs/1-05-2026-article/` spec remains the canonical record for unchanged behavior; modified behavior will be re-snapshotted as `specs/<implementation-date>-article/` when this work ships.
 
 No database migration is required for this feature — feature 1 already added `especialidad_id` to `articulos_cientificos`.
 

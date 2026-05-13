@@ -94,14 +94,16 @@ HTTP request
 
 ## Implemented features
 
-| Feature           | Package name (current) | Purpose                                              | Spec                                      |
-|-------------------|------------------------|------------------------------------------------------|-------------------------------------------|
-| `patient`         | `patient`              | CRUD with soft delete, link to external hospital ID  | [specs/patient/](../specs/patient/)       |
-| `hospital`        | `hospital`             | Gateway to external hospital DB (read + create SOAP) | [specs/hospital/](../specs/hospital/)     |
-| `user`            | `user`                 | System users (doctors, admin), auth, roles           | [specs/user/](../specs/user/)             |
-| `article`         | `article`              | Scientific articles + tags + PubMed sync             | [specs/article/](../specs/article/)       |
-| `medication`      | `medicamento` *        | Drug catalog with status (active/obsolete/withdrawn) | [specs/medication/](../specs/medication/) |
-| `patient-context` | `pacientecontexto` *   | Clinical context aggregator per patient              | [specs/patient-context/](../specs/patient-context/) |
+| Feature              | Package name (current) | Purpose                                                          | Latest spec snapshot                                                           |
+|----------------------|------------------------|------------------------------------------------------------------|---------------------------------------------------------------------------------|
+| `patient`            | `patient`              | CRUD with soft delete, link to external hospital ID              | [specs/1-05-2026-patient/](../specs/1-05-2026-patient/)                         |
+| `hospital`           | `hospital`             | Gateway to external hospital DB (read + create SOAP)             | [specs/1-05-2026-hospital/](../specs/1-05-2026-hospital/)                       |
+| `user`               | `user`                 | System users (doctors, admin), auth, roles                       | [specs/1-05-2026-user/](../specs/1-05-2026-user/)                               |
+| `article`            | `article`              | Scientific articles + tags + PubMed sync                         | [specs/1-05-2026-article/](../specs/1-05-2026-article/)                         |
+| `medication`         | `medicamento` *        | Drug catalog with status (active/obsolete/withdrawn)             | [specs/1-05-2026-medication/](../specs/1-05-2026-medication/)                   |
+| `patient-context`    | `pacientecontexto` *   | Clinical context aggregator per patient                          | [specs/1-05-2026-patient-context/](../specs/1-05-2026-patient-context/)         |
+| `specialty`          | `specialty`            | Catalog of medical specialties with COO admin CRUD               | [specs/12-05-2026-specialty/](../specs/12-05-2026-specialty/)                   |
+| `medical-vocabulary` | `vocabulary`           | Per-specialty controlled vocabulary loaded from JSON at boot     | [specs/12-05-2026-medical-vocabulary/](../specs/12-05-2026-medical-vocabulary/) |
 
 `*` Java package still in Spanish. Rename to English is deferred technical debt — see [conventions/naming.md](../conventions/naming.md#legacy-spanish-packages).
 
@@ -113,7 +115,7 @@ HTTP request
 
 - **Two MySQL datasources** — `<default>` for MedSync data, `hospital` for the external hospital DB. See [ADR 0003](decisions/0003-two-datasources-medsync-hospital.md).
 - **Flyway** manages schema for `<default>` only. Hospital schema is owned externally — Hibernate runs in `validate` mode against it.
-- **JWT-based auth** — see [specs/user/1-05-2026/design.md](../specs/user/1-05-2026/design.md).
+- **JWT-based auth** — see [specs/1-05-2026-user/design.md](../specs/1-05-2026-user/design.md).
 - **OpenAPI** — every endpoint annotated with `@Tag`, `@Operation`, `@APIResponse`. Swagger UI lives at `/q/swagger-ui`.
 
 ## Further reading

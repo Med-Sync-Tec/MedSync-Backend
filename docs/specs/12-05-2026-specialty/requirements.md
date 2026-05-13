@@ -59,7 +59,7 @@ This feature owns the catalog itself, the public listing endpoint, the COO-only 
 
 ## Out of scope (explicit)
 
-- Many-to-many between `Specialty` and any of `User` / `PacienteContexto` / `Article`. (One specialty per row is an MVP decision — see [conventions/naming.md](../../../conventions/naming.md) and design.md.)
+- Many-to-many between `Specialty` and any of `User` / `PacienteContexto` / `Article`. (One specialty per row is an MVP decision — see [conventions/naming.md](../../conventions/naming.md) and design.md.)
 - Re-assigning a user's specialty (`PATCH /api/admin/users/{id}`). Users keep the specialty assigned at creation time. Reassignment is deferred to a future user-spec revision.
 - Bulk import of specialties.
 - Historic vocabulary versioning per specialty (vocabularies are a code-managed artifact — see the `medical-vocabulary` spec).

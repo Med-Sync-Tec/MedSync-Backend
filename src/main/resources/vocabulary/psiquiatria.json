@@ -1,0 +1,11 @@
+{
+  "$schema": "medsync.vocabulary.v1",
+  "especialidadSlug": "psiquiatria",
+  "version": "2026-05-12-stub",
+  "terms": {
+    "ENFERMEDAD":  ["Trastorno depresivo mayor"],
+    "SINTOMA":     ["Anhedonia"],
+    "TRATAMIENTO": ["Psicoterapia cognitivo-conductual"],
+    "MEDICAMENTO": ["Sertralina"]
+  }
+}

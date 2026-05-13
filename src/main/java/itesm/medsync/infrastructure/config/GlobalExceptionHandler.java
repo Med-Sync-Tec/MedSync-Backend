@@ -25,6 +25,7 @@ import itesm.medsync.domain.user.exception.RoleMismatchException;
 import itesm.medsync.domain.user.exception.RoleNotFoundException;
 import itesm.medsync.domain.user.exception.UserAlreadyExistsException;
 import itesm.medsync.domain.user.exception.UserNotFoundException;
+import itesm.medsync.domain.vocabulary.exception.InvalidVocabularyTermDataException;
 import itesm.medsync.interfaces.rest.common.ErrorResponse;
 import itesm.medsync.interfaces.rest.common.RoleMismatchErrorResponse;
 import jakarta.validation.ConstraintViolationException;
@@ -282,6 +283,16 @@ public final class GlobalExceptionHandler {
     public static class InvalidSpecialtyDataMapper implements ExceptionMapper<InvalidSpecialtyDataException> {
         @Override
         public Response toResponse(InvalidSpecialtyDataException ex) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class InvalidVocabularyTermDataMapper implements ExceptionMapper<InvalidVocabularyTermDataException> {
+        @Override
+        public Response toResponse(InvalidVocabularyTermDataException ex) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
                     .build();

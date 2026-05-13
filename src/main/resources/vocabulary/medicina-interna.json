@@ -1,0 +1,11 @@
+{
+  "$schema": "medsync.vocabulary.v1",
+  "especialidadSlug": "medicina-interna",
+  "version": "2026-05-12-stub",
+  "terms": {
+    "ENFERMEDAD":  ["Síndrome metabólico"],
+    "SINTOMA":     ["Astenia generalizada"],
+    "TRATAMIENTO": ["Manejo integral multidisciplinario"],
+    "MEDICAMENTO": ["Metformina"]
+  }
+}

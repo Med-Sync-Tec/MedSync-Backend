@@ -1,0 +1,11 @@
+{
+  "$schema": "medsync.vocabulary.v1",
+  "especialidadSlug": "neurologia",
+  "version": "2026-05-12-stub",
+  "terms": {
+    "ENFERMEDAD":  ["Migraña crónica"],
+    "SINTOMA":     ["Cefalea pulsátil"],
+    "TRATAMIENTO": ["Terapia anticonvulsivante"],
+    "MEDICAMENTO": ["Levetiracetam"]
+  }
+}

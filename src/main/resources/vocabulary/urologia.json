@@ -1,0 +1,11 @@
+{
+  "$schema": "medsync.vocabulary.v1",
+  "especialidadSlug": "urologia",
+  "version": "2026-05-12-stub",
+  "terms": {
+    "ENFERMEDAD":  ["Hiperplasia prostática benigna"],
+    "SINTOMA":     ["Disuria"],
+    "TRATAMIENTO": ["Resección transuretral de próstata"],
+    "MEDICAMENTO": ["Tamsulosina"]
+  }
+}

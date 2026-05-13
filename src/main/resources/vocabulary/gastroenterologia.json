@@ -1,0 +1,11 @@
+{
+  "$schema": "medsync.vocabulary.v1",
+  "especialidadSlug": "gastroenterologia",
+  "version": "2026-05-12-stub",
+  "terms": {
+    "ENFERMEDAD":  ["Enfermedad por reflujo gastroesofágico"],
+    "SINTOMA":     ["Pirosis"],
+    "TRATAMIENTO": ["Endoscopia digestiva alta"],
+    "MEDICAMENTO": ["Omeprazol"]
+  }
+}

@@ -76,7 +76,7 @@ class CreateAdminUserServiceTest {
     @DisplayName("Email ya existe en BD: lanza UserAlreadyExistsException antes de Firebase")
     void createEmailExists() {
         Role role = doctorRole();
-        User existing = User.create("Old", "x@tec.mx", role.getId());
+        User existing = User.create("Old", "x@tec.mx", null, role.getId());
         when(roleRepository.findByNombre(KnownRoles.DOCTOR)).thenReturn(Optional.of(role));
         when(userRepository.findByEmail("x@tec.mx"))
                 .thenReturn(Optional.of(new UserWithRole(existing, KnownRoles.DOCTOR)));

@@ -42,7 +42,7 @@ class MedicamentoResourceIT {
                 .map(Role::getId)
                 .orElseThrow(() -> new AssertionError("DOCTOR debe existir (seed V3)"));
         User medico = userRepository.save(
-                User.create("Med IT", "med-" + UUID.randomUUID() + "@tec.mx", doctorRoleId));
+                User.create("Med IT", "med-" + UUID.randomUUID() + "@tec.mx", null, doctorRoleId));
         when(userContext.getCurrentUser()).thenReturn(new UserWithRole(medico, KnownRoles.DOCTOR));
     }
 

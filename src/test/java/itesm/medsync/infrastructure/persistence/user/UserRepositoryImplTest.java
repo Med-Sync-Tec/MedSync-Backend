@@ -39,7 +39,7 @@ class UserRepositoryImplTest {
     @TestTransaction
     @DisplayName("save + findByEmail: createdAt se genera, campos persisten, rol se carga via graph")
     void saveAndFindByEmail() {
-        User u = User.create("Ana", "ana-" + UUID.randomUUID() + "@tec.mx", doctorRoleId());
+        User u = User.create("Ana", "ana-" + UUID.randomUUID() + "@tec.mx", null, doctorRoleId());
         User saved = userRepository.save(u);
 
         assertEquals(u.getId(), saved.getId());
@@ -69,7 +69,7 @@ class UserRepositoryImplTest {
     @DisplayName("save sobre usuario existente actualiza (no duplica) y preserva createdAt")
     void saveUpdatesExisting() {
         User original = userRepository.save(
-                User.create("Pedro", "pedro-" + UUID.randomUUID() + "@tec.mx", doctorRoleId()));
+                User.create("Pedro", "pedro-" + UUID.randomUUID() + "@tec.mx", null, doctorRoleId()));
 
         User deactivated = original.deactivate();
         User updated = userRepository.save(deactivated);
@@ -84,9 +84,9 @@ class UserRepositoryImplTest {
     @DisplayName("UNIQUE correo: guardar dos usuarios con mismo correo falla")
     void saveDuplicateEmailFails() {
         String email = "dup-" + UUID.randomUUID() + "@tec.mx";
-        userRepository.save(User.create("A", email, doctorRoleId()));
+        userRepository.save(User.create("A", email, null, doctorRoleId()));
 
         assertThrows(Exception.class,
-                () -> userRepository.save(User.create("B", email, doctorRoleId())));
+                () -> userRepository.save(User.create("B", email, null, doctorRoleId())));
     }
 }

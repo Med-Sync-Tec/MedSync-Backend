@@ -40,7 +40,7 @@ class PatientRepositoryImplTest {
                 .map(Role::getId)
                 .orElseThrow(() -> new AssertionError("DOCTOR role debe existir (seed V3)"));
         User medico = userRepository.save(
-                User.create("Repo Medico", "repo-" + UUID.randomUUID() + "@tec.mx", doctorRoleId));
+                User.create("Repo Medico", "repo-" + UUID.randomUUID() + "@tec.mx", null, doctorRoleId));
         medicoId = medico.getId();
     }
 

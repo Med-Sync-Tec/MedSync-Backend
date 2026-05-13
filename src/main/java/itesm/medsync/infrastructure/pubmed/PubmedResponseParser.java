@@ -26,7 +26,7 @@ import java.util.List;
 public class PubmedResponseParser {
 
     private static final String NO_DISPONIBLE = "No disponible";
-    private static final int BATCH_SIZE = 200;
+    private static final int BATCH_SIZE = 20;
 
     private final ObjectMapper objectMapper;
 

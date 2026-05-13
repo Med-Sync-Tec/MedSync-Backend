@@ -32,6 +32,9 @@ public class UserEntity {
     @Column(nullable = false, unique = true, length = 100)
     private String correo;
 
+    @Column(length = 100)
+    private String especialidad;
+
     @Column(name = "rol_id", columnDefinition = "BINARY(16)", nullable = false)
     private UUID rolId;
 
@@ -71,6 +74,14 @@ public class UserEntity {
 
     public void setCorreo(String correo) {
         this.correo = correo;
+    }
+
+    public String getEspecialidad() {
+        return especialidad;
+    }
+
+    public void setEspecialidad(String especialidad) {
+        this.especialidad = especialidad;
     }
 
     public UUID getRolId() {

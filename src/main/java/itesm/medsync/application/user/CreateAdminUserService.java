@@ -45,7 +45,7 @@ public class CreateAdminUserService implements CreateAdminUserUseCase {
         String firebaseUid = firebaseUserGateway.createUser(email, password, nombre);
 
         try {
-            User newUser = User.create(nombre, email, role.getId());
+            User newUser = User.create(nombre, email, null, role.getId());
             User saved = userRepository.save(newUser);
             return new UserWithRole(saved, role.getNombre());
         } catch (Exception e) {

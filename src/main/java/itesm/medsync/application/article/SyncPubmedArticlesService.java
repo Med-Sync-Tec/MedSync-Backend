@@ -19,8 +19,8 @@ import java.util.List;
  * Implementación del caso de uso de sincronización con PubMed.
  * <p>
  * Flujo:
- * 1. esearch → obtiene hasta 1 000 PMIDs con filtro trending[sb].
- * 2. efetch en lotes de 200 → obtiene metadatos XML completos.
+ * 1. esearch → obtiene hasta 100 PMIDs con filtro trending[sb].
+ * 2. efetch en lotes de 20 → obtiene metadatos XML completos.
  * 3. Aplica fillna (campos nulos → "No disponible").
  * 4. Persiste artículos nuevos; actualiza los que ya existen por DOI/URL.
  */
@@ -30,8 +30,8 @@ public class SyncPubmedArticlesService implements SyncPubmedArticlesUseCase {
     private static final Logger LOG = Logger.getLogger(SyncPubmedArticlesService.class);
 
     private static final String DB = "pubmed";
-    private static final String TERM = "trending[sb]";
-    private static final int RET_MAX = 1000;
+    private static final String TERM = "(trending[sb]) OR (2024:2025[pdat] AND medicine[all])";
+    private static final int RET_MAX = 100;
     private static final String RET_MODE_JSON = "json";
     private static final String RET_MODE_XML = "xml";
     private static final String RET_TYPE = "abstract";
@@ -120,6 +120,12 @@ public class SyncPubmedArticlesService implements SyncPubmedArticlesUseCase {
             // DOI ya existe → saltamos (los datos ya están)
             return;
         }
+
+        // Si no tiene DOI, checamos por URL para evitar duplicados en la misma sincronización
+        if (articleRepository.existsByUrl(data.url())) {
+            return;
+        }
+
         articleRepository.save(article);
     }
 

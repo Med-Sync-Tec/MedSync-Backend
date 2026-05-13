@@ -41,7 +41,7 @@ class MatchingArticlesResourceIT {
         UUID doctorRoleId = roleRepository.findByNombre("DOCTOR")
                 .map(Role::getId).orElseThrow();
         User medico = userRepository.save(
-                User.create("Match Medico", "match-it-" + UUID.randomUUID() + "@tec.mx", doctorRoleId));
+                User.create("Match Medico", "match-it-" + UUID.randomUUID() + "@tec.mx", null, doctorRoleId));
         when(userContext.getCurrentUser()).thenReturn(new UserWithRole(medico, "DOCTOR"));
 
         Map<String, Object> patientPayload = new HashMap<>();

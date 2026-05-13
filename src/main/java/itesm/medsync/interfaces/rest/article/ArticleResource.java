@@ -7,8 +7,10 @@ import itesm.medsync.domain.article.usecase.CreateArticleUseCase;
 import itesm.medsync.domain.article.usecase.GetArticleByIdUseCase;
 import itesm.medsync.domain.article.usecase.GetRecentArticlesUseCase;
 import itesm.medsync.domain.article.usecase.ListArticlesUseCase;
+import itesm.medsync.domain.article.usecase.MarkArticleAsReadUseCase;
 import itesm.medsync.domain.article.usecase.RemoveTagFromArticleUseCase;
 import itesm.medsync.domain.article.usecase.SyncPubmedArticlesUseCase;
+import itesm.medsync.application.security.AuthenticatedUserContext;
 import itesm.medsync.domain.shared.model.TipoClinico;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -39,6 +41,9 @@ import java.util.UUID;
 @Tag(name = "Articles", description = "Artículos científicos y sus tags")
 public class ArticleResource {
 
+    @Inject
+    AuthenticatedUserContext authContext;
+
     private final CreateArticleUseCase createArticle;
     private final GetArticleByIdUseCase getArticleById;
     private final ListArticlesUseCase listArticles;
@@ -46,6 +51,7 @@ public class ArticleResource {
     private final AddTagToArticleUseCase addTag;
     private final RemoveTagFromArticleUseCase removeTag;
     private final SyncPubmedArticlesUseCase syncPubmed;
+    private final MarkArticleAsReadUseCase markAsRead;
 
     @Inject
     public ArticleResource(CreateArticleUseCase createArticle,
@@ -54,7 +60,8 @@ public class ArticleResource {
                            GetRecentArticlesUseCase getRecentArticles,
                            AddTagToArticleUseCase addTag,
                            RemoveTagFromArticleUseCase removeTag,
-                           SyncPubmedArticlesUseCase syncPubmed) {
+                           SyncPubmedArticlesUseCase syncPubmed,
+                           MarkArticleAsReadUseCase markAsRead) {
         this.createArticle = createArticle;
         this.getArticleById = getArticleById;
         this.listArticles = listArticles;
@@ -62,6 +69,7 @@ public class ArticleResource {
         this.addTag = addTag;
         this.removeTag = removeTag;
         this.syncPubmed = syncPubmed;
+        this.markAsRead = markAsRead;
     }
 
     // -------------------------------------------------------------------------
@@ -149,6 +157,22 @@ public class ArticleResource {
     public Response syncNow() {
         int count = syncPubmed.execute();
         return Response.ok(Map.of("articulosProcesados", count)).build();
+    }
+
+    // -------------------------------------------------------------------------
+    // Marcar artículo como leído
+    // -------------------------------------------------------------------------
+
+    @POST
+    @Path("/{id}/read")
+    @Operation(summary = "Marcar artículo como leído",
+               description = "Registra que el usuario autenticado ha leído el artículo. Idempotente.")
+    @APIResponse(responseCode = "204", description = "Marcado como leído")
+    @APIResponse(responseCode = "404", description = "Artículo no encontrado")
+    public Response markAsRead(@PathParam("id") UUID articleId) {
+        UUID userId = authContext.getCurrentUser().user().getId();
+        markAsRead.execute(userId, articleId);
+        return Response.noContent().build();
     }
 
     // -------------------------------------------------------------------------

@@ -180,6 +180,7 @@ public final class GlobalExceptionHandler {
                             403,
                             "Forbidden",
                             ex.getMessage(),
+                            ex.getActualRole(),
                             ex.getExpectedRole()))
                     .build();
         }

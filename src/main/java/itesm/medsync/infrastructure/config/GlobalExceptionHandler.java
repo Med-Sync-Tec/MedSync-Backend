@@ -6,6 +6,8 @@ import itesm.medsync.domain.article.exception.DuplicateArticleException;
 import itesm.medsync.domain.article.exception.InvalidArticleDataException;
 import itesm.medsync.domain.articleaianalysis.exception.AiAnalysisException;
 import itesm.medsync.domain.articleaianalysis.exception.AiAnalysisTimeoutException;
+import itesm.medsync.domain.consultaaianalysis.exception.InvalidConsultaDataException;
+import itesm.medsync.domain.consultaaianalysis.exception.UserHasNoSpecialtyException;
 import itesm.medsync.domain.hospital.exception.ConsultaNotFoundException;
 import itesm.medsync.domain.hospital.exception.ExpedienteNotFoundException;
 import itesm.medsync.domain.hospital.exception.InvalidHospitalDataException;
@@ -305,6 +307,26 @@ public final class GlobalExceptionHandler {
     public static class InvalidTipoClinicoMapper implements ExceptionMapper<InvalidTipoClinicoException> {
         @Override
         public Response toResponse(InvalidTipoClinicoException ex) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class UserHasNoSpecialtyMapper implements ExceptionMapper<UserHasNoSpecialtyException> {
+        @Override
+        public Response toResponse(UserHasNoSpecialtyException ex) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class InvalidConsultaDataMapper implements ExceptionMapper<InvalidConsultaDataException> {
+        @Override
+        public Response toResponse(InvalidConsultaDataException ex) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
                     .build();

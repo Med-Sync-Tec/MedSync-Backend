@@ -29,7 +29,7 @@ public class FirebaseAuthFilter implements ContainerRequestFilter {
 
     // Prefijos de paths que NO requieren autenticación (health, métricas, OpenAPI/Swagger).
     // Todo lo que esté bajo /api/** queda protegido.
-    private static final List<String> PUBLIC_PATH_PREFIXES = List.of("q/", "api/auth/register");
+    private static final List<String> PUBLIC_PATH_PREFIXES = List.of("q/", "api/auth/register", "api/solicitudes/");
 
     private final LoginOrRegisterUserUseCase loginOrRegister;
     private final AuthenticatedUserContext userContext;

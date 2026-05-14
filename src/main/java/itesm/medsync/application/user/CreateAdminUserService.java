@@ -42,6 +42,7 @@ public class CreateAdminUserService implements CreateAdminUserUseCase {
             throw new UserAlreadyExistsException(email);
         });
 
+        // Password is supplied by the COO — passed directly to Firebase, never stored here.
         String firebaseUid = firebaseUserGateway.createUser(email, password, nombre);
 
         try {
@@ -49,7 +50,7 @@ public class CreateAdminUserService implements CreateAdminUserUseCase {
             User saved = userRepository.save(newUser);
             return new UserWithRole(saved, role.getNombre());
         } catch (Exception e) {
-            LOG.errorf("DB save failed after Firebase user creation (uid=%s); rolling back Firebase user", firebaseUid);
+            LOG.errorf("DB save failed after Firebase user creation (uid=%s); rolling back", firebaseUid);
             firebaseUserGateway.deleteUser(firebaseUid);
             throw e;
         }

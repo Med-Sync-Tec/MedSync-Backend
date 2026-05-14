@@ -8,6 +8,7 @@ public record PacienteContextoResponse(
         UUID pacienteId,
         String tipo,
         String valor,
+        UUID especialidadId,
         LocalDateTime createdAt
 ) {
 }

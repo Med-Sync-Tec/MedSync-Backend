@@ -1,0 +1,11 @@
+{
+  "$schema": "medsync.vocabulary.v1",
+  "especialidadSlug": "infectologia",
+  "version": "2026-05-12-stub",
+  "terms": {
+    "ENFERMEDAD":  ["Tuberculosis pulmonar"],
+    "SINTOMA":     ["Tos productiva persistente"],
+    "TRATAMIENTO": ["Quimioterapia antituberculosa"],
+    "MEDICAMENTO": ["Isoniazida"]
+  }
+}

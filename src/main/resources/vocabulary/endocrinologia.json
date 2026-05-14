@@ -1,0 +1,11 @@
+{
+  "$schema": "medsync.vocabulary.v1",
+  "especialidadSlug": "endocrinologia",
+  "version": "2026-05-12-stub",
+  "terms": {
+    "ENFERMEDAD":  ["Diabetes mellitus tipo 2"],
+    "SINTOMA":     ["Polidipsia"],
+    "TRATAMIENTO": ["Terapia insulínica"],
+    "MEDICAMENTO": ["Metformina"]
+  }
+}

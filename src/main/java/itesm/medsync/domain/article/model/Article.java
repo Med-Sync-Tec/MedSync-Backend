@@ -27,6 +27,7 @@ public final class Article {
     private final String keywords;
     private final String tipoPublicacion;
     private final String url;
+    private final UUID especialidadId;
     private final List<ArticleTag> tags;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
@@ -45,6 +46,25 @@ public final class Article {
                    List<ArticleTag> tags,
                    LocalDateTime createdAt,
                    LocalDateTime updatedAt) {
+        this(id, titulo, autores, revista, anioPub, mesPub, doi, abstractText, keywords,
+                tipoPublicacion, url, null, tags, createdAt, updatedAt);
+    }
+
+    public Article(UUID id,
+                   String titulo,
+                   String autores,
+                   String revista,
+                   Integer anioPub,
+                   String mesPub,
+                   String doi,
+                   String abstractText,
+                   String keywords,
+                   String tipoPublicacion,
+                   String url,
+                   UUID especialidadId,
+                   List<ArticleTag> tags,
+                   LocalDateTime createdAt,
+                   LocalDateTime updatedAt) {
         validate(id, titulo, anioPub, doi, url);
         this.id = id;
         this.titulo = titulo.trim();
@@ -57,6 +77,7 @@ public final class Article {
         this.keywords = keywords;
         this.tipoPublicacion = tipoPublicacion;
         this.url = url == null || url.isBlank() ? null : url.trim();
+        this.especialidadId = especialidadId;
         this.tags = tags == null ? new ArrayList<>() : new ArrayList<>(tags);
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -76,6 +97,7 @@ public final class Article {
                 UUID.randomUUID(),
                 titulo, autores, revista, anioPub, mesPub,
                 doi, abstractText, keywords, tipoPublicacion, url,
+                null,
                 new ArrayList<>(),
                 null, null);
     }
@@ -89,7 +111,29 @@ public final class Article {
         return new Article(
                 id, titulo, autores, revista, anioPub, mesPub,
                 doi, abstractText, keywords, tipoPublicacion, url,
-                next, createdAt, updatedAt);
+                especialidadId, next, createdAt, updatedAt);
+    }
+
+    /**
+     * Returns a copy with {@code especialidadId} set and the tag list fully replaced.
+     *
+     * Used by the AI analysis flow (feature 3) to apply atomic
+     * "classify + extract" results — prior AI- or manually-added tags are dropped
+     * in favor of the LLM's current best answer. The atomic-replacement intent
+     * lives on the domain (not on the service) so it remains a single domain
+     * operation that future tests can construct without going through the gateway.
+     */
+    public Article withAiAnalysis(UUID newEspecialidadId, List<ArticleTag> newTags) {
+        if (newEspecialidadId == null) {
+            throw new InvalidArticleDataException("especialidadId cannot be null");
+        }
+        if (newTags == null) {
+            throw new InvalidArticleDataException("tags cannot be null");
+        }
+        return new Article(
+                id, titulo, autores, revista, anioPub, mesPub,
+                doi, abstractText, keywords, tipoPublicacion, url,
+                newEspecialidadId, new ArrayList<>(newTags), createdAt, updatedAt);
     }
 
     public Article withTagRemoved(UUID tagId) {
@@ -98,7 +142,7 @@ public final class Article {
         return new Article(
                 id, titulo, autores, revista, anioPub, mesPub,
                 doi, abstractText, keywords, tipoPublicacion, url,
-                next, createdAt, updatedAt);
+                especialidadId, next, createdAt, updatedAt);
     }
 
     private static void validate(UUID id, String titulo, Integer anioPub, String doi, String url) {
@@ -171,6 +215,10 @@ public final class Article {
 
     public String getUrl() {
         return url;
+    }
+
+    public UUID getEspecialidadId() {
+        return especialidadId;
     }
 
     public List<ArticleTag> getTags() {

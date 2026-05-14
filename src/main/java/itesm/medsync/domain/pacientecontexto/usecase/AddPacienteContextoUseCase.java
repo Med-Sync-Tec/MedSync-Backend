@@ -7,5 +7,5 @@ import java.util.UUID;
 
 public interface AddPacienteContextoUseCase {
 
-    PacienteContexto execute(UUID pacienteId, TipoClinico tipo, String valor);
+    PacienteContexto execute(UUID pacienteId, TipoClinico tipo, String valor, UUID especialidadId);
 }

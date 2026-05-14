@@ -23,14 +23,13 @@ docs/
 │   ├── new-feature.md
 │   ├── implement-task.md
 │   └── review-spec.md
-└── specs/                     one folder per feature
+└── specs/                     one folder per (date, feature) revision
     ├── README.md              spec lifecycle + templates
-    └── <feature>/
-        └── <DD-MM-YYYY>/      dated snapshot of the spec (one folder per revision)
-            ├── requirements.md    user stories + acceptance criteria (EARS format)
-            ├── design.md          domain model, endpoints, sequence diagrams
-            ├── tasks.md           ordered, actionable checklist
-            └── summary.md         what shipped (filled after implementation)
+    └── <DD-MM-YYYY>-<feature>/    dated snapshot of the spec (sorts chronologically)
+        ├── requirements.md    user stories + acceptance criteria (EARS format)
+        ├── design.md          domain model, endpoints, sequence diagrams
+        ├── tasks.md           ordered, actionable checklist
+        └── summary.md         what shipped (filled after implementation)
 ```
 
 ## Spec-driven workflow

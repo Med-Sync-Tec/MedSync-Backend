@@ -1,16 +1,17 @@
 # Feature Specifications
 
-One folder per feature. Inside each feature folder lives one **dated snapshot folder per spec revision**, named `DD-MM-YYYY`. Inside the dated folder live the four lifecycle files:
+One folder per **(date, feature)** revision, named `DD-MM-YYYY-<feature>`. Inside each folder live the four lifecycle files:
 
 ```
 specs/
-└── <feature>/
-    └── <DD-MM-YYYY>/           ← one folder per revision
-        ├── requirements.md
-        ├── design.md
-        ├── tasks.md
-        └── summary.md
+└── <DD-MM-YYYY>-<feature>/     ← one folder per revision
+    ├── requirements.md
+    ├── design.md
+    ├── tasks.md
+    └── summary.md
 ```
+
+The flat layout (date first) sorts chronologically when listing the directory and keeps every revision findable by `ls docs/specs/ | grep <feature>`. A second revision of the same feature lands as a new sibling folder `<later-date>-<feature>/`; old snapshots stay put.
 
 Written in this order:
 
@@ -19,11 +20,11 @@ Written in this order:
 3. **`tasks.md`** — ordered, actionable checklist. One item ≈ one commit.
 4. **`summary.md`** — written **after** implementation. What actually shipped, deviations, deferred items.
 
-## Why dated folders
+## Why date-prefixed folders
 
-Specs evolve. A feature's `1-05-2026/` snapshot captures what we agreed to build on May 1, 2026. When the same feature is reworked later, create `15-09-2026/` (or whatever date) next to it. Old snapshots stay — they document what we used to think, which is the only honest record of how the system grew.
+Specs evolve. A feature's `1-05-2026-patient/` snapshot captures what we agreed to build on May 1, 2026. When the same feature is reworked later, create `15-09-2026-patient/` (or whatever date) next to it. Old snapshots stay — they document what we used to think, which is the only honest record of how the system grew.
 
-The feature folder always points to the **latest** snapshot (no symlink — just pick the most recent date when reading). PRs that modify a spec start a new snapshot rather than overwriting an old one.
+To find the latest snapshot of a feature, sort matches by date: `ls docs/specs/ | grep -- '-patient$' | sort -t- -k3,3n -k2,2n -k1,1n | tail -1`. PRs that modify a spec start a new snapshot rather than overwriting an old one.
 
 ## Spec lifecycle
 
@@ -43,15 +44,20 @@ Do not jump ahead. Do not write `design.md` until `requirements.md` is reviewed.
 
 The link points to the latest snapshot.
 
-| Feature           | Status      | Latest snapshot                                                |
-|-------------------|-------------|----------------------------------------------------------------|
-| `patient`         | Implemented | [patient/1-05-2026/](patient/1-05-2026/)                       |
-| `hospital`        | Implemented | [hospital/1-05-2026/](hospital/1-05-2026/)                     |
-| `user`            | Implemented | [user/1-05-2026/](user/1-05-2026/)                             |
-| `article`         | Implemented | [article/1-05-2026/](article/1-05-2026/)                       |
-| `medication`      | Implemented | [medication/1-05-2026/](medication/1-05-2026/)                 |
-| `patient-context` | Implemented | [patient-context/1-05-2026/](patient-context/1-05-2026/)       |
-| `alert`           | Planned     | *(spec not yet written)*                                       |
+| Feature                | Status         | Latest snapshot                                                                |
+|------------------------|----------------|--------------------------------------------------------------------------------|
+| `patient`              | Implemented    | [1-05-2026-patient/](1-05-2026-patient/)                                       |
+| `hospital`             | Implemented    | [1-05-2026-hospital/](1-05-2026-hospital/)                                     |
+| `user`                 | Implemented    | [1-05-2026-user/](1-05-2026-user/)                                             |
+| `article`              | Implemented    | [1-05-2026-article/](1-05-2026-article/)                                       |
+| `medication`           | Implemented    | [1-05-2026-medication/](1-05-2026-medication/)                                 |
+| `patient-context`      | Implemented    | [1-05-2026-patient-context/](1-05-2026-patient-context/)                       |
+| `specialty`            | Implemented    | [12-05-2026-specialty/](12-05-2026-specialty/)                                 |
+| `medical-vocabulary`   | Implemented    | [12-05-2026-medical-vocabulary/](12-05-2026-medical-vocabulary/)               |
+| `database-objects`     | Implemented    | [12-05-2026-database-objects/](12-05-2026-database-objects/)                   |
+| `article-ai-analysis`  | Spec drafted   | [12-05-2026-article-ai-analysis/](12-05-2026-article-ai-analysis/)             |
+| `consulta-ai-analysis` | Spec drafted   | [12-05-2026-consulta-ai-analysis/](12-05-2026-consulta-ai-analysis/)           |
+| `alert`                | Planned        | *(spec not yet written)*                                                       |
 
 ## Templates
 

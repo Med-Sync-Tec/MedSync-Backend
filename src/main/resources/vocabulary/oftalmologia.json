@@ -1,0 +1,11 @@
+{
+  "$schema": "medsync.vocabulary.v1",
+  "especialidadSlug": "oftalmologia",
+  "version": "2026-05-12-stub",
+  "terms": {
+    "ENFERMEDAD":  ["Glaucoma de ángulo abierto"],
+    "SINTOMA":     ["Pérdida visual periférica"],
+    "TRATAMIENTO": ["Trabeculectomía"],
+    "MEDICAMENTO": ["Timolol"]
+  }
+}

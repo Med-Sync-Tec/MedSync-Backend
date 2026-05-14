@@ -33,6 +33,7 @@ public final class ArticlePersistenceMapper {
         entity.setKeywords(article.getKeywords());
         entity.setTipoPublicacion(article.getTipoPublicacion());
         entity.setUrl(article.getUrl());
+        entity.setEspecialidadId(article.getEspecialidadId());
     }
 
     public static ArticleTagEntity toTagEntity(ArticleTag tag) {
@@ -59,6 +60,7 @@ public final class ArticlePersistenceMapper {
                 entity.getKeywords(),
                 entity.getTipoPublicacion(),
                 entity.getUrl(),
+                entity.getEspecialidadId(),
                 tags,
                 entity.getCreatedAt(),
                 entity.getUpdatedAt());

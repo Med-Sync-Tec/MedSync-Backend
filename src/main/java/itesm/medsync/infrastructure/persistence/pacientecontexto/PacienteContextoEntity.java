@@ -30,6 +30,9 @@ public class PacienteContextoEntity {
     @Column(nullable = false, length = 500)
     private String valor;
 
+    @Column(name = "especialidad_id", columnDefinition = "BINARY(16)")
+    private UUID especialidadId;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -67,6 +70,14 @@ public class PacienteContextoEntity {
 
     public void setValor(String valor) {
         this.valor = valor;
+    }
+
+    public UUID getEspecialidadId() {
+        return especialidadId;
+    }
+
+    public void setEspecialidadId(UUID especialidadId) {
+        this.especialidadId = especialidadId;
     }
 
     public LocalDateTime getCreatedAt() {

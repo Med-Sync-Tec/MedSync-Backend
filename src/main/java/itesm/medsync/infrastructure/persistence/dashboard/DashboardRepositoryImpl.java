@@ -33,11 +33,10 @@ public class DashboardRepositoryImpl implements DashboardRepository, PanacheRepo
     @Override
     public List<ArticleEntity> findPorEspecialidad(UUID userId) {
         UserEntity user = userRepository.findById(userId);
-        if (user == null || user.getEspecialidad() == null || user.getEspecialidad().isBlank()) {
+        if (user == null || user.getEspecialidadId() == null) {
             return List.of();
         }
-
-        return find("from ArticleEntity a join a.tags t where t.valor = ?1", user.getEspecialidad()).list();
+        return find("especialidadId", user.getEspecialidadId()).list();
     }
 
     @Override

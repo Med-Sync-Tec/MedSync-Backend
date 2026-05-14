@@ -92,4 +92,4 @@ Ask: does this failure correspond to a distinct HTTP response? If yes, add a spe
 
 ## Hospital connection failures
 
-Currently `jakarta.persistence.PersistenceException` and underlying JDBC exceptions from the `hospital` datasource fall through to the default 500. Mapping them to `503 Service Unavailable` is acknowledged technical debt — tracked in [specs/hospital/1-05-2026/summary.md](../specs/hospital/1-05-2026/summary.md).
+Currently `jakarta.persistence.PersistenceException` and underlying JDBC exceptions from the `hospital` datasource fall through to the default 500. Mapping them to `503 Service Unavailable` is acknowledged technical debt — tracked in [specs/1-05-2026-hospital/summary.md](../specs/1-05-2026-hospital/summary.md).

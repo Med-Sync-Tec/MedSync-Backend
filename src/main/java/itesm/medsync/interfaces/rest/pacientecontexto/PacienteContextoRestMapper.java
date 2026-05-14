@@ -13,6 +13,7 @@ public final class PacienteContextoRestMapper {
                 contexto.getPacienteId(),
                 contexto.getTipo().name().toLowerCase(),
                 contexto.getValor(),
+                contexto.getEspecialidadId(),
                 contexto.getCreatedAt()
         );
     }

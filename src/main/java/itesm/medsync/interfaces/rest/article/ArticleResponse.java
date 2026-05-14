@@ -16,6 +16,7 @@ public record ArticleResponse(
         String keywords,
         String tipoPublicacion,
         String url,
+        UUID especialidadId,
         List<ArticleTagResponse> tags,
         LocalDateTime createdAt,
         LocalDateTime updatedAt

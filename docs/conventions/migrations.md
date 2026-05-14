@@ -7,17 +7,23 @@ The `hospital` datasource schema is **not** managed by Flyway — it is owned ex
 ## Where migrations live
 
 ```
-src/main/resources/db/migration/
+src/main/resources/db/
+├── migration/         vendor-agnostic SQL (the default — use this whenever possible)
+├── vendor_mysql/      MySQL-only SQL (procedures, triggers, JSON columns, SIGNAL …)
+└── vendor_h2/         H2-only SQL (rare — empty today)
 ```
 
 Flyway picks them up automatically because `application.properties` has:
 
 ```properties
 quarkus.flyway.migrate-at-start=true
+quarkus.flyway.locations=db/migration,db/vendor_{vendor}
 quarkus.hibernate-orm.database.generation=validate
 ```
 
 `validate` means Hibernate will **fail to start** if `@Entity` classes don't match the DB schema. The migration is the source of truth.
+
+The `{vendor}` placeholder resolves to the active datasource kind (`mysql` or `h2`). The vendor folder is a **sibling** of `db/migration`, not a sub-folder — Flyway discards sub-locations that overlap their parent. Vendor-specific migrations use the same `V<N>__<description>.sql` naming and live in the same Flyway version stream (V13 might exist in `vendor_mysql/` but not in `vendor_h2/`; that is fine — each database tracks what it applied separately).
 
 ## File naming
 
@@ -32,14 +38,17 @@ V<N>__<snake_case_description>.sql
 Examples (current state):
 
 ```
-V1__create_patients_table.sql
-V2__create_users_schema.sql
-V3__seed_roles.sql
-V4__add_patient_medico_fk.sql
-V5__create_paciente_contexto_table.sql
-V6__create_articulos_cientificos.sql
-V7__create_medicamentos_schema.sql
-V8__seed_medicamentos.sql
+db/migration/V1__create_patients_table.sql
+db/migration/V2__create_users_schema.sql
+db/migration/V3__seed_roles.sql
+db/migration/V4__add_patient_medico_fk.sql
+db/migration/V5__create_paciente_contexto_table.sql
+db/migration/V6__create_articulos_cientificos.sql
+db/migration/V7__create_medicamentos_schema.sql
+db/migration/V8__seed_medicamentos.sql
+…
+db/migration/V12__add_especialidad_id_and_drop_legacy.sql
+db/vendor_mysql/V13__add_database_objects.sql           ← MySQL-only triggers + procedure
 ```
 
 ## Golden rules
@@ -48,13 +57,13 @@ V8__seed_medicamentos.sql
 
 2. **One concern per migration.** A migration that creates a table and seeds data is harder to roll back mentally than two separate files (`V7__create_*` + `V8__seed_*`).
 
-3. **Use MySQL-compatible SQL** that also works on H2 in `MODE=MySQL`. Things that work in both:
+3. **Use MySQL-compatible SQL** that also works on H2 in `MODE=MySQL` whenever possible. Things that work in both:
 
    - `BINARY(16)`, `VARCHAR(N)`, `TEXT`, `DATE`, `DATETIME`, `TIMESTAMP`, `BOOLEAN`
    - `DEFAULT CURRENT_TIMESTAMP`, `ON UPDATE CURRENT_TIMESTAMP`
    - `PRIMARY KEY`, `UNIQUE`, `FOREIGN KEY`, `CREATE INDEX`
 
-   Avoid: MySQL-only `JSON` column types, stored procedures, triggers — they break the H2 test suite.
+   For features H2 cannot express (stored procedures, multi-statement triggers, `SIGNAL`, MySQL-only `JSON`), put the migration in `db/vendor_mysql/` instead of `db/migration/`. H2 dev and `@QuarkusTest` runs skip it. The application code must continue to work on H2 without those database-side objects — they are server-side enhancements, not load-bearing for the test suite. See [specs/12-05-2026-database-objects/design.md](../specs/12-05-2026-database-objects/design.md) for the first instance of this pattern.
 
 4. **Cross-feature FKs go in a separate migration.** If `patient` references `user.medico_id` but `user` is added later:
    - V1 creates `patients.medico_id` as a scalar `BINARY(16)` **without** a `FOREIGN KEY` constraint.

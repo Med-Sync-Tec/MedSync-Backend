@@ -1,0 +1,11 @@
+{
+  "$schema": "medsync.vocabulary.v1",
+  "especialidadSlug": "oncologia",
+  "version": "2026-05-12-stub",
+  "terms": {
+    "ENFERMEDAD":  ["Carcinoma de mama"],
+    "SINTOMA":     ["Pérdida de peso involuntaria"],
+    "TRATAMIENTO": ["Quimioterapia adyuvante"],
+    "MEDICAMENTO": ["Tamoxifeno"]
+  }
+}

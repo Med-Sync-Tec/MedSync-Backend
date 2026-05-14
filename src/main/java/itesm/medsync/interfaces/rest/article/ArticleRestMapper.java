@@ -27,6 +27,7 @@ public final class ArticleRestMapper {
                 article.getKeywords(),
                 article.getTipoPublicacion(),
                 article.getUrl(),
+                article.getEspecialidadId(),
                 tags,
                 article.getCreatedAt(),
                 article.getUpdatedAt()

@@ -1,0 +1,11 @@
+{
+  "$schema": "medsync.vocabulary.v1",
+  "especialidadSlug": "pediatria",
+  "version": "2026-05-12-stub",
+  "terms": {
+    "ENFERMEDAD":  ["Otitis media aguda"],
+    "SINTOMA":     ["Fiebre"],
+    "TRATAMIENTO": ["Hidratación oral"],
+    "MEDICAMENTO": ["Amoxicilina"]
+  }
+}

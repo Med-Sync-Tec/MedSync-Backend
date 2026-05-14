@@ -4,6 +4,12 @@ import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import itesm.medsync.application.security.AuthenticatedUserContext;
+import itesm.medsync.domain.article.model.Article;
+import itesm.medsync.domain.article.model.ArticleTag;
+import itesm.medsync.domain.article.repository.ArticleRepository;
+import itesm.medsync.domain.shared.model.TipoClinico;
+import itesm.medsync.domain.specialty.model.Specialty;
+import itesm.medsync.domain.specialty.repository.SpecialtyRepository;
 import itesm.medsync.domain.user.model.Role;
 import itesm.medsync.domain.user.model.User;
 import itesm.medsync.domain.user.model.UserWithRole;
@@ -31,17 +37,29 @@ class MatchingArticlesResourceIT {
     @Inject
     RoleRepository roleRepository;
 
+    @Inject
+    SpecialtyRepository specialtyRepository;
+
+    @Inject
+    ArticleRepository articleRepository;
+
     @InjectMock
     AuthenticatedUserContext userContext;
 
     private String patientId;
+    private UUID cardiologiaId;
 
     @BeforeEach
     void setupMedicoYPaciente() {
         UUID doctorRoleId = roleRepository.findByNombre("DOCTOR")
                 .map(Role::getId).orElseThrow();
+        // Feature 3: contexts inherit especialidadId from the medico via the
+        // POST /contextos endpoint, so the medico must have a real specialty.
+        cardiologiaId = specialtyRepository.findBySlug("cardiologia")
+                .map(Specialty::getId).orElseThrow();
         User medico = userRepository.save(
-                User.create("Match Medico", "match-it-" + UUID.randomUUID() + "@tec.mx", null, doctorRoleId));
+                User.create("Match Medico", "match-it-" + UUID.randomUUID() + "@tec.mx",
+                        cardiologiaId, doctorRoleId));
         when(userContext.getCurrentUser()).thenReturn(new UserWithRole(medico, "DOCTOR"));
 
         Map<String, Object> patientPayload = new HashMap<>();
@@ -71,7 +89,7 @@ class MatchingArticlesResourceIT {
     }
 
     @Test
-    @DisplayName("GET matching-articles devuelve solo los artículos que cruzan con el contexto")
+    @DisplayName("GET matching-articles devuelve solo los artículos que cruzan con el contexto Y comparten especialidad")
     void matchingFlow() {
         given().contentType(ContentType.JSON).body(tag("enfermedad", "Hipertensión"))
                 .when().post("/api/patients/" + patientId + "/contextos")
@@ -81,22 +99,28 @@ class MatchingArticlesResourceIT {
                 .body(articulo("IT-MATCH-" + UUID.randomUUID(), "Trat HTA"))
                 .when().post("/api/articles").then().statusCode(201)
                 .extract().path("id");
-        given().contentType(ContentType.JSON).body(tag("enfermedad", "Hipertensión"))
-                .when().post("/api/articles/" + matchingId + "/tags")
-                .then().statusCode(201);
+        // POST /api/articles doesn't accept especialidadId; assign it via the
+        // domain method exposed by feature 3 so the new specialty join is
+        // satisfied (mirrors what the AI analyze endpoint will do in prod).
+        attachSpecialtyAndTag(UUID.fromString(matchingId), cardiologiaId, TipoClinico.ENFERMEDAD, "Hipertensión");
 
         String otherId = given().contentType(ContentType.JSON)
                 .body(articulo("IT-NOMATCH-" + UUID.randomUUID(), "Otro"))
                 .when().post("/api/articles").then().statusCode(201)
                 .extract().path("id");
-        given().contentType(ContentType.JSON).body(tag("sintoma", "Mareo"))
-                .when().post("/api/articles/" + otherId + "/tags")
-                .then().statusCode(201);
+        attachSpecialtyAndTag(UUID.fromString(otherId), cardiologiaId, TipoClinico.SINTOMA, "Mareo");
 
         given().when().get("/api/patients/" + patientId + "/matching-articles")
                 .then().statusCode(200)
                 .body("findAll { it.id == '" + matchingId + "' }", hasSize(1))
                 .body("findAll { it.id == '" + otherId + "' }", hasSize(0));
+    }
+
+    private void attachSpecialtyAndTag(UUID articleId, UUID especialidadId, TipoClinico tipo, String valor) {
+        Article a = articleRepository.findByUuid(articleId).orElseThrow();
+        Article enriched = a.withAiAnalysis(especialidadId,
+                java.util.List.of(ArticleTag.create(tipo, valor)));
+        articleRepository.save(enriched);
     }
 
     @Test

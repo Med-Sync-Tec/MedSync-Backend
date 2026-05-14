@@ -1,0 +1,11 @@
+{
+  "$schema": "medsync.vocabulary.v1",
+  "especialidadSlug": "ginecologia",
+  "version": "2026-05-12-stub",
+  "terms": {
+    "ENFERMEDAD":  ["Síndrome de ovario poliquístico"],
+    "SINTOMA":     ["Amenorrea"],
+    "TRATAMIENTO": ["Terapia hormonal anticonceptiva"],
+    "MEDICAMENTO": ["Etinilestradiol"]
+  }
+}

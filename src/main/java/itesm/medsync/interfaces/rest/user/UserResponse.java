@@ -8,6 +8,8 @@ public record UserResponse(
         String nombre,
         String correo,
         String role,
+        UUID especialidadId,
+        String especialidadNombre,
         boolean activo,
         LocalDateTime createdAt
 ) {

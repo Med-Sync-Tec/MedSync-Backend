@@ -1,8 +1,10 @@
 package itesm.medsync.interfaces.rest.pacientecontexto;
 
 import itesm.medsync.application.security.AuthenticatedUserContext;
+import itesm.medsync.domain.pacientecontexto.model.BulkEntry;
 import itesm.medsync.domain.pacientecontexto.model.PacienteContexto;
 import itesm.medsync.domain.pacientecontexto.usecase.AddPacienteContextoUseCase;
+import itesm.medsync.domain.pacientecontexto.usecase.BulkAddPacienteContextoUseCase;
 import itesm.medsync.domain.pacientecontexto.usecase.DeletePacienteContextoUseCase;
 import itesm.medsync.domain.pacientecontexto.usecase.ListPacienteContextosByPacienteUseCase;
 import itesm.medsync.domain.shared.model.TipoClinico;
@@ -35,16 +37,19 @@ import java.util.UUID;
 public class PacienteContextoResource {
 
     private final AddPacienteContextoUseCase addContexto;
+    private final BulkAddPacienteContextoUseCase bulkAddContexto;
     private final ListPacienteContextosByPacienteUseCase listContextos;
     private final DeletePacienteContextoUseCase deleteContexto;
     private final AuthenticatedUserContext userContext;
 
     @Inject
     public PacienteContextoResource(AddPacienteContextoUseCase addContexto,
+                                    BulkAddPacienteContextoUseCase bulkAddContexto,
                                     ListPacienteContextosByPacienteUseCase listContextos,
                                     DeletePacienteContextoUseCase deleteContexto,
                                     AuthenticatedUserContext userContext) {
         this.addContexto = addContexto;
+        this.bulkAddContexto = bulkAddContexto;
         this.listContextos = listContextos;
         this.deleteContexto = deleteContexto;
         this.userContext = userContext;
@@ -67,7 +72,8 @@ public class PacienteContextoResource {
                         @Context UriInfo uriInfo) {
         requireAuthenticated();
         TipoClinico tipo = TipoClinico.fromString(request.tipo);
-        PacienteContexto created = addContexto.execute(patientId, tipo, request.valor);
+        UUID especialidadId = userContext.getCurrentUser().user().getEspecialidadId();
+        PacienteContexto created = addContexto.execute(patientId, tipo, request.valor, especialidadId);
 
         URI location = uriInfo.getAbsolutePathBuilder().path(created.getId().toString()).build();
         return Response.created(location)
@@ -85,6 +91,27 @@ public class PacienteContextoResource {
         return listContextos.execute(patientId).stream()
                 .map(PacienteContextoRestMapper::toResponse)
                 .toList();
+    }
+
+    @POST
+    @Path("/bulk")
+    @Operation(summary = "Agregar múltiples contextos clínicos atómicamente")
+    @APIResponse(responseCode = "201", description = "Contextos creados (lista del mismo tamaño que `entries`)")
+    @APIResponse(responseCode = "400", description = "Datos inválidos en una o más entradas; ninguna fila se persistió")
+    @APIResponse(responseCode = "401", description = "No autenticado")
+    @APIResponse(responseCode = "404", description = "Paciente no encontrado")
+    public Response bulkAdd(@PathParam("patientId") UUID patientId,
+                            @Valid BulkAddPacienteContextoRequest request) {
+        requireAuthenticated();
+        List<BulkEntry> entries = request.entries.stream()
+                .map(e -> new BulkEntry(e.tipo, e.valor))
+                .toList();
+        List<PacienteContexto> persisted = bulkAddContexto.execute(
+                patientId, entries, userContext.getCurrentUser().user());
+        List<PacienteContextoResponse> body = persisted.stream()
+                .map(PacienteContextoRestMapper::toResponse)
+                .toList();
+        return Response.status(Response.Status.CREATED).entity(body).build();
     }
 
     @DELETE

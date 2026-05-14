@@ -5,6 +5,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+import java.util.UUID;
+
 public class CreateUserRequest {
 
     @NotBlank
@@ -24,4 +26,6 @@ public class CreateUserRequest {
     @NotBlank
     @Pattern(regexp = "DOCTOR|COO|CMO", message = "Role must be DOCTOR, COO, or CMO")
     public String rol;
+
+    public UUID especialidadId;
 }

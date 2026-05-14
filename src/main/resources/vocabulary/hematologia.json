@@ -1,0 +1,11 @@
+{
+  "$schema": "medsync.vocabulary.v1",
+  "especialidadSlug": "hematologia",
+  "version": "2026-05-12-stub",
+  "terms": {
+    "ENFERMEDAD":  ["Anemia ferropénica"],
+    "SINTOMA":     ["Astenia"],
+    "TRATAMIENTO": ["Transfusión de concentrado eritrocitario"],
+    "MEDICAMENTO": ["Sulfato ferroso"]
+  }
+}

@@ -10,6 +10,8 @@ import itesm.medsync.domain.pacientecontexto.repository.PacienteContextoReposito
 import itesm.medsync.domain.patient.model.Patient;
 import itesm.medsync.domain.patient.repository.PatientRepository;
 import itesm.medsync.domain.shared.model.TipoClinico;
+import itesm.medsync.domain.specialty.model.Specialty;
+import itesm.medsync.domain.specialty.repository.SpecialtyRepository;
 import itesm.medsync.domain.user.model.Role;
 import itesm.medsync.domain.user.model.User;
 import itesm.medsync.domain.user.repository.RoleRepository;
@@ -43,11 +45,27 @@ class ArticleRepositoryImplTest {
     @Inject
     RoleRepository roleRepository;
 
+    @Inject
+    SpecialtyRepository specialtyRepository;
+
+    /** Returns the id of a seeded specialty by slug; falls back to creating one for tests. */
+    private UUID seededSpecialtyId(String slug) {
+        return specialtyRepository.findBySlug(slug).map(Specialty::getId)
+                .orElseThrow(() -> new IllegalStateException("Missing seeded specialty: " + slug));
+    }
+
     private Article newArticle(String doi) {
-        return Article.create(
+        return newArticle(doi, null);
+    }
+
+    private Article newArticle(String doi, UUID especialidadId) {
+        Article fresh = Article.create(
                 "Tratamiento de hipertensión", "García J", "JAMA", 2024, "Mar",
                 doi, "abstract", "hipertension", "Journal Article",
                 "https://doi.org/" + (doi == null ? "x" : doi));
+        return especialidadId == null
+                ? fresh
+                : fresh.withAiAnalysis(especialidadId, List.of());
     }
 
     @Test
@@ -111,7 +129,7 @@ class ArticleRepositoryImplTest {
 
     @Test
     @TestTransaction
-    @DisplayName("findMatchingArticlesForPaciente devuelve solo artículos cuyas tags coinciden con paciente_contexto")
+    @DisplayName("findMatchingArticlesForPaciente devuelve solo artículos cuyas tags coinciden con paciente_contexto Y comparten especialidad")
     void crossQueryWorks() {
         UUID doctorRoleId = roleRepository.findByNombre("DOCTOR")
                 .map(Role::getId).orElseThrow();
@@ -121,19 +139,20 @@ class ArticleRepositoryImplTest {
                 Patient.create("EXP-MATCH-" + UUID.randomUUID(),
                         "P", LocalDate.of(1990, 1, 1), "F", medicoMatch.getId()));
 
+        UUID cardiologia = seededSpecialtyId("cardiologia");
         contextoRepository.save(PacienteContexto.create(
-                paciente.getId(), TipoClinico.ENFERMEDAD, "Hipertensión"));
+                paciente.getId(), TipoClinico.ENFERMEDAD, "Hipertensión", cardiologia));
         contextoRepository.save(PacienteContexto.create(
-                paciente.getId(), TipoClinico.MEDICAMENTO, "Losartán"));
+                paciente.getId(), TipoClinico.MEDICAMENTO, "Losartán", cardiologia));
 
         Article matching1 = repository.save(
-                newArticle("10.1234/match1").withTagAdded(
+                newArticle("10.1234/match1", cardiologia).withTagAdded(
                         ArticleTag.create(TipoClinico.ENFERMEDAD, "Hipertensión")));
         Article matching2 = repository.save(
-                newArticle("10.1234/match2").withTagAdded(
+                newArticle("10.1234/match2", cardiologia).withTagAdded(
                         ArticleTag.create(TipoClinico.MEDICAMENTO, "Losartán")));
         Article noMatch = repository.save(
-                newArticle("10.1234/nope").withTagAdded(
+                newArticle("10.1234/nope", cardiologia).withTagAdded(
                         ArticleTag.create(TipoClinico.SINTOMA, "Mareo")));
 
         List<Article> results = repository.findMatchingArticlesForPaciente(paciente.getId(), 50);
@@ -142,6 +161,121 @@ class ArticleRepositoryImplTest {
         assertTrue(ids.contains(matching1.getId()));
         assertTrue(ids.contains(matching2.getId()));
         assertFalse(ids.contains(noMatch.getId()));
+    }
+
+    @Test
+    @TestTransaction
+    @DisplayName("matching: misma tag, distinta especialidad → no match (filtro de especialidad activo)")
+    void differentSpecialtyExcluded() {
+        UUID doctorRoleId = roleRepository.findByNombre("DOCTOR")
+                .map(Role::getId).orElseThrow();
+        User medico = userRepository.save(
+                User.create("M", "diff-" + UUID.randomUUID() + "@tec.mx", null, doctorRoleId));
+        Patient paciente = patientRepository.save(
+                Patient.create("EXP-DIFF-" + UUID.randomUUID(),
+                        "P", LocalDate.of(1990, 1, 1), "F", medico.getId()));
+
+        UUID cardiologia = seededSpecialtyId("cardiologia");
+        UUID oncologia = seededSpecialtyId("oncologia");
+        contextoRepository.save(PacienteContexto.create(
+                paciente.getId(), TipoClinico.ENFERMEDAD, "Hipertensión", cardiologia));
+
+        Article oncologyArticle = repository.save(
+                newArticle("10.1234/onco", oncologia).withTagAdded(
+                        ArticleTag.create(TipoClinico.ENFERMEDAD, "Hipertensión")));
+
+        List<Article> results = repository.findMatchingArticlesForPaciente(paciente.getId(), 50);
+        List<UUID> ids = results.stream().map(Article::getId).toList();
+        assertFalse(ids.contains(oncologyArticle.getId()),
+                "artículo de oncología no debe matchear contexto cardiológico aún si la tag coincide");
+    }
+
+    @Test
+    @TestTransaction
+    @DisplayName("matching: artículo con especialidad NULL → excluido")
+    void articleNullSpecialtyExcluded() {
+        UUID doctorRoleId = roleRepository.findByNombre("DOCTOR")
+                .map(Role::getId).orElseThrow();
+        User medico = userRepository.save(
+                User.create("M", "anull-" + UUID.randomUUID() + "@tec.mx", null, doctorRoleId));
+        Patient paciente = patientRepository.save(
+                Patient.create("EXP-ANULL-" + UUID.randomUUID(),
+                        "P", LocalDate.of(1990, 1, 1), "F", medico.getId()));
+
+        UUID cardiologia = seededSpecialtyId("cardiologia");
+        contextoRepository.save(PacienteContexto.create(
+                paciente.getId(), TipoClinico.ENFERMEDAD, "Hipertensión", cardiologia));
+
+        Article unanalyzed = repository.save(
+                newArticle("10.1234/unanalyzed").withTagAdded(
+                        ArticleTag.create(TipoClinico.ENFERMEDAD, "Hipertensión")));
+
+        List<Article> results = repository.findMatchingArticlesForPaciente(paciente.getId(), 50);
+        assertFalse(results.stream().map(Article::getId).toList().contains(unanalyzed.getId()),
+                "artículo sin especialidad analizada no debe matchear");
+    }
+
+    @Test
+    @TestTransaction
+    @DisplayName("matching: contexto con especialidad NULL → excluido")
+    void contextNullSpecialtyExcluded() {
+        UUID doctorRoleId = roleRepository.findByNombre("DOCTOR")
+                .map(Role::getId).orElseThrow();
+        User medico = userRepository.save(
+                User.create("M", "cnull-" + UUID.randomUUID() + "@tec.mx", null, doctorRoleId));
+        Patient paciente = patientRepository.save(
+                Patient.create("EXP-CNULL-" + UUID.randomUUID(),
+                        "P", LocalDate.of(1990, 1, 1), "F", medico.getId()));
+
+        // contexto sin especialidad (constructor legacy → null)
+        contextoRepository.save(PacienteContexto.create(
+                paciente.getId(), TipoClinico.ENFERMEDAD, "Hipertensión"));
+
+        UUID cardiologia = seededSpecialtyId("cardiologia");
+        Article article = repository.save(
+                newArticle("10.1234/ctxnull", cardiologia).withTagAdded(
+                        ArticleTag.create(TipoClinico.ENFERMEDAD, "Hipertensión")));
+
+        List<Article> results = repository.findMatchingArticlesForPaciente(paciente.getId(), 50);
+        assertFalse(results.stream().map(Article::getId).toList().contains(article.getId()),
+                "contexto sin especialidad no debe disparar match");
+    }
+
+    @Test
+    @TestTransaction
+    @DisplayName("matching: múltiples contextos de distintas especialidades, sólo same-especialidad matchea")
+    void multipleSpecialtiesSegregated() {
+        UUID doctorRoleId = roleRepository.findByNombre("DOCTOR")
+                .map(Role::getId).orElseThrow();
+        User medico = userRepository.save(
+                User.create("M", "multi-" + UUID.randomUUID() + "@tec.mx", null, doctorRoleId));
+        Patient paciente = patientRepository.save(
+                Patient.create("EXP-MULTI-" + UUID.randomUUID(),
+                        "P", LocalDate.of(1990, 1, 1), "F", medico.getId()));
+
+        UUID cardiologia = seededSpecialtyId("cardiologia");
+        UUID oncologia = seededSpecialtyId("oncologia");
+        contextoRepository.save(PacienteContexto.create(
+                paciente.getId(), TipoClinico.ENFERMEDAD, "Hipertensión", cardiologia));
+        contextoRepository.save(PacienteContexto.create(
+                paciente.getId(), TipoClinico.ENFERMEDAD, "Cáncer de mama", oncologia));
+
+        Article cardioMatch = repository.save(
+                newArticle("10.1234/cardio", cardiologia).withTagAdded(
+                        ArticleTag.create(TipoClinico.ENFERMEDAD, "Hipertensión")));
+        Article wrongSpecialtyForCardioTag = repository.save(
+                newArticle("10.1234/wrong", oncologia).withTagAdded(
+                        ArticleTag.create(TipoClinico.ENFERMEDAD, "Hipertensión")));
+        Article oncoMatch = repository.save(
+                newArticle("10.1234/onco", oncologia).withTagAdded(
+                        ArticleTag.create(TipoClinico.ENFERMEDAD, "Cáncer de mama")));
+
+        List<UUID> ids = repository.findMatchingArticlesForPaciente(paciente.getId(), 50).stream()
+                .map(Article::getId).toList();
+        assertTrue(ids.contains(cardioMatch.getId()));
+        assertTrue(ids.contains(oncoMatch.getId()));
+        assertFalse(ids.contains(wrongSpecialtyForCardioTag.getId()),
+                "artículo de oncología con tag de cardiología no debe matchear");
     }
 
     @Test

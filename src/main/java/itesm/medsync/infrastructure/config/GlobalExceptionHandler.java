@@ -4,6 +4,8 @@ import itesm.medsync.domain.article.exception.ArticleNotFoundException;
 import itesm.medsync.domain.article.exception.ArticleTagNotFoundException;
 import itesm.medsync.domain.article.exception.DuplicateArticleException;
 import itesm.medsync.domain.article.exception.InvalidArticleDataException;
+import itesm.medsync.domain.articleaianalysis.exception.AiAnalysisException;
+import itesm.medsync.domain.articleaianalysis.exception.AiAnalysisTimeoutException;
 import itesm.medsync.domain.hospital.exception.ConsultaNotFoundException;
 import itesm.medsync.domain.hospital.exception.ExpedienteNotFoundException;
 import itesm.medsync.domain.hospital.exception.InvalidHospitalDataException;
@@ -305,6 +307,34 @@ public final class GlobalExceptionHandler {
         public Response toResponse(InvalidTipoClinicoException ex) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class AiAnalysisExceptionMapper implements ExceptionMapper<AiAnalysisException> {
+        private static final Logger LOG = Logger.getLogger(AiAnalysisExceptionMapper.class);
+
+        @Override
+        public Response toResponse(AiAnalysisException ex) {
+            LOG.warnf("AI analysis failed: %s", ex.getMessage());
+            return Response.status(Response.Status.BAD_GATEWAY)
+                    .entity(new ErrorResponse(502, "Bad Gateway",
+                            "AI analysis failed: " + ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class AiAnalysisTimeoutExceptionMapper implements ExceptionMapper<AiAnalysisTimeoutException> {
+        private static final Logger LOG = Logger.getLogger(AiAnalysisTimeoutExceptionMapper.class);
+
+        @Override
+        public Response toResponse(AiAnalysisTimeoutException ex) {
+            LOG.warnf("AI analysis timed out: %s", ex.getMessage());
+            return Response.status(Response.Status.GATEWAY_TIMEOUT)
+                    .entity(new ErrorResponse(504, "Gateway Timeout",
+                            "AI analysis exceeded the configured timeout"))
                     .build();
         }
     }

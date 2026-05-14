@@ -114,6 +114,28 @@ public final class Article {
                 especialidadId, next, createdAt, updatedAt);
     }
 
+    /**
+     * Returns a copy with {@code especialidadId} set and the tag list fully replaced.
+     *
+     * Used by the AI analysis flow (feature 3) to apply atomic
+     * "classify + extract" results — prior AI- or manually-added tags are dropped
+     * in favor of the LLM's current best answer. The atomic-replacement intent
+     * lives on the domain (not on the service) so it remains a single domain
+     * operation that future tests can construct without going through the gateway.
+     */
+    public Article withAiAnalysis(UUID newEspecialidadId, List<ArticleTag> newTags) {
+        if (newEspecialidadId == null) {
+            throw new InvalidArticleDataException("especialidadId cannot be null");
+        }
+        if (newTags == null) {
+            throw new InvalidArticleDataException("tags cannot be null");
+        }
+        return new Article(
+                id, titulo, autores, revista, anioPub, mesPub,
+                doi, abstractText, keywords, tipoPublicacion, url,
+                newEspecialidadId, new ArrayList<>(newTags), createdAt, updatedAt);
+    }
+
     public Article withTagRemoved(UUID tagId) {
         List<ArticleTag> next = new ArrayList<>(this.tags);
         next.removeIf(t -> t.getId().equals(tagId));

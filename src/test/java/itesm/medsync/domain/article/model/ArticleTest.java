@@ -6,6 +6,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.Year;
+import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -108,5 +110,58 @@ class ArticleTest {
         Article a = newValidArticle().withTagAdded(ArticleTag.create(TipoClinico.ENFERMEDAD, "x"));
         assertThrows(UnsupportedOperationException.class,
                 () -> a.getTags().add(ArticleTag.create(TipoClinico.SINTOMA, "y")));
+    }
+
+    @Test
+    @DisplayName("withAiAnalysis reemplaza la lista de tags y asigna especialidad; no muta el original")
+    void withAiAnalysisReplacesTagsAndSpecialty() {
+        Article original = newValidArticle()
+                .withTagAdded(ArticleTag.create(TipoClinico.ENFERMEDAD, "Hipertensión arterial"));
+        UUID newSpecialty = UUID.randomUUID();
+        ArticleTag aiTag1 = ArticleTag.create(TipoClinico.ENFERMEDAD, "Insuficiencia cardíaca");
+        ArticleTag aiTag2 = ArticleTag.create(TipoClinico.MEDICAMENTO, "Losartán");
+
+        Article analyzed = original.withAiAnalysis(newSpecialty, List.of(aiTag1, aiTag2));
+
+        assertEquals(1, original.getTags().size(), "Original no debe mutar");
+        assertNull(original.getEspecialidadId(), "Original mantiene especialidad previa (null)");
+        assertEquals(newSpecialty, analyzed.getEspecialidadId());
+        assertEquals(2, analyzed.getTags().size());
+        assertTrue(analyzed.getTags().contains(aiTag1));
+        assertTrue(analyzed.getTags().contains(aiTag2));
+        assertEquals(original.getId(), analyzed.getId());
+        assertEquals(original.getTitulo(), analyzed.getTitulo());
+        assertEquals(original.getDoi(), analyzed.getDoi());
+    }
+
+    @Test
+    @DisplayName("withAiAnalysis con lista vacía elimina todos los tags existentes")
+    void withAiAnalysisEmptyReplacesAllTags() {
+        Article withTags = newValidArticle()
+                .withTagAdded(ArticleTag.create(TipoClinico.ENFERMEDAD, "Hipertensión"))
+                .withTagAdded(ArticleTag.create(TipoClinico.SINTOMA, "Mareo"));
+        UUID newSpecialty = UUID.randomUUID();
+
+        Article analyzed = withTags.withAiAnalysis(newSpecialty, List.of());
+
+        assertEquals(0, analyzed.getTags().size());
+        assertEquals(newSpecialty, analyzed.getEspecialidadId());
+    }
+
+    @Test
+    @DisplayName("withAiAnalysis con especialidadId null lanza InvalidArticleDataException")
+    void withAiAnalysisNullSpecialtyThrows() {
+        Article a = newValidArticle();
+        assertThrows(InvalidArticleDataException.class,
+                () -> a.withAiAnalysis(null, List.of()));
+    }
+
+    @Test
+    @DisplayName("withAiAnalysis con lista de tags null lanza InvalidArticleDataException")
+    void withAiAnalysisNullTagsThrows() {
+        Article a = newValidArticle();
+        UUID specialty = UUID.randomUUID();
+        assertThrows(InvalidArticleDataException.class,
+                () -> a.withAiAnalysis(specialty, null));
     }
 }

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.runtime.StartupEvent;
 import itesm.medsync.domain.articleaianalysis.exception.AiAnalysisException;
+import itesm.medsync.domain.articleaianalysis.exception.AiConfigurationException;
 import itesm.medsync.domain.articleaianalysis.exception.AiAnalysisTimeoutException;
 import itesm.medsync.domain.shared.model.ArticleAnalysisRequest;
 import itesm.medsync.domain.shared.model.ArticleAnalysisResult;
@@ -79,15 +80,17 @@ public class GroqAiAnalysisGateway implements AiAnalysisGateway {
     }
 
     void onStart(@Observes StartupEvent event) {
-        // Trigger construction so the @ApplicationScoped bean's constructor (and
-        // through it, the config validation in GroqAiAnalysisGatewayConfig)
-        // runs at boot — failing fast when ai.groq.api-key is missing.
-        LOG.infof("Groq AI gateway ready: model=%s base-url=%s timeout=%s",
-                config.model(), config.baseUrl(), config.timeout());
+        if (config.isConfigured()) {
+            LOG.infof("Groq AI gateway ready: model=%s base-url=%s timeout=%s",
+                    config.model(), config.baseUrl(), config.timeout());
+        } else {
+            LOG.warn("Groq AI gateway: GROQ_API_KEY is not set — AI analysis features will be unavailable until the key is configured");
+        }
     }
 
     @Override
     public ArticleAnalysisResult analyzeArticle(ArticleAnalysisRequest request) {
+        requireConfigured();
         if (request.candidateSpecialties() == null || request.candidateSpecialties().isEmpty()) {
             throw new AiAnalysisException("no candidate specialties supplied to gateway");
         }
@@ -132,6 +135,7 @@ public class GroqAiAnalysisGateway implements AiAnalysisGateway {
 
     @Override
     public ConsultaAnalysisResult analyzeConsultaText(ConsultaAnalysisRequest request) {
+        requireConfigured();
         if (request.vocabulary() == null) {
             throw new AiAnalysisException("vocabulary required for consulta extraction");
         }
@@ -389,5 +393,12 @@ public class GroqAiAnalysisGateway implements AiAnalysisGateway {
     private static String truncate(String s, int max) {
         if (s == null) return "";
         return s.length() <= max ? s : s.substring(0, max) + "...";
+    }
+
+    private void requireConfigured() {
+        if (!config.isConfigured()) {
+            throw new AiConfigurationException(
+                    "ai.groq.api-key is not set — set the GROQ_API_KEY environment variable to use AI features");
+        }
     }
 }

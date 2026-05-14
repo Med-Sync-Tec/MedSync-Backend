@@ -29,10 +29,6 @@ public final class GroqAiAnalysisGatewayConfig {
                                        int maxTokens,
                                        Duration timeout,
                                        String baseUrl) {
-        if (apiKey == null || apiKey.isBlank()) {
-            throw new AiConfigurationException(
-                    "ai.groq.api-key is missing or blank — set GROQ_API_KEY before starting the application");
-        }
         Objects.requireNonNull(model, "model");
         Objects.requireNonNull(timeout, "timeout");
         Objects.requireNonNull(baseUrl, "baseUrl");
@@ -64,6 +60,11 @@ public final class GroqAiAnalysisGatewayConfig {
 
     public String baseUrl() {
         return baseUrl;
+    }
+
+    /** Returns {@code true} when the API key is present and non-blank. */
+    public boolean isConfigured() {
+        return apiKey != null && !apiKey.isBlank() && !apiKey.equals("unconfigured");
     }
 
     /** Full URL to the Chat Completions endpoint. */

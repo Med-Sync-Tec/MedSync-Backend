@@ -118,6 +118,10 @@
         <artifactId>firebase-admin</artifactId>
         <version>9.2.0</version>
     </dependency>
+    <dependency>
+        <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-mailer</artifactId>
+    </dependency>
     </dependencies>
 
     <build>

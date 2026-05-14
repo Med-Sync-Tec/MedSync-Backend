@@ -6,5 +6,6 @@ import java.util.UUID;
 
 public interface CreateAdminUserUseCase {
 
+    // Password is supplied by the caller (COO admin flow) and passed directly to Firebase.
     UserWithRole execute(String email, String nombre, String password, String roleName, UUID especialidadId);
 }

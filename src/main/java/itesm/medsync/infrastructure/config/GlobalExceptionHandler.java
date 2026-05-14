@@ -24,6 +24,9 @@ import itesm.medsync.domain.medicamento.exception.DuplicateMedicamentoException;
 import itesm.medsync.domain.medicamento.exception.EstadoNotFoundException;
 import itesm.medsync.domain.medicamento.exception.InvalidMedicamentoDataException;
 import itesm.medsync.domain.medicamento.exception.MedicamentoNotFoundException;
+import itesm.medsync.domain.solicitud.exception.SolicitudNotFoundException;
+import itesm.medsync.domain.solicitud.exception.SolicitudPendienteException;
+import itesm.medsync.domain.solicitud.exception.SolicitudRechazadaRecientementeException;
 import itesm.medsync.domain.user.exception.InvalidUserDataException;
 import itesm.medsync.domain.user.exception.RoleMismatchException;
 import itesm.medsync.domain.user.exception.RoleNotFoundException;
@@ -147,6 +150,37 @@ public final class GlobalExceptionHandler {
     }
 
     @Provider
+    public static class SolicitudNotFoundMapper implements ExceptionMapper<SolicitudNotFoundException> {
+        @Override
+        public Response toResponse(SolicitudNotFoundException ex) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(404, "Not Found", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class SolicitudPendienteMapper implements ExceptionMapper<SolicitudPendienteException> {
+        @Override
+        public Response toResponse(SolicitudPendienteException ex) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(new ErrorResponse(409, "Conflict", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class SolicitudRechazadaRecientementeMapper
+            implements ExceptionMapper<SolicitudRechazadaRecientementeException> {
+        @Override
+        public Response toResponse(SolicitudRechazadaRecientementeException ex) {
+            return Response.status(429)
+                    .entity(new ErrorResponse(429, "Too Many Requests", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
     public static class UserAlreadyExistsMapper implements ExceptionMapper<UserAlreadyExistsException> {
         @Override
         public Response toResponse(UserAlreadyExistsException ex) {
@@ -188,6 +222,7 @@ public final class GlobalExceptionHandler {
                             403,
                             "Forbidden",
                             ex.getMessage(),
+                            ex.getActualRole(),
                             ex.getExpectedRole()))
                     .build();
         }

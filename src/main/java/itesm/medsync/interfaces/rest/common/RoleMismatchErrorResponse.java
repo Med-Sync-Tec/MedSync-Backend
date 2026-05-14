@@ -7,12 +7,14 @@ public record RoleMismatchErrorResponse(
         int status,
         String error,
         String message,
+        String actualRole,
         String expectedRole
 ) {
     public RoleMismatchErrorResponse(int status,
                                      String error,
                                      String message,
+                                     String actualRole,
                                      String expectedRole) {
-        this(Instant.now(), status, error, message, expectedRole);
+        this(Instant.now(), status, error, message, actualRole, expectedRole);
     }
 }

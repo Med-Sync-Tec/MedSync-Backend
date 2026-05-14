@@ -64,7 +64,7 @@ class AuthResourceIT {
     }
 
     @Test
-    @DisplayName("expectedRole NO coincide → 403 con expectedRole en el body (no se expone actualRole)")
+    @DisplayName("expectedRole NO coincide → 403 con actualRole y expectedRole en el body")
     void loginRoleMismatch() {
         User doctor = stubUserWithRole("DOCTOR");
         when(userContext.getCurrentUser()).thenReturn(new UserWithRole(doctor, "DOCTOR"));
@@ -75,7 +75,7 @@ class AuthResourceIT {
         given().contentType(ContentType.JSON).body(body)
                 .when().post("/api/auth/login")
                 .then().statusCode(403)
-                .body("actualRole", nullValue())
+                .body("actualRole", equalTo("DOCTOR"))
                 .body("expectedRole", equalTo("COO"));
     }
 
@@ -99,7 +99,7 @@ class AuthResourceIT {
         given().contentType(ContentType.JSON).body(new HashMap<>())
                 .when().post("/api/auth/login")
                 .then().statusCode(403)
-                .body("actualRole", nullValue())
+                .body("actualRole", equalTo("COO"))
                 .body("expectedRole", equalTo("DOCTOR"));
     }
 

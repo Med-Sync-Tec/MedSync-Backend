@@ -26,5 +26,10 @@ public interface ArticleRepository {
      * (los más recientes primero), con paginación.
      */
     Page<Article> findRecentArticles(int page, int size);
+
+    /**
+     * Devuelve los artículos guardados por un usuario, con paginación.
+     */
+    Page<Article> findSavedArticles(UUID userId, int page, int size);
 }
 

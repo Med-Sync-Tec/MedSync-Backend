@@ -11,7 +11,7 @@ public final class User {
     private final UUID id;
     private final String nombre;
     private final String correo;
-    private final String especialidad;
+    private final UUID especialidadId;
     private final UUID rolId;
     private final boolean activo;
     private final LocalDateTime createdAt;
@@ -19,7 +19,7 @@ public final class User {
     public User(UUID id,
                 String nombre,
                 String correo,
-                String especialidad,
+                UUID especialidadId,
                 UUID rolId,
                 boolean activo,
                 LocalDateTime createdAt) {
@@ -27,18 +27,18 @@ public final class User {
         this.id = id;
         this.nombre = nombre;
         this.correo = correo;
-        this.especialidad = especialidad;
+        this.especialidadId = especialidadId;
         this.rolId = rolId;
         this.activo = activo;
         this.createdAt = createdAt;
     }
 
-    public static User create(String nombre, String correo, String especialidad, UUID rolId) {
-        return new User(UUID.randomUUID(), nombre, correo, especialidad, rolId, true, null);
+    public static User create(String nombre, String correo, UUID especialidadId, UUID rolId) {
+        return new User(UUID.randomUUID(), nombre, correo, especialidadId, rolId, true, null);
     }
 
     public User deactivate() {
-        return new User(id, nombre, correo, especialidad, rolId, false, createdAt);
+        return new User(id, nombre, correo, especialidadId, rolId, false, createdAt);
     }
 
     private static void validate(UUID id, String nombre, String correo, UUID rolId) {
@@ -71,8 +71,8 @@ public final class User {
         return correo;
     }
 
-    public String getEspecialidad() {
-        return especialidad;
+    public UUID getEspecialidadId() {
+        return especialidadId;
     }
 
     public UUID getRolId() {

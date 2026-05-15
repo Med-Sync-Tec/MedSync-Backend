@@ -1,12 +1,14 @@
 package itesm.medsync.application.article;
 
 import itesm.medsync.domain.article.usecase.SaveArticleUseCase;
+import itesm.medsync.infrastructure.persistence.article.ArticleEntity;
+import itesm.medsync.infrastructure.persistence.tracking.UsuarioArticuloGuardadoEntity;
+import itesm.medsync.infrastructure.persistence.user.UserEntity;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 
-import java.nio.ByteBuffer;
 import java.util.UUID;
 
 @ApplicationScoped
@@ -18,20 +20,21 @@ public class SaveArticleService implements SaveArticleUseCase {
     @Override
     @Transactional
     public void execute(UUID userId, UUID articleId) {
-        // INSERT IGNORE es idempotente: si ya existe, no hace nada
-        // Pasamos los UUIDs como byte[] de 16 bytes para que coincidan con la columna BINARY(16)
-        em.createNativeQuery(
-                "INSERT IGNORE INTO usuario_articulos_guardados (usuario_id, articulo_id, guardado_at) " +
-                "VALUES (:userId, :articleId, NOW())")
-          .setParameter("userId", toBytes(userId))
-          .setParameter("articleId", toBytes(articleId))
-          .executeUpdate();
-    }
+        Long count = em.createQuery(
+                        "SELECT COUNT(g) FROM UsuarioArticuloGuardadoEntity g " +
+                                "WHERE g.usuario.id = :uid AND g.articulo.id = :aid", Long.class)
+                .setParameter("uid", userId)
+                .setParameter("aid", articleId)
+                .getSingleResult();
+        if (count > 0) {
+            return;
+        }
+        UserEntity usuario = em.getReference(UserEntity.class, userId);
+        ArticleEntity articulo = em.getReference(ArticleEntity.class, articleId);
 
-    private byte[] toBytes(UUID uuid) {
-        ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
-        bb.putLong(uuid.getMostSignificantBits());
-        bb.putLong(uuid.getLeastSignificantBits());
-        return bb.array();
+        UsuarioArticuloGuardadoEntity guardado = new UsuarioArticuloGuardadoEntity();
+        guardado.setUsuario(usuario);
+        guardado.setArticulo(articulo);
+        em.persist(guardado);
     }
 }

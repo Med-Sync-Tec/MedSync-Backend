@@ -100,7 +100,8 @@ public class ArticleRepositoryImpl
 
     @Override
     public boolean existsByUrl(String url) {
-        if (url == null || url.isBlank()) return false;
+        if (url == null || url.isBlank())
+            return false;
         Long count = getEntityManager()
                 .createQuery("SELECT COUNT(a) FROM ArticleEntity a WHERE a.url = :url", Long.class)
                 .setParameter("url", url)
@@ -110,15 +111,24 @@ public class ArticleRepositoryImpl
 
     @Override
     public List<Article> findMatchingArticlesForPaciente(UUID pacienteId, int limit) {
+        // Feature 3: the join now also requires the article's especialidad to match the
+        // context's especialidad. SQL NULL ≠ NULL by design — articles with no
+        // AI-assigned
+        // specialty (un-analyzed) and contexts with no specialty (legacy rows) are
+        // excluded
+        // until they are explicitly enriched.
         List<UUID> ids = getEntityManager().createQuery(
                 "SELECT DISTINCT a.id FROM ArticleEntity a JOIN a.tags at " +
-                "WHERE EXISTS (" +
-                "  SELECT 1 FROM itesm.medsync.infrastructure.persistence.pacientecontexto.PacienteContextoEntity pc " +
-                "  WHERE pc.pacienteId = :pid " +
-                "    AND pc.tipo = at.tipo " +
-                "    AND pc.valor = at.valor" +
-                ") " +
-                "ORDER BY a.id", UUID.class)
+                        "WHERE EXISTS (" +
+                        "  SELECT 1 FROM itesm.medsync.infrastructure.persistence.pacientecontexto.PacienteContextoEntity pc "
+                        +
+                        "  WHERE pc.pacienteId = :pid " +
+                        "    AND pc.tipo = at.tipo " +
+                        "    AND pc.valor = at.valor " +
+                        "    AND pc.especialidadId = a.especialidadId" +
+                        ") " +
+                        "ORDER BY a.id",
+                UUID.class)
                 .setParameter("pid", pacienteId)
                 .setMaxResults(limit)
                 .getResultList();
@@ -199,3 +209,33 @@ public class ArticleRepositoryImpl
     }
 }
 
+    @Override
+    public Page<Article> findSavedArticles(UUID userId, int page, int size) {
+        long total = getEntityManager()
+                .createQuery(
+                        "SELECT COUNT(g) FROM UsuarioArticuloGuardadoEntity g WHERE g.usuario.id = :uid",
+                        Long.class)
+                .setParameter("uid", userId)
+                .getSingleResult();
+        if (total == 0) {
+            return Page.of(List.of(), 0L, page, size);
+        }
+
+        List<UUID> ids = getEntityManager()
+                .createQuery(
+                        "SELECT g.articulo.id FROM UsuarioArticuloGuardadoEntity g " +
+                                "WHERE g.usuario.id = :uid ORDER BY g.guardadoAt DESC, g.articulo.id ASC",
+                        UUID.class)
+                .setParameter("uid", userId)
+                .setFirstResult(page * size)
+                .setMaxResults(size)
+                .getResultList();
+
+        if (ids.isEmpty()) {
+            return Page.of(List.of(), total, page, size);
+        }
+
+        List<Article> items = loadArticlesByIds(ids);
+        return Page.of(items, total, page, size);
+    }
+}

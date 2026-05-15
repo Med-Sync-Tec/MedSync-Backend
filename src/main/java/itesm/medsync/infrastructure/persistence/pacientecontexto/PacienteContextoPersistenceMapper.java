@@ -13,6 +13,7 @@ public final class PacienteContextoPersistenceMapper {
         entity.setPacienteId(contexto.getPacienteId());
         entity.setTipo(contexto.getTipo());
         entity.setValor(contexto.getValor());
+        entity.setEspecialidadId(contexto.getEspecialidadId());
         entity.setCreatedAt(contexto.getCreatedAt());
         return entity;
     }
@@ -23,6 +24,7 @@ public final class PacienteContextoPersistenceMapper {
                 entity.getPacienteId(),
                 entity.getTipo(),
                 entity.getValor(),
+                entity.getEspecialidadId(),
                 entity.getCreatedAt());
     }
 }

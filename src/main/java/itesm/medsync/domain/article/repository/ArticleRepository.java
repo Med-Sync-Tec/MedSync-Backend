@@ -28,7 +28,7 @@ public interface ArticleRepository {
     Page<Article> findRecentArticles(int page, int size);
 
     /**
-     * Devuelve los artículos guardados por el usuario, ordenados por fecha de guardado descendente.
+     * Devuelve los artículos guardados por un usuario, con paginación.
      */
     Page<Article> findSavedArticles(UUID userId, int page, int size);
 }

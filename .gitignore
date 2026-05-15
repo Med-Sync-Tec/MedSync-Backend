@@ -46,3 +46,8 @@ nb-configuration.xml
 
 # Firebase Credentials
 src/main/resources/medsync-firebase-adminsdk.json
+
+# JVM crash dumps — never commit; they get scattered in the working dir on
+# native-build / fatal errors and accidentally ride along with `git add .`
+hs_err_pid*.log
+replay_pid*.log

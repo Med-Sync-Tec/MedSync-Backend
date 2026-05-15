@@ -59,6 +59,9 @@ public class ArticleEntity {
     @Column(length = 500)
     private String url;
 
+    @Column(name = "especialidad_id", columnDefinition = "BINARY(16)")
+    private UUID especialidadId;
+
     @OneToMany(mappedBy = "articulo",
                cascade = CascadeType.ALL,
                orphanRemoval = true,
@@ -162,6 +165,14 @@ public class ArticleEntity {
 
     public void setUrl(String url) {
         this.url = url;
+    }
+
+    public UUID getEspecialidadId() {
+        return especialidadId;
+    }
+
+    public void setEspecialidadId(UUID especialidadId) {
+        this.especialidadId = especialidadId;
     }
 
     public List<ArticleTagEntity> getTags() {

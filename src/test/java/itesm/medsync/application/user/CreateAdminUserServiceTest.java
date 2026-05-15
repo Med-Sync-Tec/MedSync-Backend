@@ -1,5 +1,8 @@
 package itesm.medsync.application.user;
 
+import itesm.medsync.domain.specialty.exception.SpecialtyNotFoundException;
+import itesm.medsync.domain.specialty.model.Specialty;
+import itesm.medsync.domain.specialty.usecase.GetSpecialtyByIdUseCase;
 import itesm.medsync.domain.user.exception.RoleNotFoundException;
 import itesm.medsync.domain.user.exception.UserAlreadyExistsException;
 import itesm.medsync.domain.user.model.KnownRoles;
@@ -35,6 +38,9 @@ class CreateAdminUserServiceTest {
     @Mock
     FirebaseUserGateway firebaseUserGateway;
 
+    @Mock
+    GetSpecialtyByIdUseCase getSpecialtyById;
+
     @InjectMocks
     CreateAdminUserService service;
 
@@ -51,7 +57,7 @@ class CreateAdminUserServiceTest {
         when(firebaseUserGateway.createUser("nuevo@tec.mx", "secret123", "Nuevo")).thenReturn("fb-uid-1");
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        UserWithRole result = service.execute("nuevo@tec.mx", "Nuevo", "secret123", KnownRoles.DOCTOR);
+        UserWithRole result = service.execute("nuevo@tec.mx", "Nuevo", "secret123", KnownRoles.DOCTOR, null);
 
         assertNotNull(result);
         assertEquals(KnownRoles.DOCTOR, result.roleName());
@@ -66,7 +72,7 @@ class CreateAdminUserServiceTest {
         when(roleRepository.findByNombre("CHEF")).thenReturn(Optional.empty());
 
         assertThrows(RoleNotFoundException.class,
-                () -> service.execute("x@tec.mx", "X", "secret123", "CHEF"));
+                () -> service.execute("x@tec.mx", "X", "secret123", "CHEF", null));
 
         verifyNoInteractions(firebaseUserGateway);
         verify(userRepository, never()).save(any());
@@ -82,7 +88,47 @@ class CreateAdminUserServiceTest {
                 .thenReturn(Optional.of(new UserWithRole(existing, KnownRoles.DOCTOR)));
 
         assertThrows(UserAlreadyExistsException.class,
-                () -> service.execute("x@tec.mx", "X", "secret123", KnownRoles.DOCTOR));
+                () -> service.execute("x@tec.mx", "X", "secret123", KnownRoles.DOCTOR, null));
+
+        verifyNoInteractions(firebaseUserGateway);
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Con especialidadId válido: valida specialty, persiste con la especialidad")
+    void createWithSpecialty() {
+        Role role = doctorRole();
+        UUID especialidadId = UUID.randomUUID();
+        Specialty specialty = new Specialty(especialidadId, "Cardiología", "cardiologia",
+                null, true, null, null);
+
+        when(roleRepository.findByNombre(KnownRoles.DOCTOR)).thenReturn(Optional.of(role));
+        when(userRepository.findByEmail("nuevo@tec.mx")).thenReturn(Optional.empty());
+        when(getSpecialtyById.execute(especialidadId)).thenReturn(specialty);
+        when(firebaseUserGateway.createUser(any(), any(), any())).thenReturn("fb-uid-3");
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        UserWithRole result = service.execute("nuevo@tec.mx", "Nuevo", "secret123",
+                KnownRoles.DOCTOR, especialidadId);
+
+        assertEquals(especialidadId, result.user().getEspecialidadId());
+        verify(getSpecialtyById).execute(especialidadId);
+    }
+
+    @Test
+    @DisplayName("Con especialidadId inválido: 404, NO toca Firebase")
+    void createUnknownSpecialty() {
+        Role role = doctorRole();
+        UUID unknownEspId = UUID.randomUUID();
+
+        when(roleRepository.findByNombre(KnownRoles.DOCTOR)).thenReturn(Optional.of(role));
+        when(userRepository.findByEmail("nuevo@tec.mx")).thenReturn(Optional.empty());
+        when(getSpecialtyById.execute(unknownEspId))
+                .thenThrow(new SpecialtyNotFoundException(unknownEspId));
+
+        assertThrows(SpecialtyNotFoundException.class,
+                () -> service.execute("nuevo@tec.mx", "Nuevo", "secret123",
+                        KnownRoles.DOCTOR, unknownEspId));
 
         verifyNoInteractions(firebaseUserGateway);
         verify(userRepository, never()).save(any());
@@ -99,7 +145,7 @@ class CreateAdminUserServiceTest {
                 .thenThrow(new RuntimeException("DB constraint violation"));
 
         assertThrows(RuntimeException.class,
-                () -> service.execute("x@tec.mx", "X", "secret123", KnownRoles.DOCTOR));
+                () -> service.execute("x@tec.mx", "X", "secret123", KnownRoles.DOCTOR, null));
 
         verify(firebaseUserGateway).deleteUser("fb-uid-2");
     }

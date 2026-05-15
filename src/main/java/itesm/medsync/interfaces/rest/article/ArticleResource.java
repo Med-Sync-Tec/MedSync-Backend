@@ -7,6 +7,7 @@ import itesm.medsync.domain.article.usecase.CreateArticleUseCase;
 import itesm.medsync.domain.article.usecase.GetArticleByIdUseCase;
 import itesm.medsync.domain.article.usecase.GetRecentArticlesUseCase;
 import itesm.medsync.domain.article.usecase.ListArticlesUseCase;
+import itesm.medsync.domain.article.usecase.GetSavedArticlesUseCase;
 import itesm.medsync.domain.article.usecase.MarkArticleAsReadUseCase;
 import itesm.medsync.domain.article.usecase.GetSavedArticlesUseCase;
 import itesm.medsync.domain.article.usecase.RemoveTagFromArticleUseCase;
@@ -203,13 +204,13 @@ public class ArticleResource {
     }
 
     // -------------------------------------------------------------------------
-    // Guardar / Quitar artículo (Noticias Guardadas)
+    // Artículos guardados
     // -------------------------------------------------------------------------
 
     @POST
     @Path("/{id}/save")
-    @Operation(summary = "Guardar artículo para después",
-               description = "Registra que el usuario autenticado ha guardado el artículo.")
+    @Operation(summary = "Guardar artículo",
+               description = "Registra que el usuario autenticado ha guardado el artículo. Idempotente.")
     @APIResponse(responseCode = "204", description = "Artículo guardado")
     @APIResponse(responseCode = "404", description = "Artículo no encontrado")
     public Response saveArticle(@PathParam("id") UUID articleId) {
@@ -220,10 +221,9 @@ public class ArticleResource {
 
     @DELETE
     @Path("/{id}/save")
-    @Operation(summary = "Quitar artículo de guardados",
-               description = "Elimina el artículo de la lista de guardados del usuario.")
-    @APIResponse(responseCode = "204", description = "Artículo quitado de guardados")
-    @APIResponse(responseCode = "404", description = "Artículo no encontrado")
+    @Operation(summary = "Eliminar artículo guardado",
+               description = "Elimina el registro de artículo guardado para el usuario autenticado. Idempotente.")
+    @APIResponse(responseCode = "204", description = "Artículo eliminado de guardados")
     public Response unsaveArticle(@PathParam("id") UUID articleId) {
         UUID userId = authContext.getCurrentUser().user().getId();
         unsaveArticle.execute(userId, articleId);

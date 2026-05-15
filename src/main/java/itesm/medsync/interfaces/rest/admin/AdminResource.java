@@ -61,7 +61,8 @@ public class AdminResource {
                 request.correo,
                 request.nombre,
                 request.password,
-                request.rol
+                request.rol,
+                request.especialidadId
         );
 
         URI location = uriInfo.getAbsolutePathBuilder()

@@ -1,0 +1,27 @@
+package itesm.medsync.interfaces.rest.specialty;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+
+/**
+ * Inbound DTO for {@code POST /api/admin/especialidades}.
+ *
+ * Bean Validation handles format-level errors (length, pattern, blank). Domain-level
+ * invariants (uniqueness across history, etc.) are enforced by the service layer.
+ */
+public class CreateSpecialtyRequest {
+
+    @NotBlank
+    @Size(max = 100)
+    public String nombre;
+
+    @NotBlank
+    @Size(max = 60)
+    @Pattern(regexp = "^[a-z0-9]+(-[a-z0-9]+)*$",
+            message = "slug must be kebab-case (lowercase a-z, 0-9, single hyphens)")
+    public String slug;
+
+    @Size(max = 500)
+    public String descripcion;
+}

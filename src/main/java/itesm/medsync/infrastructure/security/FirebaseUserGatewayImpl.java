@@ -1,5 +1,6 @@
 package itesm.medsync.infrastructure.security;
 
+import com.google.firebase.auth.ActionCodeSettings;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.UserRecord;
@@ -37,6 +38,19 @@ public class FirebaseUserGatewayImpl implements FirebaseUserGateway {
             FirebaseAuth.getInstance().deleteUser(uid);
         } catch (FirebaseAuthException e) {
             LOG.errorf("Failed to delete Firebase user %s: %s", uid, e.getMessage());
+        }
+    }
+
+    @Override
+    public String generatePasswordResetLink(String email, String continueUrl) {
+        try {
+            ActionCodeSettings settings = ActionCodeSettings.builder()
+                    .setUrl(continueUrl)
+                    .build();
+            return FirebaseAuth.getInstance().generatePasswordResetLink(email, settings);
+        } catch (FirebaseAuthException e) {
+            LOG.errorf("Failed to generate password reset link for %s: %s", email, e.getMessage());
+            throw new RuntimeException("Could not generate password reset link: " + e.getMessage(), e);
         }
     }
 }

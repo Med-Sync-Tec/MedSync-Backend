@@ -53,16 +53,30 @@ class AddPacienteContextoServiceTest {
         when(patientRepository.findByUuid(pacienteId)).thenReturn(Optional.of(stubPatient()));
         when(repository.save(any(PacienteContexto.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        PacienteContexto result = service.execute(pacienteId, TipoClinico.ENFERMEDAD, "Hipertensión");
+        PacienteContexto result = service.execute(pacienteId, TipoClinico.ENFERMEDAD, "Hipertensión", null);
 
         assertNotNull(result);
         assertEquals(pacienteId, result.getPacienteId());
         assertEquals(TipoClinico.ENFERMEDAD, result.getTipo());
         assertEquals("Hipertensión", result.getValor());
+        assertNull(result.getEspecialidadId());
 
         ArgumentCaptor<PacienteContexto> captor = ArgumentCaptor.forClass(PacienteContexto.class);
         verify(repository).save(captor.capture());
         assertNotNull(captor.getValue().getId());
+    }
+
+    @Test
+    @DisplayName("Con especialidadId del caller: lo propaga al PacienteContexto persistido")
+    void addInheritsCallerSpecialty() {
+        UUID especialidadId = UUID.randomUUID();
+        when(patientRepository.findByUuid(pacienteId)).thenReturn(Optional.of(stubPatient()));
+        when(repository.save(any(PacienteContexto.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        PacienteContexto result = service.execute(pacienteId, TipoClinico.MEDICAMENTO,
+                "Losartán", especialidadId);
+
+        assertEquals(especialidadId, result.getEspecialidadId());
     }
 
     @Test
@@ -71,7 +85,7 @@ class AddPacienteContextoServiceTest {
         when(patientRepository.findByUuid(pacienteId)).thenReturn(Optional.empty());
 
         assertThrows(PatientNotFoundException.class,
-                () -> service.execute(pacienteId, TipoClinico.SINTOMA, "Mareo"));
+                () -> service.execute(pacienteId, TipoClinico.SINTOMA, "Mareo", null));
 
         verify(repository, never()).save(any());
     }

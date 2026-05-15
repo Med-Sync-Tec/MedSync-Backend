@@ -4,12 +4,19 @@ import itesm.medsync.domain.article.exception.ArticleNotFoundException;
 import itesm.medsync.domain.article.exception.ArticleTagNotFoundException;
 import itesm.medsync.domain.article.exception.DuplicateArticleException;
 import itesm.medsync.domain.article.exception.InvalidArticleDataException;
+import itesm.medsync.domain.articleaianalysis.exception.AiAnalysisException;
+import itesm.medsync.domain.articleaianalysis.exception.AiAnalysisTimeoutException;
+import itesm.medsync.domain.consultaaianalysis.exception.InvalidConsultaDataException;
+import itesm.medsync.domain.consultaaianalysis.exception.UserHasNoSpecialtyException;
 import itesm.medsync.domain.hospital.exception.ConsultaNotFoundException;
 import itesm.medsync.domain.hospital.exception.ExpedienteNotFoundException;
 import itesm.medsync.domain.hospital.exception.InvalidHospitalDataException;
 import itesm.medsync.domain.pacientecontexto.exception.InvalidPacienteContextoDataException;
 import itesm.medsync.domain.pacientecontexto.exception.PacienteContextoNotFoundException;
 import itesm.medsync.domain.shared.exception.InvalidTipoClinicoException;
+import itesm.medsync.domain.specialty.exception.DuplicateSpecialtyException;
+import itesm.medsync.domain.specialty.exception.InvalidSpecialtyDataException;
+import itesm.medsync.domain.specialty.exception.SpecialtyNotFoundException;
 import itesm.medsync.domain.patient.exception.DuplicatePatientException;
 import itesm.medsync.domain.patient.exception.InvalidPatientDataException;
 import itesm.medsync.domain.patient.exception.PatientNotFoundException;
@@ -17,11 +24,15 @@ import itesm.medsync.domain.medicamento.exception.DuplicateMedicamentoException;
 import itesm.medsync.domain.medicamento.exception.EstadoNotFoundException;
 import itesm.medsync.domain.medicamento.exception.InvalidMedicamentoDataException;
 import itesm.medsync.domain.medicamento.exception.MedicamentoNotFoundException;
+import itesm.medsync.domain.solicitud.exception.SolicitudNotFoundException;
+import itesm.medsync.domain.solicitud.exception.SolicitudPendienteException;
+import itesm.medsync.domain.solicitud.exception.SolicitudRechazadaRecientementeException;
 import itesm.medsync.domain.user.exception.InvalidUserDataException;
 import itesm.medsync.domain.user.exception.RoleMismatchException;
 import itesm.medsync.domain.user.exception.RoleNotFoundException;
 import itesm.medsync.domain.user.exception.UserAlreadyExistsException;
 import itesm.medsync.domain.user.exception.UserNotFoundException;
+import itesm.medsync.domain.vocabulary.exception.InvalidVocabularyTermDataException;
 import itesm.medsync.interfaces.rest.common.ErrorResponse;
 import itesm.medsync.interfaces.rest.common.RoleMismatchErrorResponse;
 import jakarta.validation.ConstraintViolationException;
@@ -139,6 +150,37 @@ public final class GlobalExceptionHandler {
     }
 
     @Provider
+    public static class SolicitudNotFoundMapper implements ExceptionMapper<SolicitudNotFoundException> {
+        @Override
+        public Response toResponse(SolicitudNotFoundException ex) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(404, "Not Found", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class SolicitudPendienteMapper implements ExceptionMapper<SolicitudPendienteException> {
+        @Override
+        public Response toResponse(SolicitudPendienteException ex) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(new ErrorResponse(409, "Conflict", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class SolicitudRechazadaRecientementeMapper
+            implements ExceptionMapper<SolicitudRechazadaRecientementeException> {
+        @Override
+        public Response toResponse(SolicitudRechazadaRecientementeException ex) {
+            return Response.status(429)
+                    .entity(new ErrorResponse(429, "Too Many Requests", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
     public static class UserAlreadyExistsMapper implements ExceptionMapper<UserAlreadyExistsException> {
         @Override
         public Response toResponse(UserAlreadyExistsException ex) {
@@ -180,6 +222,7 @@ public final class GlobalExceptionHandler {
                             403,
                             "Forbidden",
                             ex.getMessage(),
+                            ex.getActualRole(),
                             ex.getExpectedRole()))
                     .build();
         }
@@ -256,11 +299,99 @@ public final class GlobalExceptionHandler {
     }
 
     @Provider
+    public static class SpecialtyNotFoundMapper implements ExceptionMapper<SpecialtyNotFoundException> {
+        @Override
+        public Response toResponse(SpecialtyNotFoundException ex) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new ErrorResponse(404, "Not Found", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class DuplicateSpecialtyMapper implements ExceptionMapper<DuplicateSpecialtyException> {
+        @Override
+        public Response toResponse(DuplicateSpecialtyException ex) {
+            return Response.status(Response.Status.CONFLICT)
+                    .entity(new ErrorResponse(409, "Conflict", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class InvalidSpecialtyDataMapper implements ExceptionMapper<InvalidSpecialtyDataException> {
+        @Override
+        public Response toResponse(InvalidSpecialtyDataException ex) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class InvalidVocabularyTermDataMapper implements ExceptionMapper<InvalidVocabularyTermDataException> {
+        @Override
+        public Response toResponse(InvalidVocabularyTermDataException ex) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
     public static class InvalidTipoClinicoMapper implements ExceptionMapper<InvalidTipoClinicoException> {
         @Override
         public Response toResponse(InvalidTipoClinicoException ex) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class UserHasNoSpecialtyMapper implements ExceptionMapper<UserHasNoSpecialtyException> {
+        @Override
+        public Response toResponse(UserHasNoSpecialtyException ex) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class InvalidConsultaDataMapper implements ExceptionMapper<InvalidConsultaDataException> {
+        @Override
+        public Response toResponse(InvalidConsultaDataException ex) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class AiAnalysisExceptionMapper implements ExceptionMapper<AiAnalysisException> {
+        private static final Logger LOG = Logger.getLogger(AiAnalysisExceptionMapper.class);
+
+        @Override
+        public Response toResponse(AiAnalysisException ex) {
+            LOG.warnf("AI analysis failed: %s", ex.getMessage());
+            return Response.status(Response.Status.BAD_GATEWAY)
+                    .entity(new ErrorResponse(502, "Bad Gateway",
+                            "AI analysis failed: " + ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class AiAnalysisTimeoutExceptionMapper implements ExceptionMapper<AiAnalysisTimeoutException> {
+        private static final Logger LOG = Logger.getLogger(AiAnalysisTimeoutExceptionMapper.class);
+
+        @Override
+        public Response toResponse(AiAnalysisTimeoutException ex) {
+            LOG.warnf("AI analysis timed out: %s", ex.getMessage());
+            return Response.status(Response.Status.GATEWAY_TIMEOUT)
+                    .entity(new ErrorResponse(504, "Gateway Timeout",
+                            "AI analysis exceeded the configured timeout"))
                     .build();
         }
     }

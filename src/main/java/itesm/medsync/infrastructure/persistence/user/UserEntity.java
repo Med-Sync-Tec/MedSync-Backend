@@ -32,8 +32,8 @@ public class UserEntity {
     @Column(nullable = false, unique = true, length = 100)
     private String correo;
 
-    @Column(length = 100)
-    private String especialidad;
+    @Column(name = "especialidad_id", columnDefinition = "BINARY(16)")
+    private UUID especialidadId;
 
     @Column(name = "rol_id", columnDefinition = "BINARY(16)", nullable = false)
     private UUID rolId;
@@ -76,12 +76,12 @@ public class UserEntity {
         this.correo = correo;
     }
 
-    public String getEspecialidad() {
-        return especialidad;
+    public UUID getEspecialidadId() {
+        return especialidadId;
     }
 
-    public void setEspecialidad(String especialidad) {
-        this.especialidad = especialidad;
+    public void setEspecialidadId(UUID especialidadId) {
+        this.especialidadId = especialidadId;
     }
 
     public UUID getRolId() {

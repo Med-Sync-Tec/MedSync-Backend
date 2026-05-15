@@ -9,6 +9,7 @@ import itesm.medsync.domain.article.usecase.GetRecentArticlesUseCase;
 import itesm.medsync.domain.article.usecase.ListArticlesUseCase;
 import itesm.medsync.domain.article.usecase.GetSavedArticlesUseCase;
 import itesm.medsync.domain.article.usecase.MarkArticleAsReadUseCase;
+import itesm.medsync.domain.article.usecase.GetSavedArticlesUseCase;
 import itesm.medsync.domain.article.usecase.RemoveTagFromArticleUseCase;
 import itesm.medsync.domain.article.usecase.SaveArticleUseCase;
 import itesm.medsync.domain.article.usecase.SyncPubmedArticlesUseCase;
@@ -151,6 +152,21 @@ public class ArticleResource {
     }
 
     // -------------------------------------------------------------------------
+    // NUEVO: Artículos guardados por el usuario
+    // -------------------------------------------------------------------------
+
+    @GET
+    @Path("/saved")
+    @Operation(summary = "Artículos guardados por el usuario actual",
+               description = "Devuelve los artículos que el usuario ha guardado para leer después, ordenados por fecha de guardado descendente.")
+    @APIResponse(responseCode = "200", description = "Página de artículos guardados")
+    public PagedArticlesResponse saved(@QueryParam("page") @DefaultValue("0") int page,
+                                       @QueryParam("size") @DefaultValue("20") int size) {
+        UUID userId = authContext.getCurrentUser().user().getId();
+        return ArticleRestMapper.toPagedResponse(getSavedArticles.execute(userId, page, size));
+    }
+
+    // -------------------------------------------------------------------------
     // NUEVO: Disparo manual de sincronización con PubMed
     // -------------------------------------------------------------------------
 
@@ -212,17 +228,6 @@ public class ArticleResource {
         UUID userId = authContext.getCurrentUser().user().getId();
         unsaveArticle.execute(userId, articleId);
         return Response.noContent().build();
-    }
-
-    @GET
-    @Path("/saved")
-    @Operation(summary = "Obtener artículos guardados por el usuario",
-               description = "Devuelve la lista paginada de artículos guardados por el usuario autenticado.")
-    @APIResponse(responseCode = "200", description = "Página de artículos guardados")
-    public PagedArticlesResponse saved(@QueryParam("page") @DefaultValue("0") int page,
-                                       @QueryParam("size") @DefaultValue("20") int size) {
-        UUID userId = authContext.getCurrentUser().user().getId();
-        return ArticleRestMapper.toPagedResponse(getSavedArticles.execute(userId, page, size));
     }
 
     // -------------------------------------------------------------------------

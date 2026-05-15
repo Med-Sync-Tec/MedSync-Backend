@@ -8,6 +8,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 
 import java.util.List;
+import java.nio.ByteBuffer;
 import java.util.UUID;
 
 @ApplicationScoped

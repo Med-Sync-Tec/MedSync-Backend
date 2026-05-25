@@ -1,12 +1,15 @@
 package itesm.medsync.application.article;
 
 import itesm.medsync.domain.article.usecase.MarkArticleAsReadUseCase;
+import itesm.medsync.infrastructure.persistence.article.ArticleEntity;
+import itesm.medsync.infrastructure.persistence.tracking.UsuarioArticuloLeidoEntity;
+import itesm.medsync.infrastructure.persistence.tracking.UsuarioArticuloLeidoId;
+import itesm.medsync.infrastructure.persistence.user.UserEntity;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
+import jakarta.inject.Inject;
 
-import java.nio.ByteBuffer;
 import java.util.UUID;
 
 @ApplicationScoped
@@ -18,20 +21,17 @@ public class MarkArticleAsReadService implements MarkArticleAsReadUseCase {
     @Override
     @Transactional
     public void execute(UUID userId, UUID articleId) {
-        // INSERT IGNORE es idempotente: si ya existe la entrada, no hace nada
-        // Usamos byte[] de 16 bytes para que coincida con la columna BINARY(16)
-        em.createNativeQuery(
-                "INSERT IGNORE INTO usuario_articulos_leidos (usuario_id, articulo_id, leido_at) " +
-                "VALUES (:userId, :articleId, NOW())")
-          .setParameter("userId", toBytes(userId))
-          .setParameter("articleId", toBytes(articleId))
-          .executeUpdate();
-    }
+        UsuarioArticuloLeidoId pk = new UsuarioArticuloLeidoId(userId, articleId);
+        // Si ya existe el registro, no hacemos nada (idempotente)
+        if (em.find(UsuarioArticuloLeidoEntity.class, pk) != null) {
+            return;
+        }
+        UserEntity usuario = em.getReference(UserEntity.class, userId);
+        ArticleEntity articulo = em.getReference(ArticleEntity.class, articleId);
 
-    private byte[] toBytes(UUID uuid) {
-        ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
-        bb.putLong(uuid.getMostSignificantBits());
-        bb.putLong(uuid.getLeastSignificantBits());
-        return bb.array();
+        UsuarioArticuloLeidoEntity leido = new UsuarioArticuloLeidoEntity();
+        leido.setUsuario(usuario);
+        leido.setArticulo(articulo);
+        em.persist(leido);
     }
 }

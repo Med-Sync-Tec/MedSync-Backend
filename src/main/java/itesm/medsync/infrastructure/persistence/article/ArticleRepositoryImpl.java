@@ -138,6 +138,30 @@ public class ArticleRepositoryImpl
         return loadArticlesByIds(ids);
     }
 
+    @Override
+    public List<Article> findMatchingArticlesForMedicamentos(int limit) {
+        // Análogo a findMatchingArticlesForPaciente, pero el "contexto" es todo el
+        // catálogo de medicamentos (no hay restricción de especialidad). Solo cruzan
+        // tags de tipo MEDICAMENTO y el match es normalizado: LOWER + TRIM en ambos
+        // lados para tolerar diferencias de mayúsculas/espacios en la captura.
+        List<UUID> ids = getEntityManager().createQuery(
+                "SELECT DISTINCT a.id FROM ArticleEntity a JOIN a.tags at " +
+                        "WHERE at.tipo = itesm.medsync.domain.shared.model.TipoClinico.MEDICAMENTO " +
+                        "  AND EXISTS (" +
+                        "    SELECT 1 FROM itesm.medsync.infrastructure.persistence.medicamento.MedicamentoEntity m "
+                        +
+                        "    WHERE LOWER(TRIM(m.nombre)) = LOWER(TRIM(at.valor))" +
+                        "  ) " +
+                        "ORDER BY a.id",
+                UUID.class)
+                .setMaxResults(limit)
+                .getResultList();
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        return loadArticlesByIds(ids);
+    }
+
     private List<Article> loadArticlesByIds(List<UUID> ids) {
         EntityGraph<?> graph = getEntityManager().getEntityGraph(GRAPH_WITH_TAGS);
         Map<UUID, ArticleEntity> byId = new HashMap<>();

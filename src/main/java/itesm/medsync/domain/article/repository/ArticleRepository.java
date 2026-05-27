@@ -22,6 +22,14 @@ public interface ArticleRepository {
     List<Article> findMatchingArticlesForPaciente(UUID pacienteId, int limit);
 
     /**
+     * Devuelve los artículos cuyo tag de tipo MEDICAMENTO coincide (normalizado:
+     * sin distinguir mayúsculas y recortando espacios) con el nombre de algún
+     * medicamento del catálogo. Es el análogo del match por paciente, pero usando
+     * todo el catálogo de medicamentos como "contexto" del COO.
+     */
+    List<Article> findMatchingArticlesForMedicamentos(int limit);
+
+    /**
      * Devuelve los artículos ordenados por fecha de actualización descendente
      * (los más recientes primero), con paginación.
      */

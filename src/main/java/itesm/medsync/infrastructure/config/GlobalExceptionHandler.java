@@ -6,6 +6,8 @@ import itesm.medsync.domain.article.exception.DuplicateArticleException;
 import itesm.medsync.domain.article.exception.InvalidArticleDataException;
 import itesm.medsync.domain.articleaianalysis.exception.AiAnalysisException;
 import itesm.medsync.domain.articleaianalysis.exception.AiAnalysisTimeoutException;
+import itesm.medsync.domain.articleaianalysis.exception.AiConfigurationException;
+import itesm.medsync.domain.chat.exception.ChatException;
 import itesm.medsync.domain.consultaaianalysis.exception.InvalidConsultaDataException;
 import itesm.medsync.domain.consultaaianalysis.exception.UserHasNoSpecialtyException;
 import itesm.medsync.domain.hospital.exception.ConsultaNotFoundException;
@@ -330,6 +332,34 @@ public final class GlobalExceptionHandler {
         public Response toResponse(InvalidConsultaDataException ex) {
             return Response.status(Response.Status.BAD_REQUEST)
                     .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class ChatExceptionMapper implements ExceptionMapper<ChatException> {
+        private static final Logger LOG = Logger.getLogger(ChatExceptionMapper.class);
+
+        @Override
+        public Response toResponse(ChatException ex) {
+            LOG.warnf("MediBot chat failed: %s", ex.getMessage());
+            return Response.status(Response.Status.BAD_GATEWAY)
+                    .entity(new ErrorResponse(502, "Bad Gateway",
+                            "MediBot chat failed: " + ex.getMessage()))
+                    .build();
+        }
+    }
+
+    @Provider
+    public static class AiConfigurationExceptionMapper implements ExceptionMapper<AiConfigurationException> {
+        private static final Logger LOG = Logger.getLogger(AiConfigurationExceptionMapper.class);
+
+        @Override
+        public Response toResponse(AiConfigurationException ex) {
+            LOG.warnf("AI not configured: %s", ex.getMessage());
+            return Response.status(503)
+                    .entity(new ErrorResponse(503, "Service Unavailable",
+                            "AI service is not configured. Set GROQ_API_KEY."))
                     .build();
         }
     }

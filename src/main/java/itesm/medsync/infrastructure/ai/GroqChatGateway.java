@@ -46,16 +46,25 @@ public class GroqChatGateway implements ChatGateway {
 
     @Override
     public String complete(String systemPrompt, String userMessage) {
+        return callGroqChat(systemPrompt, userMessage, null);
+    }
+
+    @Override
+    public String completeJson(String systemPrompt, String userMessage) {
+        return callGroqChat(systemPrompt, userMessage, GroqEnvelope.GroqResponseFormat.jsonObject());
+    }
+
+    private String callGroqChat(String systemPrompt, String userMessage,
+                                 GroqEnvelope.GroqResponseFormat responseFormat) {
         if (!config.isConfigured()) {
             throw new AiConfigurationException(
                     "GROQ_API_KEY is not set — set the environment variable to use MediBot");
         }
-        // response_format is null → text mode (field omitted via @JsonInclude(NON_NULL))
         GroqEnvelope.GroqChatRequest body = new GroqEnvelope.GroqChatRequest(
                 config.model(),
                 config.maxTokens(),
-                0.7,
-                null,
+                responseFormat == null ? 0.7 : 0.0,
+                responseFormat,
                 List.of(
                         new GroqEnvelope.GroqMessage("system", systemPrompt),
                         new GroqEnvelope.GroqMessage("user", userMessage)));

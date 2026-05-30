@@ -58,6 +58,7 @@ The link points to the latest snapshot.
 | `article-ai-analysis`  | Spec drafted   | [12-05-2026-article-ai-analysis/](12-05-2026-article-ai-analysis/)             |
 | `consulta-ai-analysis` | Spec drafted   | [12-05-2026-consulta-ai-analysis/](12-05-2026-consulta-ai-analysis/)           |
 | `alert`                | Planned        | *(spec not yet written)*                                                       |
+| `pubmed-auto-specialty`| Spec drafted   | [29-05-2026-pubmed-auto-specialty/](29-05-2026-pubmed-auto-specialty/)         |
 
 ## Templates
 

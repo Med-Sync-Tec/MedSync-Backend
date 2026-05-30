@@ -2,6 +2,8 @@ package itesm.medsync.infrastructure.pubmed;
 
 import io.quarkus.runtime.StartupEvent;
 import io.quarkus.scheduler.Scheduled;
+import itesm.medsync.domain.article.model.AutoAnalysisSummary;
+import itesm.medsync.domain.article.usecase.AutoAnalyzeNewArticlesUseCase;
 import itesm.medsync.domain.article.usecase.SyncPubmedArticlesUseCase;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
@@ -27,13 +29,16 @@ public class PubmedSyncScheduler {
     private static final Logger LOG = Logger.getLogger(PubmedSyncScheduler.class);
 
     private final SyncPubmedArticlesUseCase syncUseCase;
+    private final AutoAnalyzeNewArticlesUseCase autoAnalyzeUseCase;
 
     @ConfigProperty(name = "medsync.pubmed.sync.on-startup", defaultValue = "true")
     boolean syncOnStartup;
 
     @Inject
-    public PubmedSyncScheduler(SyncPubmedArticlesUseCase syncUseCase) {
+    public PubmedSyncScheduler(SyncPubmedArticlesUseCase syncUseCase,
+                               AutoAnalyzeNewArticlesUseCase autoAnalyzeUseCase) {
         this.syncUseCase = syncUseCase;
+        this.autoAnalyzeUseCase = autoAnalyzeUseCase;
     }
 
     /**
@@ -56,6 +61,17 @@ public class PubmedSyncScheduler {
             LOG.infof("Scheduler: sincronización completada. Artículos procesados: %d", count);
         } catch (Exception e) {
             LOG.errorf(e, "Scheduler: error durante la sincronización PubMed: %s", e.getMessage());
+            // Do not proceed to auto-specialty if sync itself failed
+            return;
+        }
+
+        LOG.info("Scheduler: iniciando pase de auto-especialidad...");
+        try {
+            AutoAnalysisSummary summary = autoAnalyzeUseCase.execute();
+            LOG.infof("Scheduler: auto-especialidad completado. %s", summary);
+        } catch (Exception e) {
+            // A failure in the auto-specialty pass must not affect the sync outcome.
+            LOG.errorf(e, "Scheduler: error en pase de auto-especialidad: %s", e.getMessage());
         }
     }
 }

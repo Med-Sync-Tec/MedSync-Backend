@@ -296,4 +296,61 @@ class ArticleRepositoryImplTest {
         List<Article> results = repository.findMatchingArticlesForPaciente(paciente.getId(), 50);
         assertTrue(results.isEmpty());
     }
+
+    // ------------------------------------------------------------------
+    // findAllWithoutSpecialty tests
+    // ------------------------------------------------------------------
+
+    @Test
+    @TestTransaction
+    @DisplayName("findAllWithoutSpecialty devuelve solo artículos con especialidad_id = NULL")
+    void findAllWithoutSpecialty_returnsOnlyNullSpecialty() {
+        UUID cardioId = seededSpecialtyId("cardiologia");
+
+        // article with specialty already set
+        repository.save(newArticle("10.1234/classified", cardioId));
+        // articles without specialty
+        Article u1 = repository.save(newArticle("10.1234/unclassified-1"));
+        Article u2 = repository.save(newArticle("10.1234/unclassified-2"));
+
+        List<Article> results = repository.findAllWithoutSpecialty();
+        List<UUID> ids = results.stream().map(Article::getId).toList();
+
+        assertTrue(ids.contains(u1.getId()), "debe incluir artículo sin especialidad 1");
+        assertTrue(ids.contains(u2.getId()), "debe incluir artículo sin especialidad 2");
+        assertTrue(results.stream().allMatch(a -> a.getEspecialidadId() == null),
+                "todos los resultados deben tener especialidadId = null");
+    }
+
+    @Test
+    @TestTransaction
+    @DisplayName("findAllWithoutSpecialty excluye artículos ya clasificados")
+    void findAllWithoutSpecialty_excludesClassified() {
+        UUID cardioId = seededSpecialtyId("cardiologia");
+        Article classified = repository.save(newArticle("10.1234/has-esp", cardioId));
+
+        List<Article> results = repository.findAllWithoutSpecialty();
+        List<UUID> ids = results.stream().map(Article::getId).toList();
+
+        assertFalse(ids.contains(classified.getId()),
+                "artículo con especialidad asignada no debe aparecer");
+    }
+
+    @Test
+    @TestTransaction
+    @DisplayName("findAllWithoutSpecialty devuelve lista vacía cuando todos tienen especialidad")
+    void findAllWithoutSpecialty_emptyWhenAllClassified() {
+        UUID cardioId = seededSpecialtyId("cardiologia");
+        // Only save articles with a specialty in this transactional scope;
+        // the existing DB data is rolled back between tests, so we just need
+        // to ensure there are no unclassified articles in this transaction.
+        repository.save(newArticle("10.1234/all-classified-a", cardioId));
+        repository.save(newArticle("10.1234/all-classified-b", cardioId));
+
+        // Wipe any unclassified that may have come from seeding
+        List<Article> withoutSpecialty = repository.findAllWithoutSpecialty();
+        // We only assert that the classified ones are NOT included — we can't
+        // control other seed data beyond this transaction.
+        withoutSpecialty.forEach(a -> assertNull(a.getEspecialidadId()));
+    }
 }

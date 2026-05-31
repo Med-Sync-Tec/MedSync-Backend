@@ -234,4 +234,24 @@ public class ArticleRepositoryImpl
         List<Article> items = loadArticlesByIds(ids);
         return Page.of(items, total, page, size);
     }
+
+    @Override
+    public List<Article> findAllWithoutSpecialty() {
+        // Step 1: fetch ids of unclassified articles ordered by createdAt DESC.
+        // The descending order prioritizes the most recently synced articles,
+        // which matches the order they appear on the dashboard.
+        List<UUID> ids = getEntityManager()
+                .createQuery(
+                        "SELECT a.id FROM ArticleEntity a " +
+                                "WHERE a.especialidadId IS NULL " +
+                                "ORDER BY a.createdAt DESC",
+                        UUID.class)
+                .getResultList();
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+        // Step 2: load full entities with the withTags EntityGraph to avoid
+        // LazyInitializationException when the service accesses article.getTags().
+        return loadArticlesByIds(ids);
+    }
 }

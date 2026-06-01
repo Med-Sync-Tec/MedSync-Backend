@@ -119,7 +119,11 @@ public class GroqAiAnalysisGateway implements AiAnalysisGateway {
         GroqEnvelope.GroqChatResponse extractResp = callGroq(extractPrompt, "extract-article");
         List<ExtractedTag> tags = parseAndFilterTags(extractResp, vocab);
         if (tags.isEmpty()) {
-            throw new AiAnalysisException("no valid tags after vocabulary filter for specialty " + chosenId);
+            // The model classified the specialty correctly but the terms it suggested
+            // were not in our vocabulary. We still save the specialty (so the frontend
+            // shows the right color/icon) but with an empty tag list rather than
+            // wasting another Groq call or throwing away the classification result.
+            LOG.warnf("Groq extract: no vocabulary-matching tags for specialty %s — saving specialty without tags.", chosenId);
         }
 
         // Aggregate usage from both calls so the operator sees full cost per analyze invocation.

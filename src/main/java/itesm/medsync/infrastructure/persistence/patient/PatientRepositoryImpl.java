@@ -50,4 +50,42 @@ public class PatientRepositoryImpl implements PatientRepository, PanacheReposito
                 .getSingleResult();
         return ((Number) result).longValue() > 0L;
     }
+
+    @Override
+    public List<Patient> findMatchingPatientsForArticle(UUID articleId, int limit) {
+        List<UUID> ids = getEntityManager().createQuery(
+                "SELECT DISTINCT p.id FROM PatientEntity p " +
+                        "WHERE EXISTS (" +
+                        "  SELECT 1 FROM itesm.medsync.infrastructure.persistence.pacientecontexto.PacienteContextoEntity pc " +
+                        "  WHERE pc.pacienteId = p.id " +
+                        "    AND EXISTS (" +
+                        "      SELECT 1 FROM itesm.medsync.infrastructure.persistence.article.ArticleEntity a JOIN a.tags at " +
+                        "      WHERE a.id = :articleId " +
+                        "        AND at.tipo = pc.tipo " +
+                        "        AND at.valor = pc.valor " +
+                        "        AND a.especialidadId = pc.especialidadId" +
+                        "    )" +
+                        ") ORDER BY p.id", UUID.class)
+                .setParameter("articleId", articleId)
+                .setMaxResults(limit)
+                .getResultList();
+
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+
+        java.util.Map<UUID, PatientEntity> byId = new java.util.HashMap<>();
+        for (PatientEntity entity : getEntityManager()
+                .createQuery("SELECT p FROM PatientEntity p WHERE p.id IN :ids", PatientEntity.class)
+                .setParameter("ids", ids)
+                .getResultList()) {
+            byId.put(entity.getId(), entity);
+        }
+
+        return ids.stream()
+                .map(byId::get)
+                .filter(java.util.Objects::nonNull)
+                .map(PatientPersistenceMapper::toDomain)
+                .toList();
+    }
 }

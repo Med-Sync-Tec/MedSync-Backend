@@ -15,4 +15,6 @@ public interface PatientRepository {
     List<Patient> findAllActive();
 
     boolean existsByExpedienteExternoId(String expedienteExternoId);
+
+    List<Patient> findMatchingPatientsForArticle(UUID articleId, int limit);
 }

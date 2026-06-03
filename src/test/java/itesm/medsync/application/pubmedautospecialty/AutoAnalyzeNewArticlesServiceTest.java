@@ -60,13 +60,13 @@ class AutoAnalyzeNewArticlesServiceTest {
     private AutoAnalyzeNewArticlesService serviceEnabled() {
         return new AutoAnalyzeNewArticlesService(
                 articleRepository, specialtyRepository, vocabularyRepository,
-                aiGateway, saver, true, 10, 100L);
+                aiGateway, saver, true, 10, 0L);
     }
 
     private AutoAnalyzeNewArticlesService serviceDisabled() {
         return new AutoAnalyzeNewArticlesService(
                 articleRepository, specialtyRepository, vocabularyRepository,
-                aiGateway, saver, false, 10, 100L);
+                aiGateway, saver, false, 10, 0L);
     }
 
     private Article articleWithText(String titulo, String abs, String keywords) {

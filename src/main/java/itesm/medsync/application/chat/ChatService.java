@@ -12,6 +12,20 @@ public class ChatService implements ChatUseCase {
 
     static final String CRITICAL_PREFIX = "CRITICAL:";
 
+    static final String CLINICAL_DISCLAIMER =
+            "\n\n---\n⚠️ **Aviso:** Esta información es de referencia general. " +
+            "Verifica dosis, contraindicaciones e interacciones con fuentes clínicas " +
+            "oficiales antes de aplicarla. MediBot no reemplaza el criterio médico profesional.";
+
+    private static final java.util.regex.Pattern CLINICAL_KEYWORDS = java.util.regex.Pattern.compile(
+            "\\b(dosis|mg|mcg|ml|prescri|receta|administra|tomar|toma|tratamiento|" +
+            "terapia|fármaco|farmaco|medicamento|antibiótico|antibiotico|analgésico|analgésico|" +
+            "antiinflamatorio|antihipertensivo|antidiabético|antidiabético|" +
+            "ibuprofeno|paracetamol|amoxicilina|metformina|omeprazol|atorvastatina|" +
+            "indicado para|se recomienda|se sugiere|dosis recomendada|via oral|vía oral|" +
+            "intravenoso|intramuscular|subcutáneo|subcutaneo)\\b",
+            java.util.regex.Pattern.CASE_INSENSITIVE);
+
     static final String CANNED_CRITICAL =
             "Para situaciones de emergencia o decisiones clínicas críticas, " +
             "consulta los protocolos institucionales y al personal de guardia.";
@@ -99,15 +113,6 @@ public class ChatService implements ChatUseCase {
             consulta los protocolos institucionales y al personal de guardia.
             - No inventes datos de pacientes reales ni valores de laboratorio inventados.
             - Responde siempre en español.
-
-            ### AVISO OBLIGATORIO EN RECOMENDACIONES CLÍNICAS
-            Cada vez que tu respuesta incluya una recomendación de medicamento, dosis, tratamiento \
-            o cualquier sugerencia clínica que un médico pudiera aplicar a un paciente, \
-            DEBES agregar al final de tu respuesta, en una línea separada, exactamente esto:
-            ---
-            ⚠️ **Aviso:** Esta información es de referencia general. Verifica dosis, \
-            contraindicaciones e interacciones con fuentes clínicas oficiales antes de aplicarla. \
-            MediBot no reemplaza el criterio médico profesional.
             """;
 
     private final ChatGateway gateway;
@@ -123,6 +128,10 @@ public class ChatService implements ChatUseCase {
         if (raw.startsWith(CRITICAL_PREFIX)) {
             return new ChatResponse(CANNED_CRITICAL, true);
         }
-        return new ChatResponse(raw.strip(), false);
+        String response = raw.strip();
+        if (CLINICAL_KEYWORDS.matcher(response).find()) {
+            response = response + CLINICAL_DISCLAIMER;
+        }
+        return new ChatResponse(response, false);
     }
 }

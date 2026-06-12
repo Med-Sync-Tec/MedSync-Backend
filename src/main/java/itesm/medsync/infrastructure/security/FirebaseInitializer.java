@@ -7,12 +7,15 @@ import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.logging.Logger;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 
 @ApplicationScoped
 public class FirebaseInitializer {
+
+    private static final Logger LOG = Logger.getLogger(FirebaseInitializer.class);
 
     @ConfigProperty(name = "firebase.config.path")
     String firebaseConfigPath;
@@ -27,11 +30,10 @@ public class FirebaseInitializer {
                         .build();
 
                 FirebaseApp.initializeApp(options);
-                System.out.println("Firebase Admin SDK inicializado exitosamente.");
+                LOG.info("Firebase Admin SDK inicializado exitosamente.");
             }
         } catch (IOException e) {
-            System.err.println("Error al inicializar Firebase Admin SDK: " + e.getMessage());
-            e.printStackTrace();
+            LOG.errorf(e, "Error al inicializar Firebase Admin SDK: %s", e.getMessage());
         }
     }
 }

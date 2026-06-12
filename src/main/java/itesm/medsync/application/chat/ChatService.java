@@ -19,12 +19,12 @@ public class ChatService implements ChatUseCase {
 
     private static final java.util.regex.Pattern CLINICAL_KEYWORDS = java.util.regex.Pattern.compile(
             "\\b(dosis|mg|mcg|ml|prescri|receta|administra|tomar|toma|tratamiento|" +
-            "terapia|fármaco|farmaco|medicamento|antibiótico|antibiotico|analgésico|analgésico|" +
-            "antiinflamatorio|antihipertensivo|antidiabético|antidiabético|" +
+            "terapia|fármaco|farmaco|medicamento|antibiótico|antibiotico|analgésico|" +
+            "antiinflamatorio|antihipertensivo|antidiabético|" +
             "ibuprofeno|paracetamol|amoxicilina|metformina|omeprazol|atorvastatina|" +
             "indicado para|se recomienda|se sugiere|dosis recomendada|via oral|vía oral|" +
             "intravenoso|intramuscular|subcutáneo|subcutaneo)\\b",
-            java.util.regex.Pattern.CASE_INSENSITIVE);
+            java.util.regex.Pattern.CASE_INSENSITIVE | java.util.regex.Pattern.UNICODE_CASE);
 
     static final String CANNED_CRITICAL =
             "Para situaciones de emergencia o decisiones clínicas críticas, " +

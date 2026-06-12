@@ -1,4 +1,4 @@
-package itesm.medsync.infrastructure.persistence.article;
+﻿package itesm.medsync.infrastructure.persistence.article;
 
 import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
@@ -21,6 +21,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -137,7 +138,7 @@ class ArticleRepositoryImplTest {
                 User.create("M", "match-" + UUID.randomUUID() + "@tec.mx", null, doctorRoleId));
         Patient paciente = patientRepository.save(
                 Patient.create("EXP-MATCH-" + UUID.randomUUID(),
-                        "P", LocalDate.of(1990, 1, 1), "F", medicoMatch.getId()));
+                        "P", LocalDate.of(1990, Month.JANUARY, 1), "F", medicoMatch.getId()));
 
         UUID cardiologia = seededSpecialtyId("cardiologia");
         contextoRepository.save(PacienteContexto.create(
@@ -173,7 +174,7 @@ class ArticleRepositoryImplTest {
                 User.create("M", "diff-" + UUID.randomUUID() + "@tec.mx", null, doctorRoleId));
         Patient paciente = patientRepository.save(
                 Patient.create("EXP-DIFF-" + UUID.randomUUID(),
-                        "P", LocalDate.of(1990, 1, 1), "F", medico.getId()));
+                        "P", LocalDate.of(1990, Month.JANUARY, 1), "F", medico.getId()));
 
         UUID cardiologia = seededSpecialtyId("cardiologia");
         UUID oncologia = seededSpecialtyId("oncologia");
@@ -200,7 +201,7 @@ class ArticleRepositoryImplTest {
                 User.create("M", "anull-" + UUID.randomUUID() + "@tec.mx", null, doctorRoleId));
         Patient paciente = patientRepository.save(
                 Patient.create("EXP-ANULL-" + UUID.randomUUID(),
-                        "P", LocalDate.of(1990, 1, 1), "F", medico.getId()));
+                        "P", LocalDate.of(1990, Month.JANUARY, 1), "F", medico.getId()));
 
         UUID cardiologia = seededSpecialtyId("cardiologia");
         contextoRepository.save(PacienteContexto.create(
@@ -225,7 +226,7 @@ class ArticleRepositoryImplTest {
                 User.create("M", "cnull-" + UUID.randomUUID() + "@tec.mx", null, doctorRoleId));
         Patient paciente = patientRepository.save(
                 Patient.create("EXP-CNULL-" + UUID.randomUUID(),
-                        "P", LocalDate.of(1990, 1, 1), "F", medico.getId()));
+                        "P", LocalDate.of(1990, Month.JANUARY, 1), "F", medico.getId()));
 
         // contexto sin especialidad (constructor legacy → null)
         contextoRepository.save(PacienteContexto.create(
@@ -251,7 +252,7 @@ class ArticleRepositoryImplTest {
                 User.create("M", "multi-" + UUID.randomUUID() + "@tec.mx", null, doctorRoleId));
         Patient paciente = patientRepository.save(
                 Patient.create("EXP-MULTI-" + UUID.randomUUID(),
-                        "P", LocalDate.of(1990, 1, 1), "F", medico.getId()));
+                        "P", LocalDate.of(1990, Month.JANUARY, 1), "F", medico.getId()));
 
         UUID cardiologia = seededSpecialtyId("cardiologia");
         UUID oncologia = seededSpecialtyId("oncologia");
@@ -288,7 +289,7 @@ class ArticleRepositoryImplTest {
                 User.create("M", "empty-" + UUID.randomUUID() + "@tec.mx", null, doctorRoleId));
         Patient paciente = patientRepository.save(
                 Patient.create("EXP-EMPTY-" + UUID.randomUUID(),
-                        "P", LocalDate.of(1990, 1, 1), "F", medicoEmpty.getId()));
+                        "P", LocalDate.of(1990, Month.JANUARY, 1), "F", medicoEmpty.getId()));
 
         repository.save(newArticle("10.1234/lonely").withTagAdded(
                 ArticleTag.create(TipoClinico.ENFERMEDAD, "X")));

@@ -1,4 +1,4 @@
-package itesm.medsync.interfaces.rest.patient;
+﻿package itesm.medsync.interfaces.rest.patient;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
@@ -15,6 +15,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -106,7 +107,7 @@ class PatientResourceIT {
         Map<String, Object> payload = new HashMap<>();
         payload.put("expedienteExternoId", "IT-" + UUID.randomUUID());
         payload.put("nombre", "Juan");
-        payload.put("fechaNacimiento", LocalDate.of(2099, 12, 31).toString());
+        payload.put("fechaNacimiento", LocalDate.of(2099, Month.DECEMBER, 31).toString());
         given()
                 .contentType(ContentType.JSON)
                 .body(payload)

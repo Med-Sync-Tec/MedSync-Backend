@@ -33,7 +33,9 @@ public class UsuarioArticuloGuardadoEntity {
     @Column(name = "guardado_at", updatable = false)
     private LocalDateTime guardadoAt;
 
-    public UsuarioArticuloGuardadoEntity() {}
+    public UsuarioArticuloGuardadoEntity() {
+        // Required by Hibernate
+    }
 
     public UserEntity getUsuario() {
         return usuario;

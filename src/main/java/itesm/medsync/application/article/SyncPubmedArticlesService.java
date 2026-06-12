@@ -132,10 +132,12 @@ public class SyncPubmedArticlesService implements SyncPubmedArticlesUseCase {
     /**
      * Combina keywords libres y MeSH terms en un solo campo de texto.
      */
+    private static final String NO_DISPONIBLE = "No disponible";
+
     private String combineKeywords(String keywords, String meshTerms) {
-        boolean kEmpty = keywords == null || keywords.isBlank() || "No disponible".equals(keywords);
-        boolean mEmpty = meshTerms == null || meshTerms.isBlank() || "No disponible".equals(meshTerms);
-        if (kEmpty && mEmpty) return "No disponible";
+        boolean kEmpty = keywords == null || keywords.isBlank() || NO_DISPONIBLE.equals(keywords);
+        boolean mEmpty = meshTerms == null || meshTerms.isBlank() || NO_DISPONIBLE.equals(meshTerms);
+        if (kEmpty && mEmpty) return NO_DISPONIBLE;
         if (kEmpty) return meshTerms;
         if (mEmpty) return keywords;
         return keywords + "; " + meshTerms;

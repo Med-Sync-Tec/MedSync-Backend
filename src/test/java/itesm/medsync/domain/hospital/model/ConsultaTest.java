@@ -1,4 +1,4 @@
-package itesm.medsync.domain.hospital.model;
+﻿package itesm.medsync.domain.hospital.model;
 
 import itesm.medsync.domain.hospital.exception.InvalidHospitalDataException;
 import org.junit.jupiter.api.DisplayName;
@@ -8,6 +8,7 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -15,7 +16,7 @@ class ConsultaTest {
 
     private static final String VALID_ID = "CONS-001";
     private static final String VALID_EXP_ID = "EXP-HOSP-001";
-    private static final LocalDateTime VALID_FECHA = LocalDateTime.of(2026, 1, 15, 10, 30);
+    private static final LocalDateTime VALID_FECHA = LocalDateTime.of(2026, Month.JANUARY, 15, 10, 30);
 
     private Consulta newValid() {
         return new Consulta(VALID_ID, VALID_EXP_ID, VALID_FECHA,
@@ -128,7 +129,7 @@ class ConsultaTest {
     void equalsAndHashCode() {
         Consulta a = new Consulta(VALID_ID, VALID_EXP_ID, VALID_FECHA,
                 null, null, null, null, null, null, null, null, null);
-        Consulta b = new Consulta(VALID_ID, "OTRO-EXP", LocalDateTime.of(2025, 1, 15, 10, 0),
+        Consulta b = new Consulta(VALID_ID, "OTRO-EXP", LocalDateTime.of(2025, Month.JANUARY, 15, 10, 0),
                 "otro motivo", null, null, null, null, null, null, null, null);
         Consulta c = new Consulta("OTRO-ID", VALID_EXP_ID, VALID_FECHA,
                 null, null, null, null, null, null, null, null, null);

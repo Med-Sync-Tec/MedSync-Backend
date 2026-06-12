@@ -1,4 +1,4 @@
-package itesm.medsync.application.article;
+﻿package itesm.medsync.application.article;
 
 import itesm.medsync.domain.article.model.Article;
 import itesm.medsync.domain.article.repository.ArticleRepository;
@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -39,7 +40,7 @@ class GetMatchingArticlesByPatientServiceTest {
     @DisplayName("Happy path: delega al repository tras verificar paciente")
     void matchOk() {
         UUID pacienteId = UUID.randomUUID();
-        Patient stub = new Patient(pacienteId, "EXP", "Ana", LocalDate.of(1990, 1, 1),
+        Patient stub = new Patient(pacienteId, "EXP", "Ana", LocalDate.of(1990, Month.JANUARY, 1),
                 "F", UUID.randomUUID(), true, null, null);
         when(patientRepository.findByUuid(pacienteId)).thenReturn(Optional.of(stub));
         Article article = Article.create("titulo", null, null, 2024, null,

@@ -1,4 +1,4 @@
-package itesm.medsync.application.hospital;
+﻿package itesm.medsync.application.hospital;
 
 import itesm.medsync.domain.hospital.exception.ConsultaNotFoundException;
 import itesm.medsync.domain.hospital.model.Consulta;
@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -29,7 +30,7 @@ class GetConsultaByIdServiceTest {
     @Test
     @DisplayName("Consulta existente → devuelve la consulta")
     void found() {
-        Consulta c = new Consulta("C-1", "EXP-1", LocalDateTime.of(2025, 1, 15, 10, 0),
+        Consulta c = new Consulta("C-1", "EXP-1", LocalDateTime.of(2025, Month.JANUARY, 15, 10, 0),
                 null, null, null, null, null, null, null, null, null);
         when(hospitalGateway.findConsultaById("C-1")).thenReturn(Optional.of(c));
 

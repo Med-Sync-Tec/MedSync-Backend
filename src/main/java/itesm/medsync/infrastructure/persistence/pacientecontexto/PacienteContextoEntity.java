@@ -38,6 +38,7 @@ public class PacienteContextoEntity {
     private LocalDateTime createdAt;
 
     public PacienteContextoEntity() {
+        // Required by Hibernate
     }
 
     public UUID getId() {

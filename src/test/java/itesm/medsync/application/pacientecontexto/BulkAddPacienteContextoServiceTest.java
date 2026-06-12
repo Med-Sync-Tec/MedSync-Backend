@@ -1,4 +1,4 @@
-package itesm.medsync.application.pacientecontexto;
+﻿package itesm.medsync.application.pacientecontexto;
 
 import itesm.medsync.domain.pacientecontexto.exception.InvalidPacienteContextoDataException;
 import itesm.medsync.domain.pacientecontexto.model.BulkEntry;
@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -47,7 +48,7 @@ class BulkAddPacienteContextoServiceTest {
     }
 
     private Patient patient() {
-        return new Patient(PATIENT_ID, "EXP", "PT", LocalDate.of(1990, 1, 1),
+        return new Patient(PATIENT_ID, "EXP", "PT", LocalDate.of(1990, Month.JANUARY, 1),
                 "F", UUID.randomUUID(), true, null, null);
     }
 

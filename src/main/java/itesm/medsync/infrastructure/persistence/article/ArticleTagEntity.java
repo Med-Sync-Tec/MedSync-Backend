@@ -39,6 +39,7 @@ public class ArticleTagEntity {
     private LocalDateTime createdAt;
 
     public ArticleTagEntity() {
+        // Required by Hibernate
     }
 
     public UUID getId() {

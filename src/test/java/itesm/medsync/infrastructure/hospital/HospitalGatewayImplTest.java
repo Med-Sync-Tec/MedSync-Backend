@@ -1,4 +1,4 @@
-package itesm.medsync.infrastructure.hospital;
+﻿package itesm.medsync.infrastructure.hospital;
 
 import io.quarkus.hibernate.orm.PersistenceUnit;
 import io.quarkus.test.TestTransaction;
@@ -12,6 +12,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 
@@ -81,8 +82,8 @@ class HospitalGatewayImplTest {
     @DisplayName("findConsultasByPacienteExternoId: paciente con consultas → lista ordenada DESC por fecha")
     void findConsultasOrderDesc() {
         seedExpediente("EXP-B", "PAC-EXT-B");
-        seedConsulta("C-OLD", "EXP-B", LocalDateTime.of(2025, 1, 1, 9, 0));
-        seedConsulta("C-NEW", "EXP-B", LocalDateTime.of(2026, 3, 15, 10, 0));
+        seedConsulta("C-OLD", "EXP-B", LocalDateTime.of(2025, Month.JANUARY, 1, 9, 0));
+        seedConsulta("C-NEW", "EXP-B", LocalDateTime.of(2026, Month.MARCH, 15, 10, 0));
         em.flush();
 
         List<Consulta> result = gateway.findConsultasByPacienteExternoId("PAC-EXT-B");
@@ -118,8 +119,8 @@ class HospitalGatewayImplTest {
     void findConsultasIsolatedPerExpediente() {
         seedExpediente("EXP-D", "PAC-EXT-D");
         seedExpediente("EXP-E", "PAC-EXT-E");
-        seedConsulta("C-D1", "EXP-D", LocalDateTime.of(2026, 1, 1, 9, 0));
-        seedConsulta("C-E1", "EXP-E", LocalDateTime.of(2026, 1, 2, 9, 0));
+        seedConsulta("C-D1", "EXP-D", LocalDateTime.of(2026, Month.JANUARY, 1, 9, 0));
+        seedConsulta("C-E1", "EXP-E", LocalDateTime.of(2026, Month.JANUARY, 2, 9, 0));
         em.flush();
 
         List<Consulta> consultasD = gateway.findConsultasByPacienteExternoId("PAC-EXT-D");

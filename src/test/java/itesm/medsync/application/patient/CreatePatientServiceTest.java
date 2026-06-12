@@ -1,4 +1,4 @@
-package itesm.medsync.application.patient;
+﻿package itesm.medsync.application.patient;
 
 import itesm.medsync.domain.patient.exception.DuplicatePatientException;
 import itesm.medsync.domain.patient.exception.InvalidPatientDataException;
@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -42,7 +43,7 @@ class CreatePatientServiceTest {
         when(repository.existsByExpedienteExternoId("EXP-1")).thenReturn(false);
         when(repository.save(any(Patient.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Patient result = service.execute("EXP-1", "Juan", LocalDate.of(1990, 1, 1), "M", medicoId);
+        Patient result = service.execute("EXP-1", "Juan", LocalDate.of(1990, Month.JANUARY, 1), "M", medicoId);
 
         assertNotNull(result);
         assertEquals("EXP-1", result.getExpedienteExternoId());
@@ -61,7 +62,7 @@ class CreatePatientServiceTest {
         when(repository.existsByExpedienteExternoId("EXP-DUP")).thenReturn(true);
 
         DuplicatePatientException ex = assertThrows(DuplicatePatientException.class,
-                () -> service.execute("EXP-DUP", "Juan", LocalDate.of(1990, 1, 1), "M", medicoId));
+                () -> service.execute("EXP-DUP", "Juan", LocalDate.of(1990, Month.JANUARY, 1), "M", medicoId));
         assertEquals("EXP-DUP", ex.getExpedienteExternoId());
 
         verify(repository, never()).save(any());
@@ -70,7 +71,7 @@ class CreatePatientServiceTest {
     @Test
     @DisplayName("Datos inválidos propagan InvalidPatientDataException, no consulta repo")
     void createInvalidData() {
-        LocalDate future = LocalDate.of(2099, 12, 31);
+        LocalDate future = LocalDate.of(2099, Month.DECEMBER, 31);
         assertThrows(InvalidPatientDataException.class,
                 () -> service.execute("EXP-1", "Juan", future, "M", medicoId));
         // La validación de unicidad ocurre ANTES de construir el Patient:
@@ -85,7 +86,7 @@ class CreatePatientServiceTest {
         when(repository.existsByExpedienteExternoId(any())).thenReturn(false);
         when(repository.save(any(Patient.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Patient p = service.execute("EXP-2", "Ana", LocalDate.of(1985, 3, 3), null, medicoId);
+        Patient p = service.execute("EXP-2", "Ana", LocalDate.of(1985, Month.MARCH, 3), null, medicoId);
         assertNull(p.getGenero());
     }
 }

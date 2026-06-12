@@ -1,4 +1,4 @@
-package itesm.medsync.domain.patient.model;
+﻿package itesm.medsync.domain.patient.model;
 
 import itesm.medsync.domain.patient.exception.InvalidPatientDataException;
 import org.junit.jupiter.api.DisplayName;
@@ -9,6 +9,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -19,7 +20,7 @@ class PatientTest {
     private static final UUID VALID_MEDICO_ID = UUID.randomUUID();
     private static final String VALID_EXPEDIENTE = "EXP-001";
     private static final String VALID_NOMBRE = "Juan Perez";
-    private static final LocalDate VALID_FECHA_NAC = LocalDate.of(1990, 5, 20);
+    private static final LocalDate VALID_FECHA_NAC = LocalDate.of(1990, Month.MAY, 20);
 
     private Patient newValidPatient() {
         return new Patient(
@@ -88,7 +89,7 @@ class PatientTest {
     @Test
     @DisplayName("fechaNacimiento futura lanza InvalidPatientDataException")
     void constructorFechaFutura() {
-        LocalDate future = LocalDate.of(2099, 12, 31);
+        LocalDate future = LocalDate.of(2099, Month.DECEMBER, 31);
         assertThrows(InvalidPatientDataException.class, () -> new Patient(
                 VALID_ID, VALID_EXPEDIENTE, VALID_NOMBRE, future,
                 "M", VALID_MEDICO_ID, true, null, null));
@@ -97,7 +98,7 @@ class PatientTest {
     @Test
     @DisplayName("Edad > 150 años lanza InvalidPatientDataException")
     void constructorEdadExcesiva() {
-        LocalDate tooOld = LocalDate.of(1800, 1, 1);
+        LocalDate tooOld = LocalDate.of(1800, Month.JANUARY, 1);
         assertThrows(InvalidPatientDataException.class, () -> new Patient(
                 VALID_ID, VALID_EXPEDIENTE, VALID_NOMBRE, tooOld,
                 "M", VALID_MEDICO_ID, true, null, null));
@@ -106,7 +107,7 @@ class PatientTest {
     @Test
     @DisplayName("Edad exactamente 150 años es válida")
     void constructorEdadLimite() {
-        LocalDate edad150 = LocalDate.of(1875, 1, 1);
+        LocalDate edad150 = LocalDate.of(1875, Month.JANUARY, 1);
         assertDoesNotThrow(() -> new Patient(
                 VALID_ID, VALID_EXPEDIENTE, VALID_NOMBRE, edad150,
                 "M", VALID_MEDICO_ID, true, null, null));
@@ -174,8 +175,8 @@ class PatientTest {
         Patient a = new Patient(VALID_ID, VALID_EXPEDIENTE, VALID_NOMBRE,
                 VALID_FECHA_NAC, "M", VALID_MEDICO_ID, true, null, null);
         Patient b = new Patient(VALID_ID, "OTRO-EXP", "Otro Nombre",
-                LocalDate.of(1985, 1, 1), "F", UUID.randomUUID(), false,
-                LocalDateTime.of(2025, 1, 15, 10, 0), LocalDateTime.of(2025, 1, 15, 10, 0));
+                LocalDate.of(1985, Month.JANUARY, 1), "F", UUID.randomUUID(), false,
+                LocalDateTime.of(2025, Month.JANUARY, 15, 10, 0), LocalDateTime.of(2025, Month.JANUARY, 15, 10, 0));
         Patient c = new Patient(UUID.randomUUID(), VALID_EXPEDIENTE, VALID_NOMBRE,
                 VALID_FECHA_NAC, "M", VALID_MEDICO_ID, true, null, null);
 

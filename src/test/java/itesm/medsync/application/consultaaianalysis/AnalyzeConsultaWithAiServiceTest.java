@@ -1,4 +1,4 @@
-package itesm.medsync.application.consultaaianalysis;
+﻿package itesm.medsync.application.consultaaianalysis;
 
 import itesm.medsync.domain.articleaianalysis.exception.AiAnalysisException;
 import itesm.medsync.domain.articleaianalysis.exception.AiAnalysisTimeoutException;
@@ -27,6 +27,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -61,7 +62,7 @@ class AnalyzeConsultaWithAiServiceTest {
 
     private Consulta richConsulta() {
         return new Consulta(
-                CONSULTA_ID, "exp-1", LocalDateTime.of(2025, 1, 15, 10, 0),
+                CONSULTA_ID, "exp-1", LocalDateTime.of(2025, Month.JANUARY, 15, 10, 0),
                 "Dolor torácico", "Refiere disnea", "TA 150/95",
                 "HTA estadio 2", "Iniciar Losartán", "Losartán 50mg",
                 "I10 Hipertensión", null, null);
@@ -69,7 +70,7 @@ class AnalyzeConsultaWithAiServiceTest {
 
     private Consulta blankConsulta() {
         return new Consulta(
-                CONSULTA_ID, "exp-1", LocalDateTime.of(2025, 1, 15, 10, 0),
+                CONSULTA_ID, "exp-1", LocalDateTime.of(2025, Month.JANUARY, 15, 10, 0),
                 null, null, null, null, null, null, null, null, null);
     }
 
@@ -178,7 +179,7 @@ class AnalyzeConsultaWithAiServiceTest {
     void truncatedSoapForwarded() {
         String huge = "x".repeat(60_000);
         Consulta huguelta = new Consulta(
-                CONSULTA_ID, "exp-1", LocalDateTime.of(2025, 1, 15, 10, 0),
+                CONSULTA_ID, "exp-1", LocalDateTime.of(2025, Month.JANUARY, 15, 10, 0),
                 huge, null, null, null, null, null, null, null, null);
         when(hospitalGateway.findConsultaById(CONSULTA_ID)).thenReturn(Optional.of(huguelta));
         when(vocabularyRepository.getVocabularyFor(SPECIALTY_ID)).thenReturn(cardioVocab());

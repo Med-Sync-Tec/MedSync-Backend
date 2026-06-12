@@ -32,6 +32,7 @@ public class ExpedienteClinicoHospitalEntity {
     private LocalDateTime updatedAt;
 
     public ExpedienteClinicoHospitalEntity() {
+        // Required by Hibernate
     }
 
     public String getId() {

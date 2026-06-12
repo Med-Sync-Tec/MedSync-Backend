@@ -52,6 +52,7 @@ public class SpecialtyEntity {
     private LocalDateTime updatedAt;
 
     public SpecialtyEntity() {
+        // Required by Hibernate
     }
 
     public UUID getId() {

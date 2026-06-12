@@ -45,6 +45,10 @@ import java.util.List;
 
 public final class GlobalExceptionHandler {
 
+    static final String NOT_FOUND = "Not Found";
+    static final String CONFLICT = "Conflict";
+    static final String BAD_REQUEST = "Bad Request";
+
     private GlobalExceptionHandler() {
     }
 
@@ -53,7 +57,7 @@ public final class GlobalExceptionHandler {
         @Override
         public Response toResponse(PatientNotFoundException ex) {
             return Response.status(Response.Status.NOT_FOUND)
-                    .entity(new ErrorResponse(404, "Not Found", ex.getMessage()))
+                    .entity(new ErrorResponse(404, NOT_FOUND, ex.getMessage()))
                     .build();
         }
     }
@@ -63,7 +67,7 @@ public final class GlobalExceptionHandler {
         @Override
         public Response toResponse(DuplicatePatientException ex) {
             return Response.status(Response.Status.CONFLICT)
-                    .entity(new ErrorResponse(409, "Conflict", ex.getMessage()))
+                    .entity(new ErrorResponse(409, CONFLICT, ex.getMessage()))
                     .build();
         }
     }
@@ -73,7 +77,7 @@ public final class GlobalExceptionHandler {
         @Override
         public Response toResponse(InvalidPatientDataException ex) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .entity(new ErrorResponse(400, BAD_REQUEST, ex.getMessage()))
                     .build();
         }
     }
@@ -83,7 +87,7 @@ public final class GlobalExceptionHandler {
         @Override
         public Response toResponse(ExpedienteNotFoundException ex) {
             return Response.status(Response.Status.NOT_FOUND)
-                    .entity(new ErrorResponse(404, "Not Found", ex.getMessage()))
+                    .entity(new ErrorResponse(404, NOT_FOUND, ex.getMessage()))
                     .build();
         }
     }
@@ -93,7 +97,7 @@ public final class GlobalExceptionHandler {
         @Override
         public Response toResponse(ConsultaNotFoundException ex) {
             return Response.status(Response.Status.NOT_FOUND)
-                    .entity(new ErrorResponse(404, "Not Found", ex.getMessage()))
+                    .entity(new ErrorResponse(404, NOT_FOUND, ex.getMessage()))
                     .build();
         }
     }
@@ -103,7 +107,7 @@ public final class GlobalExceptionHandler {
         @Override
         public Response toResponse(InvalidHospitalDataException ex) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .entity(new ErrorResponse(400, BAD_REQUEST, ex.getMessage()))
                     .build();
         }
     }
@@ -113,7 +117,7 @@ public final class GlobalExceptionHandler {
         @Override
         public Response toResponse(MedicamentoNotFoundException ex) {
             return Response.status(Response.Status.NOT_FOUND)
-                    .entity(new ErrorResponse(404, "Not Found", ex.getMessage()))
+                    .entity(new ErrorResponse(404, NOT_FOUND, ex.getMessage()))
                     .build();
         }
     }
@@ -123,7 +127,7 @@ public final class GlobalExceptionHandler {
         @Override
         public Response toResponse(DuplicateMedicamentoException ex) {
             return Response.status(Response.Status.CONFLICT)
-                    .entity(new ErrorResponse(409, "Conflict", ex.getMessage()))
+                    .entity(new ErrorResponse(409, CONFLICT, ex.getMessage()))
                     .build();
         }
     }
@@ -133,7 +137,7 @@ public final class GlobalExceptionHandler {
         @Override
         public Response toResponse(InvalidMedicamentoDataException ex) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .entity(new ErrorResponse(400, BAD_REQUEST, ex.getMessage()))
                     .build();
         }
     }
@@ -143,7 +147,7 @@ public final class GlobalExceptionHandler {
         @Override
         public Response toResponse(EstadoNotFoundException ex) {
             return Response.status(Response.Status.NOT_FOUND)
-                    .entity(new ErrorResponse(404, "Not Found", ex.getMessage()))
+                    .entity(new ErrorResponse(404, NOT_FOUND, ex.getMessage()))
                     .build();
         }
     }
@@ -153,7 +157,7 @@ public final class GlobalExceptionHandler {
         @Override
         public Response toResponse(UserAlreadyExistsException ex) {
             return Response.status(Response.Status.CONFLICT)
-                    .entity(new ErrorResponse(409, "Conflict", ex.getMessage()))
+                    .entity(new ErrorResponse(409, CONFLICT, ex.getMessage()))
                     .build();
         }
     }
@@ -163,7 +167,7 @@ public final class GlobalExceptionHandler {
         @Override
         public Response toResponse(UserNotFoundException ex) {
             return Response.status(Response.Status.NOT_FOUND)
-                    .entity(new ErrorResponse(404, "Not Found", ex.getMessage()))
+                    .entity(new ErrorResponse(404, NOT_FOUND, ex.getMessage()))
                     .build();
         }
     }
@@ -173,7 +177,7 @@ public final class GlobalExceptionHandler {
         @Override
         public Response toResponse(InvalidUserDataException ex) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .entity(new ErrorResponse(400, BAD_REQUEST, ex.getMessage()))
                     .build();
         }
     }
@@ -201,7 +205,7 @@ public final class GlobalExceptionHandler {
         @Override
         public Response toResponse(RoleNotFoundException ex) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .entity(new ErrorResponse(400, BAD_REQUEST, ex.getMessage()))
                     .build();
         }
     }
@@ -211,7 +215,7 @@ public final class GlobalExceptionHandler {
         @Override
         public Response toResponse(PacienteContextoNotFoundException ex) {
             return Response.status(Response.Status.NOT_FOUND)
-                    .entity(new ErrorResponse(404, "Not Found", ex.getMessage()))
+                    .entity(new ErrorResponse(404, NOT_FOUND, ex.getMessage()))
                     .build();
         }
     }
@@ -221,7 +225,7 @@ public final class GlobalExceptionHandler {
         @Override
         public Response toResponse(InvalidPacienteContextoDataException ex) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .entity(new ErrorResponse(400, BAD_REQUEST, ex.getMessage()))
                     .build();
         }
     }
@@ -231,7 +235,7 @@ public final class GlobalExceptionHandler {
         @Override
         public Response toResponse(ArticleNotFoundException ex) {
             return Response.status(Response.Status.NOT_FOUND)
-                    .entity(new ErrorResponse(404, "Not Found", ex.getMessage()))
+                    .entity(new ErrorResponse(404, NOT_FOUND, ex.getMessage()))
                     .build();
         }
     }
@@ -241,7 +245,7 @@ public final class GlobalExceptionHandler {
         @Override
         public Response toResponse(ArticleTagNotFoundException ex) {
             return Response.status(Response.Status.NOT_FOUND)
-                    .entity(new ErrorResponse(404, "Not Found", ex.getMessage()))
+                    .entity(new ErrorResponse(404, NOT_FOUND, ex.getMessage()))
                     .build();
         }
     }
@@ -251,7 +255,7 @@ public final class GlobalExceptionHandler {
         @Override
         public Response toResponse(DuplicateArticleException ex) {
             return Response.status(Response.Status.CONFLICT)
-                    .entity(new ErrorResponse(409, "Conflict", ex.getMessage()))
+                    .entity(new ErrorResponse(409, CONFLICT, ex.getMessage()))
                     .build();
         }
     }
@@ -261,7 +265,7 @@ public final class GlobalExceptionHandler {
         @Override
         public Response toResponse(InvalidArticleDataException ex) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .entity(new ErrorResponse(400, BAD_REQUEST, ex.getMessage()))
                     .build();
         }
     }
@@ -271,7 +275,7 @@ public final class GlobalExceptionHandler {
         @Override
         public Response toResponse(SpecialtyNotFoundException ex) {
             return Response.status(Response.Status.NOT_FOUND)
-                    .entity(new ErrorResponse(404, "Not Found", ex.getMessage()))
+                    .entity(new ErrorResponse(404, NOT_FOUND, ex.getMessage()))
                     .build();
         }
     }
@@ -281,7 +285,7 @@ public final class GlobalExceptionHandler {
         @Override
         public Response toResponse(DuplicateSpecialtyException ex) {
             return Response.status(Response.Status.CONFLICT)
-                    .entity(new ErrorResponse(409, "Conflict", ex.getMessage()))
+                    .entity(new ErrorResponse(409, CONFLICT, ex.getMessage()))
                     .build();
         }
     }
@@ -291,7 +295,7 @@ public final class GlobalExceptionHandler {
         @Override
         public Response toResponse(InvalidSpecialtyDataException ex) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .entity(new ErrorResponse(400, BAD_REQUEST, ex.getMessage()))
                     .build();
         }
     }
@@ -301,7 +305,7 @@ public final class GlobalExceptionHandler {
         @Override
         public Response toResponse(InvalidVocabularyTermDataException ex) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .entity(new ErrorResponse(400, BAD_REQUEST, ex.getMessage()))
                     .build();
         }
     }
@@ -311,7 +315,7 @@ public final class GlobalExceptionHandler {
         @Override
         public Response toResponse(InvalidTipoClinicoException ex) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .entity(new ErrorResponse(400, BAD_REQUEST, ex.getMessage()))
                     .build();
         }
     }
@@ -321,7 +325,7 @@ public final class GlobalExceptionHandler {
         @Override
         public Response toResponse(UserHasNoSpecialtyException ex) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .entity(new ErrorResponse(400, BAD_REQUEST, ex.getMessage()))
                     .build();
         }
     }
@@ -331,7 +335,7 @@ public final class GlobalExceptionHandler {
         @Override
         public Response toResponse(InvalidConsultaDataException ex) {
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new ErrorResponse(400, "Bad Request", ex.getMessage()))
+                    .entity(new ErrorResponse(400, BAD_REQUEST, ex.getMessage()))
                     .build();
         }
     }
@@ -402,7 +406,7 @@ public final class GlobalExceptionHandler {
                             v.getMessage()))
                     .toList();
             return Response.status(Response.Status.BAD_REQUEST)
-                    .entity(new ErrorResponse(400, "Bad Request", "Validation failed", details))
+                    .entity(new ErrorResponse(400, BAD_REQUEST, "Validation failed", details))
                     .build();
         }
 
@@ -417,7 +421,7 @@ public final class GlobalExceptionHandler {
         @Override
         public Response toResponse(org.hibernate.exception.ConstraintViolationException ex) {
             return Response.status(Response.Status.CONFLICT)
-                    .entity(new ErrorResponse(409, "Conflict", "Constraint violation: " + ex.getConstraintName()))
+                    .entity(new ErrorResponse(409, CONFLICT, "Constraint violation: " + ex.getConstraintName()))
                     .build();
         }
     }

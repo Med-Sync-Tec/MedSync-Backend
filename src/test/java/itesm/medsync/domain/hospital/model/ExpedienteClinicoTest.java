@@ -1,4 +1,4 @@
-package itesm.medsync.domain.hospital.model;
+﻿package itesm.medsync.domain.hospital.model;
 
 import itesm.medsync.domain.hospital.exception.InvalidHospitalDataException;
 import org.junit.jupiter.api.DisplayName;
@@ -8,6 +8,7 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -87,7 +88,7 @@ class ExpedienteClinicoTest {
     void equalsAndHashCode() {
         ExpedienteClinico a = new ExpedienteClinico(VALID_ID, VALID_PAC_EXT, VALID_DOCTOR, null, null);
         ExpedienteClinico b = new ExpedienteClinico(VALID_ID, "OTRO-PAC", "OTRO-DR",
-                LocalDateTime.of(2025, 1, 15, 10, 0), LocalDateTime.of(2025, 1, 15, 10, 0));
+                LocalDateTime.of(2025, Month.JANUARY, 15, 10, 0), LocalDateTime.of(2025, Month.JANUARY, 15, 10, 0));
         ExpedienteClinico c = new ExpedienteClinico("OTRO-ID", VALID_PAC_EXT, VALID_DOCTOR, null, null);
 
         assertEquals(a, b);

@@ -1,4 +1,4 @@
-package itesm.medsync.application.pacientecontexto;
+﻿package itesm.medsync.application.pacientecontexto;
 
 import itesm.medsync.domain.pacientecontexto.model.PacienteContexto;
 import itesm.medsync.domain.pacientecontexto.repository.PacienteContextoRepository;
@@ -16,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -43,7 +44,7 @@ class AddPacienteContextoServiceTest {
     }
 
     private Patient stubPatient() {
-        return new Patient(pacienteId, "EXP", "Ana", LocalDate.of(1990, 1, 1),
+        return new Patient(pacienteId, "EXP", "Ana", LocalDate.of(1990, Month.JANUARY, 1),
                 "F", UUID.randomUUID(), true, null, null);
     }
 

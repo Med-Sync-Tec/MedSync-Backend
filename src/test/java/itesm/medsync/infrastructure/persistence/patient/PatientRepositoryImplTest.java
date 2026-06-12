@@ -1,4 +1,4 @@
-package itesm.medsync.infrastructure.persistence.patient;
+﻿package itesm.medsync.infrastructure.persistence.patient;
 
 import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
@@ -14,6 +14,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -46,7 +47,7 @@ class PatientRepositoryImplTest {
 
     private Patient newPatient(String expediente) {
         return Patient.create(expediente, "Nombre " + expediente,
-                LocalDate.of(1990, 1, 1), "M", medicoId);
+                LocalDate.of(1990, Month.JANUARY, 1), "M", medicoId);
     }
 
     @Test

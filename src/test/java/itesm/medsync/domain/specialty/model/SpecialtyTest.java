@@ -1,4 +1,4 @@
-package itesm.medsync.domain.specialty.model;
+﻿package itesm.medsync.domain.specialty.model;
 
 import itesm.medsync.domain.specialty.exception.InvalidSpecialtyDataException;
 import org.junit.jupiter.api.DisplayName;
@@ -8,6 +8,7 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -218,7 +219,7 @@ class SpecialtyTest {
     void equalsAndHashCode() {
         Specialty a = new Specialty(VALID_ID, "A", "a", null, true, null, null);
         Specialty b = new Specialty(VALID_ID, "B", "b", "x", false,
-                LocalDateTime.of(2025, 1, 15, 10, 0), LocalDateTime.of(2025, 1, 15, 10, 0));
+                LocalDateTime.of(2025, Month.JANUARY, 15, 10, 0), LocalDateTime.of(2025, Month.JANUARY, 15, 10, 0));
         Specialty c = new Specialty(UUID.randomUUID(), "A", "a", null, true, null, null);
 
         assertEquals(a, b);

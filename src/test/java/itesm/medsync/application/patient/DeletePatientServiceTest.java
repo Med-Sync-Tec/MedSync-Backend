@@ -1,4 +1,4 @@
-package itesm.medsync.application.patient;
+﻿package itesm.medsync.application.patient;
 
 import itesm.medsync.domain.patient.exception.PatientNotFoundException;
 import itesm.medsync.domain.patient.model.Patient;
@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -32,7 +33,7 @@ class DeletePatientServiceTest {
     @DisplayName("Paciente existente → soft delete guarda con activo=false")
     void deleteOk() {
         UUID id = UUID.randomUUID();
-        Patient active = new Patient(id, "EXP-1", "Juan", LocalDate.of(1990, 1, 1),
+        Patient active = new Patient(id, "EXP-1", "Juan", LocalDate.of(1990, Month.JANUARY, 1),
                 "M", UUID.randomUUID(), true, null, null);
         when(repository.findByUuid(id)).thenReturn(Optional.of(active));
         when(repository.save(any(Patient.class))).thenAnswer(inv -> inv.getArgument(0));

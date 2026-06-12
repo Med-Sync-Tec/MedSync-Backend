@@ -28,6 +28,7 @@ public class RoleEntity {
     private LocalDateTime createdAt;
 
     public RoleEntity() {
+        // Required by Hibernate
     }
 
     public UUID getId() {

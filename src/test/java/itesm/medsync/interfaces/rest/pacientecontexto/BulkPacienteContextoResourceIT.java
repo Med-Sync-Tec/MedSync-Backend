@@ -1,4 +1,4 @@
-package itesm.medsync.interfaces.rest.pacientecontexto;
+﻿package itesm.medsync.interfaces.rest.pacientecontexto;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
@@ -19,6 +19,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -61,7 +62,7 @@ class BulkPacienteContextoResourceIT {
                         cardiologiaId, doctorRoleId));
         Patient p = patientRepository.save(
                 Patient.create("EXP-BULK-" + UUID.randomUUID(),
-                        "Bulk Pte", LocalDate.of(1990, 1, 1), "F", medico.getId()));
+                        "Bulk Pte", LocalDate.of(1990, Month.JANUARY, 1), "F", medico.getId()));
         patientId = p.getId();
         when(userContext.getCurrentUser()).thenReturn(new UserWithRole(medico, "DOCTOR"));
     }

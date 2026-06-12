@@ -1,4 +1,4 @@
-package itesm.medsync.application.hospital;
+﻿package itesm.medsync.application.hospital;
 
 import itesm.medsync.domain.hospital.model.Consulta;
 import itesm.medsync.domain.hospital.repository.HospitalGateway;
@@ -14,6 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.UUID;
 
@@ -37,12 +38,12 @@ class GetConsultasByPatientServiceTest {
     GetConsultasByPatientService service;
 
     private Patient newPatient(UUID id, String expedienteExternoId) {
-        return new Patient(id, expedienteExternoId, "Juan", LocalDate.of(1990, 1, 1),
+        return new Patient(id, expedienteExternoId, "Juan", LocalDate.of(1990, Month.JANUARY, 1),
                 "M", UUID.randomUUID(), true, null, null);
     }
 
     private Consulta newConsulta(String id) {
-        return new Consulta(id, "EXP-HOSP-1", LocalDateTime.of(2025, 1, 15, 10, 0),
+        return new Consulta(id, "EXP-HOSP-1", LocalDateTime.of(2025, Month.JANUARY, 15, 10, 0),
                 "motivo", null, null, null, null, null, null, null, null);
     }
 

@@ -1,4 +1,4 @@
-package itesm.medsync.interfaces.rest.consultaaianalysis;
+﻿package itesm.medsync.interfaces.rest.consultaaianalysis;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
@@ -26,6 +26,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,7 +78,7 @@ class AnalyzeConsultaResourceIT {
 
     private Consulta richConsulta(String id) {
         return new Consulta(
-                id, "exp-1", LocalDateTime.of(2025, 1, 15, 10, 0),
+                id, "exp-1", LocalDateTime.of(2025, Month.JANUARY, 15, 10, 0),
                 "Dolor torácico", "Refiere disnea", "TA 150/95",
                 "HTA estadio 2", "Iniciar Losartán", "Losartán 50mg",
                 "I10 Hipertensión", null, null);
@@ -85,7 +86,7 @@ class AnalyzeConsultaResourceIT {
 
     private Consulta blankConsulta(String id) {
         return new Consulta(
-                id, "exp-1", LocalDateTime.of(2025, 1, 15, 10, 0),
+                id, "exp-1", LocalDateTime.of(2025, Month.JANUARY, 15, 10, 0),
                 null, "", "  ", null, "", null, "   ", null, null);
     }
 

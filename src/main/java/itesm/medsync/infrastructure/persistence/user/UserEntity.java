@@ -50,6 +50,7 @@ public class UserEntity {
     private LocalDateTime createdAt;
 
     public UserEntity() {
+        // Required by Hibernate
     }
 
     public UUID getId() {

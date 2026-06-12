@@ -1,4 +1,4 @@
-package itesm.medsync.application.hospital;
+﻿package itesm.medsync.application.hospital;
 
 import itesm.medsync.domain.hospital.exception.ExpedienteNotFoundException;
 import itesm.medsync.domain.hospital.model.ExpedienteClinico;
@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -36,7 +37,7 @@ class GetExpedienteByPatientServiceTest {
     GetExpedienteByPatientService service;
 
     private Patient newPatient(UUID id, String expedienteExternoId) {
-        return new Patient(id, expedienteExternoId, "Juan", LocalDate.of(1990, 1, 1),
+        return new Patient(id, expedienteExternoId, "Juan", LocalDate.of(1990, Month.JANUARY, 1),
                 "M", UUID.randomUUID(), true, null, null);
     }
 

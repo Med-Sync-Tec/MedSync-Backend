@@ -1,4 +1,4 @@
-package itesm.medsync.infrastructure.persistence.pacientecontexto;
+﻿package itesm.medsync.infrastructure.persistence.pacientecontexto;
 
 import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
@@ -17,6 +17,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -50,7 +51,7 @@ class PacienteContextoRepositoryImplTest {
         Patient p = patientRepository.save(
                 Patient.create("EXP-CTX-" + UUID.randomUUID(),
                         "Paciente Ctx",
-                        LocalDate.of(1990, 1, 1),
+                        LocalDate.of(1990, Month.JANUARY, 1),
                         "F",
                         medico.getId()));
         pacienteId = p.getId();
@@ -90,7 +91,7 @@ class PacienteContextoRepositoryImplTest {
                 .getId();
         UUID otroPaciente = patientRepository.save(
                 Patient.create("EXP-OTRO-" + UUID.randomUUID(),
-                        "Otro", LocalDate.of(1985, 3, 3), "M", otroDoctor)).getId();
+                        "Otro", LocalDate.of(1985, Month.MARCH, 3), "M", otroDoctor)).getId();
 
         repository.save(PacienteContexto.create(pacienteId, TipoClinico.ENFERMEDAD, "HTA"));
         repository.save(PacienteContexto.create(pacienteId, TipoClinico.MEDICAMENTO, "Losartán"));

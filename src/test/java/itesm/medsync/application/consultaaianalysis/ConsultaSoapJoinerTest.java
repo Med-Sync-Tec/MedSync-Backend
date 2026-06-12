@@ -1,10 +1,11 @@
-package itesm.medsync.application.consultaaianalysis;
+﻿package itesm.medsync.application.consultaaianalysis;
 
 import itesm.medsync.domain.hospital.model.Consulta;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -13,7 +14,7 @@ class ConsultaSoapJoinerTest {
     private Consulta consulta(String motivo, String sub, String obj, String eval,
                               String plan, String presc, String diag) {
         return new Consulta(
-                "c-1", "exp-1", LocalDateTime.of(2025, 1, 15, 10, 0),
+                "c-1", "exp-1", LocalDateTime.of(2025, Month.JANUARY, 15, 10, 0),
                 motivo, sub, obj, eval, plan, presc, diag,
                 null, null);
     }

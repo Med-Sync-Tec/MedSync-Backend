@@ -77,6 +77,7 @@ public class ArticleEntity {
     private LocalDateTime updatedAt;
 
     public ArticleEntity() {
+        // Required by Hibernate
     }
 
     public UUID getId() {

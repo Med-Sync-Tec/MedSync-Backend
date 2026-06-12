@@ -12,10 +12,13 @@ public class ChatService implements ChatUseCase {
 
     static final String CRITICAL_PREFIX = "CRITICAL:";
 
-    static final String CLINICAL_DISCLAIMER =
-            "\n\n---\n⚠️ **Aviso:** Esta información es de referencia general. " +
-            "Verifica dosis, contraindicaciones e interacciones con fuentes clínicas " +
-            "oficiales antes de aplicarla. MediBot no reemplaza el criterio médico profesional.";
+    static final String CLINICAL_DISCLAIMER = """
+
+
+            ---
+            ⚠️ **Aviso:** Esta información es de referencia general. \
+            Verifica dosis, contraindicaciones e interacciones con fuentes clínicas \
+            oficiales antes de aplicarla. MediBot no reemplaza el criterio médico profesional.""";
 
     private static final java.util.regex.Pattern CLINICAL_KEYWORDS = java.util.regex.Pattern.compile(
             "\\b(dosis|mg|mcg|ml|prescri|receta|administra|tomar|toma|tratamiento|" +
@@ -24,7 +27,7 @@ public class ChatService implements ChatUseCase {
             "ibuprofeno|paracetamol|amoxicilina|metformina|omeprazol|atorvastatina|" +
             "indicado para|se recomienda|se sugiere|dosis recomendada|via oral|vía oral|" +
             "intravenoso|intramuscular|subcutáneo|subcutaneo)\\b",
-            java.util.regex.Pattern.CASE_INSENSITIVE | java.util.regex.Pattern.UNICODE_CASE);
+            java.util.regex.Pattern.CASE_INSENSITIVE | java.util.regex.Pattern.UNICODE_CASE | java.util.regex.Pattern.CANON_EQ);
 
     static final String CANNED_CRITICAL =
             "Para situaciones de emergencia o decisiones clínicas críticas, " +

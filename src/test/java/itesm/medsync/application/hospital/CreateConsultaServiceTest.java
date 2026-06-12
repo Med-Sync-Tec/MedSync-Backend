@@ -1,4 +1,4 @@
-package itesm.medsync.application.hospital;
+﻿package itesm.medsync.application.hospital;
 
 import itesm.medsync.domain.hospital.model.Consulta;
 import itesm.medsync.domain.hospital.model.ExpedienteClinico;
@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -37,7 +38,7 @@ class CreateConsultaServiceTest {
     CreateConsultaService service;
 
     private Patient newPatient(UUID id, String pacExt) {
-        return new Patient(id, pacExt, "Juan", LocalDate.of(1990, 1, 1),
+        return new Patient(id, pacExt, "Juan", LocalDate.of(1990, Month.JANUARY, 1),
                 "M", UUID.randomUUID(), true, null, null);
     }
 

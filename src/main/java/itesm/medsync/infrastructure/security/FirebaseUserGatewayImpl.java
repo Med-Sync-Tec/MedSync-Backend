@@ -21,14 +21,14 @@ public class FirebaseUserGatewayImpl implements FirebaseUserGateway {
                     .setEmail(email)
                     .setPassword(password)
                     .setDisplayName(displayName);
-            UserRecord record = FirebaseAuth.getInstance().createUser(request);
-            return record.getUid();
+            UserRecord userRecord = FirebaseAuth.getInstance().createUser(request);
+            return userRecord.getUid();
         } catch (FirebaseAuthException e) {
             if ("EMAIL_ALREADY_EXISTS".equals(e.getAuthErrorCode().name())) {
                 throw new UserAlreadyExistsException(email);
             }
             LOG.errorf("Firebase user creation failed for %s: %s", email, e.getMessage());
-            throw new RuntimeException("Firebase user creation failed: " + e.getMessage(), e);
+            throw new IllegalStateException("Firebase user creation failed: " + e.getMessage(), e);
         }
     }
 
@@ -50,7 +50,7 @@ public class FirebaseUserGatewayImpl implements FirebaseUserGateway {
             return FirebaseAuth.getInstance().generatePasswordResetLink(email, settings);
         } catch (FirebaseAuthException e) {
             LOG.errorf("Failed to generate password reset link for %s: %s", email, e.getMessage());
-            throw new RuntimeException("Could not generate password reset link: " + e.getMessage(), e);
+            throw new IllegalStateException("Could not generate password reset link: " + e.getMessage(), e);
         }
     }
 }

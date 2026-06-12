@@ -53,6 +53,7 @@ public class ConsultaHospitalEntity {
     private LocalDateTime updatedAt;
 
     public ConsultaHospitalEntity() {
+        // Required by Hibernate
     }
 
     public String getId() {

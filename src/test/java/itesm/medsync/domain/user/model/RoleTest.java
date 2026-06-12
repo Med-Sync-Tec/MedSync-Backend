@@ -1,4 +1,4 @@
-package itesm.medsync.domain.user.model;
+﻿package itesm.medsync.domain.user.model;
 
 import itesm.medsync.domain.user.exception.InvalidRoleDataException;
 import org.junit.jupiter.api.DisplayName;
@@ -8,6 +8,7 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -20,7 +21,7 @@ class RoleTest {
     @Test
     @DisplayName("Constructor válido crea instancia con todos los campos")
     void constructorValid() {
-        LocalDateTime now = LocalDateTime.of(2025, 1, 15, 10, 0);
+        LocalDateTime now = LocalDateTime.of(2025, Month.JANUARY, 15, 10, 0);
         Role r = new Role(VALID_ID, VALID_NOMBRE, "Personal médico", now);
         assertEquals(VALID_ID, r.getId());
         assertEquals(VALID_NOMBRE, r.getNombre());
@@ -65,7 +66,7 @@ class RoleTest {
     @DisplayName("equals/hashCode basados en id")
     void equalsAndHashCode() {
         Role a = new Role(VALID_ID, "DOCTOR", null, null);
-        Role b = new Role(VALID_ID, "DIFFERENT", "other", LocalDateTime.of(2025, 1, 15, 10, 0));
+        Role b = new Role(VALID_ID, "DIFFERENT", "other", LocalDateTime.of(2025, Month.JANUARY, 15, 10, 0));
         Role c = new Role(UUID.randomUUID(), "DOCTOR", null, null);
         assertEquals(a, b);
         assertEquals(a.hashCode(), b.hashCode());

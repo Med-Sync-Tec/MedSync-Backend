@@ -1,4 +1,4 @@
-package itesm.medsync.application.pacientecontexto;
+﻿package itesm.medsync.application.pacientecontexto;
 
 import itesm.medsync.domain.pacientecontexto.model.PacienteContexto;
 import itesm.medsync.domain.pacientecontexto.repository.PacienteContextoRepository;
@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -39,7 +40,7 @@ class ListPacienteContextosByPacienteServiceTest {
         UUID pacienteId = UUID.randomUUID();
         when(patientRepository.findByUuid(pacienteId)).thenReturn(
                 Optional.of(new Patient(pacienteId, "EXP", "Ana",
-                        LocalDate.of(1990, 1, 1), "F", UUID.randomUUID(), true, null, null)));
+                        LocalDate.of(1990, Month.JANUARY, 1), "F", UUID.randomUUID(), true, null, null)));
         PacienteContexto ctx = PacienteContexto.create(pacienteId, TipoClinico.ENFERMEDAD, "HTA");
         when(repository.findByPacienteId(pacienteId)).thenReturn(List.of(ctx));
 

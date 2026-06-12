@@ -1,4 +1,4 @@
-package itesm.medsync.application.patient;
+﻿package itesm.medsync.application.patient;
 
 import itesm.medsync.domain.patient.exception.PatientNotFoundException;
 import itesm.medsync.domain.patient.model.Patient;
@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.time.Month;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -31,7 +32,7 @@ class GetPatientByIdServiceTest {
     @DisplayName("Id existente devuelve el paciente")
     void getOk() {
         UUID id = UUID.randomUUID();
-        Patient p = new Patient(id, "EXP-1", "Juan", LocalDate.of(1990, 1, 1),
+        Patient p = new Patient(id, "EXP-1", "Juan", LocalDate.of(1990, Month.JANUARY, 1),
                 "M", UUID.randomUUID(), true, null, null);
         when(repository.findByUuid(id)).thenReturn(Optional.of(p));
 

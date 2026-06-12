@@ -185,8 +185,8 @@ public class VocabularyLoader {
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
-            if (!(o instanceof RawFile other)) return false;
-            return Objects.equals(slug, other.slug) && Arrays.equals(bytes, other.bytes);
+            return o instanceof RawFile(String otherSlug, byte[] otherBytes)
+                    && Objects.equals(slug, otherSlug) && Arrays.equals(bytes, otherBytes);
         }
 
         @Override

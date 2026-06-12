@@ -1,4 +1,4 @@
-package itesm.medsync.interfaces.rest.hospital;
+﻿package itesm.medsync.interfaces.rest.hospital;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
@@ -15,6 +15,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -108,9 +109,9 @@ class HospitalResourceIT {
         String consNewId = "C-NEW-" + UUID.randomUUID();
         String consOldId = "C-OLD-" + UUID.randomUUID();
         fixtures.persistConsulta(consOldId, expHospId,
-                LocalDateTime.of(2025, 1, 1, 9, 0), "cefalea", "cefalea tensional");
+                LocalDateTime.of(2025, Month.JANUARY, 1, 9, 0), "cefalea", "cefalea tensional");
         fixtures.persistConsulta(consNewId, expHospId,
-                LocalDateTime.of(2026, 3, 15, 10, 0), "control", "normal");
+                LocalDateTime.of(2026, Month.MARCH, 15, 10, 0), "control", "normal");
 
         given().when().get("/api/patients/" + patientId + "/consultas")
                 .then().statusCode(200)

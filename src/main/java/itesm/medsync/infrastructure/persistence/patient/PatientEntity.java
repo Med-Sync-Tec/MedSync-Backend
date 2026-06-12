@@ -48,6 +48,7 @@ public class PatientEntity {
     private LocalDateTime updatedAt;
 
     public PatientEntity() {
+        // Required by Hibernate
     }
 
     public UUID getId() {

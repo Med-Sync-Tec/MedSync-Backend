@@ -16,10 +16,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -180,6 +182,22 @@ public class VocabularyLoader {
 
     /** A vocabulary file read from the classpath: its slug (from the filename) and its raw bytes. */
     public record RawFile(String slug, byte[] bytes) {
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof RawFile other)) return false;
+            return Objects.equals(slug, other.slug) && Arrays.equals(bytes, other.bytes);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(slug, Arrays.hashCode(bytes));
+        }
+
+        @Override
+        public String toString() {
+            return "RawFile[slug=" + slug + ", bytes.length=" + (bytes != null ? bytes.length : 0) + "]";
+        }
     }
 
     /** Outcome of {@link #build(Map, List)}: the loaded map plus any file slugs that had no matching specialty. */

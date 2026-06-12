@@ -25,7 +25,7 @@ public final class Specialty {
     public static final int MAX_DESCRIPCION_LENGTH = 500;
     // Kebab-case: lowercase a-z / 0-9, single hyphens, no leading/trailing hyphen.
     // Constrains slugs to safe URL and filename characters.
-    private static final Pattern SLUG_PATTERN = Pattern.compile("^[a-z0-9]+(-[a-z0-9]+)*$");
+    private static final Pattern SLUG_PATTERN = Pattern.compile("^[a-z0-9]+(-[a-z0-9]+)*+$");
 
     private final UUID id;
     private final String nombre;

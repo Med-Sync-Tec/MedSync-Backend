@@ -21,12 +21,14 @@
 ###
 FROM quay.io/quarkus/ubi9-quarkus-micro-image:2.0
 WORKDIR /work/
-RUN chown 1001 /work \
+RUN echo "quarkus:x:1001:1001:quarkus user:/work:/sbin/nologin" >> /etc/passwd \
+    && echo "quarkus:x:1001:" >> /etc/group \
+    && chown quarkus /work \
     && chmod "g+rX" /work \
-    && chown 1001:root /work
-COPY --chown=1001:root --chmod=0755 target/*-runner /work/application
+    && chown quarkus:root /work
+COPY --chown=quarkus:root --chmod=0755 target/*-runner /work/application
 
 EXPOSE 8080
-USER 1001
+USER quarkus
 
 ENTRYPOINT ["./application", "-Dquarkus.http.host=0.0.0.0"]

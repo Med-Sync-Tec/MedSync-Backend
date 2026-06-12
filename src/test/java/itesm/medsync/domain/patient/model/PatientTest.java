@@ -88,7 +88,7 @@ class PatientTest {
     @Test
     @DisplayName("fechaNacimiento futura lanza InvalidPatientDataException")
     void constructorFechaFutura() {
-        LocalDate future = LocalDate.now().plusDays(1);
+        LocalDate future = LocalDate.of(2099, 12, 31);
         assertThrows(InvalidPatientDataException.class, () -> new Patient(
                 VALID_ID, VALID_EXPEDIENTE, VALID_NOMBRE, future,
                 "M", VALID_MEDICO_ID, true, null, null));
@@ -97,7 +97,7 @@ class PatientTest {
     @Test
     @DisplayName("Edad > 150 años lanza InvalidPatientDataException")
     void constructorEdadExcesiva() {
-        LocalDate tooOld = LocalDate.now().minusYears(151);
+        LocalDate tooOld = LocalDate.of(1800, 1, 1);
         assertThrows(InvalidPatientDataException.class, () -> new Patient(
                 VALID_ID, VALID_EXPEDIENTE, VALID_NOMBRE, tooOld,
                 "M", VALID_MEDICO_ID, true, null, null));
@@ -106,7 +106,7 @@ class PatientTest {
     @Test
     @DisplayName("Edad exactamente 150 años es válida")
     void constructorEdadLimite() {
-        LocalDate edad150 = LocalDate.now().minusYears(150);
+        LocalDate edad150 = LocalDate.of(1875, 1, 1);
         assertDoesNotThrow(() -> new Patient(
                 VALID_ID, VALID_EXPEDIENTE, VALID_NOMBRE, edad150,
                 "M", VALID_MEDICO_ID, true, null, null));
@@ -175,7 +175,7 @@ class PatientTest {
                 VALID_FECHA_NAC, "M", VALID_MEDICO_ID, true, null, null);
         Patient b = new Patient(VALID_ID, "OTRO-EXP", "Otro Nombre",
                 LocalDate.of(1985, 1, 1), "F", UUID.randomUUID(), false,
-                LocalDateTime.now(), LocalDateTime.now());
+                LocalDateTime.of(2025, 1, 15, 10, 0), LocalDateTime.of(2025, 1, 15, 10, 0));
         Patient c = new Patient(UUID.randomUUID(), VALID_EXPEDIENTE, VALID_NOMBRE,
                 VALID_FECHA_NAC, "M", VALID_MEDICO_ID, true, null, null);
 

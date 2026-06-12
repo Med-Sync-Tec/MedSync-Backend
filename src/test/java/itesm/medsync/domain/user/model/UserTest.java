@@ -26,7 +26,7 @@ class UserTest {
     @Test
     @DisplayName("Constructor válido crea instancia con todos los campos")
     void constructorValid() {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.of(2025, 1, 15, 10, 0);
         User u = new User(VALID_ID, VALID_NOMBRE, VALID_CORREO, null, VALID_ROL_ID, true, now);
         assertEquals(VALID_ID, u.getId());
         assertEquals(VALID_NOMBRE, u.getNombre());
@@ -97,7 +97,7 @@ class UserTest {
     @DisplayName("equals/hashCode basados en id")
     void equalsAndHashCode() {
         User a = new User(VALID_ID, "Juan", "juan@tec.mx", null, VALID_ROL_ID, true, null);
-        User b = new User(VALID_ID, "Otro", "otro@tec.mx", null, UUID.randomUUID(), false, LocalDateTime.now());
+        User b = new User(VALID_ID, "Otro", "otro@tec.mx", null, UUID.randomUUID(), false, LocalDateTime.of(2025, 1, 15, 10, 0));
         User c = new User(UUID.randomUUID(), "Juan", "juan@tec.mx", null, VALID_ROL_ID, true, null);
 
         assertEquals(a, b);

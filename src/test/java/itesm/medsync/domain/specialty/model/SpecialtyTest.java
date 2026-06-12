@@ -218,7 +218,7 @@ class SpecialtyTest {
     void equalsAndHashCode() {
         Specialty a = new Specialty(VALID_ID, "A", "a", null, true, null, null);
         Specialty b = new Specialty(VALID_ID, "B", "b", "x", false,
-                LocalDateTime.now(), LocalDateTime.now());
+                LocalDateTime.of(2025, 1, 15, 10, 0), LocalDateTime.of(2025, 1, 15, 10, 0));
         Specialty c = new Specialty(UUID.randomUUID(), "A", "a", null, true, null, null);
 
         assertEquals(a, b);

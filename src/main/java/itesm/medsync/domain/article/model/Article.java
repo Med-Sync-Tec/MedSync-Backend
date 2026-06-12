@@ -4,6 +4,7 @@ import itesm.medsync.domain.article.exception.InvalidArticleDataException;
 
 import java.time.LocalDateTime;
 import java.time.Year;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -157,7 +158,7 @@ public final class Article {
                     "titulo cannot exceed " + MAX_TITULO_LENGTH + " characters");
         }
         if (anioPub != null) {
-            int currentYear = Year.now().getValue();
+            int currentYear = Year.now(ZoneOffset.UTC).getValue();
             if (anioPub < 1800 || anioPub > currentYear + 1) {
                 throw new InvalidArticleDataException(
                         "anioPub must be between 1800 and " + (currentYear + 1));

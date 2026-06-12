@@ -13,6 +13,7 @@ import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 
@@ -45,7 +46,7 @@ public class DashboardRepositoryImpl
 
     @Override
     public List<Article> findNovedades48h() {
-        LocalDateTime since = LocalDateTime.now().minusHours(48);
+        LocalDateTime since = LocalDateTime.now(ZoneOffset.UTC).minusHours(48);
         return runJpqlWithGraph(
                 "SELECT a FROM ArticleEntity a WHERE a.createdAt >= :since ORDER BY a.createdAt DESC",
                 params(p -> p.put("since", since)));

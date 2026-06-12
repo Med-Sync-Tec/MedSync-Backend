@@ -106,7 +106,7 @@ class PatientResourceIT {
         Map<String, Object> payload = new HashMap<>();
         payload.put("expedienteExternoId", "IT-" + UUID.randomUUID());
         payload.put("nombre", "Juan");
-        payload.put("fechaNacimiento", LocalDate.now().plusDays(1).toString());
+        payload.put("fechaNacimiento", LocalDate.of(2099, 12, 31).toString());
         given()
                 .contentType(ContentType.JSON)
                 .body(payload)

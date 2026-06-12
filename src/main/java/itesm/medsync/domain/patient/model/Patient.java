@@ -4,6 +4,7 @@ import itesm.medsync.domain.patient.exception.InvalidPatientDataException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.UUID;
@@ -83,7 +84,7 @@ public final class Patient {
         if (fechaNacimiento == null) {
             throw new InvalidPatientDataException("fechaNacimiento cannot be null");
         }
-        LocalDate today = LocalDate.now();
+        LocalDate today = LocalDate.now(ZoneOffset.UTC);
         if (fechaNacimiento.isAfter(today)) {
             throw new InvalidPatientDataException("fechaNacimiento cannot be in the future");
         }

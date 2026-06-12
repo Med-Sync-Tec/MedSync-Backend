@@ -61,7 +61,7 @@ class AnalyzeConsultaWithAiServiceTest {
 
     private Consulta richConsulta() {
         return new Consulta(
-                CONSULTA_ID, "exp-1", LocalDateTime.now(),
+                CONSULTA_ID, "exp-1", LocalDateTime.of(2025, 1, 15, 10, 0),
                 "Dolor torácico", "Refiere disnea", "TA 150/95",
                 "HTA estadio 2", "Iniciar Losartán", "Losartán 50mg",
                 "I10 Hipertensión", null, null);
@@ -69,7 +69,7 @@ class AnalyzeConsultaWithAiServiceTest {
 
     private Consulta blankConsulta() {
         return new Consulta(
-                CONSULTA_ID, "exp-1", LocalDateTime.now(),
+                CONSULTA_ID, "exp-1", LocalDateTime.of(2025, 1, 15, 10, 0),
                 null, null, null, null, null, null, null, null, null);
     }
 
@@ -178,7 +178,7 @@ class AnalyzeConsultaWithAiServiceTest {
     void truncatedSoapForwarded() {
         String huge = "x".repeat(60_000);
         Consulta huguelta = new Consulta(
-                CONSULTA_ID, "exp-1", LocalDateTime.now(),
+                CONSULTA_ID, "exp-1", LocalDateTime.of(2025, 1, 15, 10, 0),
                 huge, null, null, null, null, null, null, null, null);
         when(hospitalGateway.findConsultaById(CONSULTA_ID)).thenReturn(Optional.of(huguelta));
         when(vocabularyRepository.getVocabularyFor(SPECIALTY_ID)).thenReturn(cardioVocab());

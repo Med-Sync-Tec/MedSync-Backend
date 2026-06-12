@@ -42,7 +42,7 @@ class GetConsultasByPatientServiceTest {
     }
 
     private Consulta newConsulta(String id) {
-        return new Consulta(id, "EXP-HOSP-1", LocalDateTime.now(),
+        return new Consulta(id, "EXP-HOSP-1", LocalDateTime.of(2025, 1, 15, 10, 0),
                 "motivo", null, null, null, null, null, null, null, null);
     }
 

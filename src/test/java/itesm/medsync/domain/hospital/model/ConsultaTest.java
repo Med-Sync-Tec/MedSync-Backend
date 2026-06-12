@@ -128,7 +128,7 @@ class ConsultaTest {
     void equalsAndHashCode() {
         Consulta a = new Consulta(VALID_ID, VALID_EXP_ID, VALID_FECHA,
                 null, null, null, null, null, null, null, null, null);
-        Consulta b = new Consulta(VALID_ID, "OTRO-EXP", LocalDateTime.now(),
+        Consulta b = new Consulta(VALID_ID, "OTRO-EXP", LocalDateTime.of(2025, 1, 15, 10, 0),
                 "otro motivo", null, null, null, null, null, null, null, null);
         Consulta c = new Consulta("OTRO-ID", VALID_EXP_ID, VALID_FECHA,
                 null, null, null, null, null, null, null, null, null);

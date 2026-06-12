@@ -87,7 +87,7 @@ class ExpedienteClinicoTest {
     void equalsAndHashCode() {
         ExpedienteClinico a = new ExpedienteClinico(VALID_ID, VALID_PAC_EXT, VALID_DOCTOR, null, null);
         ExpedienteClinico b = new ExpedienteClinico(VALID_ID, "OTRO-PAC", "OTRO-DR",
-                LocalDateTime.now(), LocalDateTime.now());
+                LocalDateTime.of(2025, 1, 15, 10, 0), LocalDateTime.of(2025, 1, 15, 10, 0));
         ExpedienteClinico c = new ExpedienteClinico("OTRO-ID", VALID_PAC_EXT, VALID_DOCTOR, null, null);
 
         assertEquals(a, b);

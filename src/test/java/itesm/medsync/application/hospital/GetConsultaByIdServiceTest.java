@@ -29,7 +29,7 @@ class GetConsultaByIdServiceTest {
     @Test
     @DisplayName("Consulta existente → devuelve la consulta")
     void found() {
-        Consulta c = new Consulta("C-1", "EXP-1", LocalDateTime.now(),
+        Consulta c = new Consulta("C-1", "EXP-1", LocalDateTime.of(2025, 1, 15, 10, 0),
                 null, null, null, null, null, null, null, null, null);
         when(hospitalGateway.findConsultaById("C-1")).thenReturn(Optional.of(c));
 

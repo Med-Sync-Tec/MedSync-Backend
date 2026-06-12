@@ -70,7 +70,7 @@ class CreatePatientServiceTest {
     @Test
     @DisplayName("Datos inválidos propagan InvalidPatientDataException, no consulta repo")
     void createInvalidData() {
-        LocalDate future = LocalDate.now().plusDays(1);
+        LocalDate future = LocalDate.of(2099, 12, 31);
         assertThrows(InvalidPatientDataException.class,
                 () -> service.execute("EXP-1", "Juan", future, "M", medicoId));
         // La validación de unicidad ocurre ANTES de construir el Patient:

@@ -13,7 +13,7 @@ class ConsultaSoapJoinerTest {
     private Consulta consulta(String motivo, String sub, String obj, String eval,
                               String plan, String presc, String diag) {
         return new Consulta(
-                "c-1", "exp-1", LocalDateTime.now(),
+                "c-1", "exp-1", LocalDateTime.of(2025, 1, 15, 10, 0),
                 motivo, sub, obj, eval, plan, presc, diag,
                 null, null);
     }

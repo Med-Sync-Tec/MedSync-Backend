@@ -52,7 +52,7 @@ class ArticleTest {
     void anioFueraDeRango() {
         assertThrows(InvalidArticleDataException.class,
                 () -> Article.create("titulo", null, null, 1700, null, null, null, null, null, null));
-        int futuro = Year.now().getValue() + 5;
+        int futuro = 2035;
         assertThrows(InvalidArticleDataException.class,
                 () -> Article.create("titulo", null, null, futuro, null, null, null, null, null, null));
     }

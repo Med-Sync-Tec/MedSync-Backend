@@ -22,11 +22,12 @@ class PubmedResponseParserTest {
     @Test
     @DisplayName("Parseo de JSON de esearch extrae PMIDs correctamente")
     void parseEsearchIdsOk() {
-        String json = "{\n" +
-                "  \"esearchresult\": {\n" +
-                "    \"idlist\": [\"38713028\", \"38713029\"]\n" +
-                "  }\n" +
-                "}";
+        String json = """
+                {
+                  "esearchresult": {
+                    "idlist": ["38713028", "38713029"]
+                  }
+                }""";
 
         List<String> pmids = parser.parseEsearchIds(json);
 
@@ -47,59 +48,60 @@ class PubmedResponseParserTest {
     @Test
     @DisplayName("Parseo de XML de efetch con fillna aplicado extrae datos correctamente")
     void parseEfetchArticlesOk() {
-        String xml = "<?xml version=\"1.0\" ?>\n" +
-                "<!DOCTYPE PubmedArticleSet PUBLIC \"-//NLM//DTD PubMedArticle, 1st January 2024//EN\" \"https://dtd.nlm.nih.gov/ncbi/pubmed/out/pubmed_240101.dtd\">\n" +
-                "<PubmedArticleSet>\n" +
-                "  <PubmedArticle>\n" +
-                "    <MedlineCitation Status=\"MEDLINE\" Owner=\"NLM\">\n" +
-                "      <PMID Version=\"1\">12345</PMID>\n" +
-                "      <Article PubModel=\"Print\">\n" +
-                "        <Journal>\n" +
-                "          <JournalIssue CitedMedium=\"Print\">\n" +
-                "            <PubDate>\n" +
-                "              <Year>2024</Year>\n" +
-                "              <Month>May</Month>\n" +
-                "            </PubDate>\n" +
-                "          </JournalIssue>\n" +
-                "          <Title>Journal of Testing</Title>\n" +
-                "        </Journal>\n" +
-                "        <ArticleTitle>This is a test article</ArticleTitle>\n" +
-                "        <AuthorList>\n" +
-                "          <Author>\n" +
-                "            <LastName>Smith</LastName>\n" +
-                "            <ForeName>John</ForeName>\n" +
-                "          </Author>\n" +
-                "        </AuthorList>\n" +
-                "        <Abstract>\n" +
-                "          <AbstractText>Test abstract.</AbstractText>\n" +
-                "        </Abstract>\n" +
-                "        <PublicationTypeList>\n" +
-                "          <PublicationType UI=\"D016428\">Journal Article</PublicationType>\n" +
-                "        </PublicationTypeList>\n" +
-                "      </Article>\n" +
-                "      <MeshHeadingList>\n" +
-                "        <MeshHeading>\n" +
-                "          <DescriptorName UI=\"D0000\">TestMesh</DescriptorName>\n" +
-                "        </MeshHeading>\n" +
-                "      </MeshHeadingList>\n" +
-                "      <KeywordList>\n" +
-                "        <Keyword>TestKw</Keyword>\n" +
-                "      </KeywordList>\n" +
-                "    </MedlineCitation>\n" +
-                "    <PubmedData>\n" +
-                "      <ArticleIdList>\n" +
-                "        <ArticleId IdType=\"pubmed\">12345</ArticleId>\n" +
-                "        <ArticleId IdType=\"doi\">10.1234/test</ArticleId>\n" +
-                "      </ArticleIdList>\n" +
-                "    </PubmedData>\n" +
-                "  </PubmedArticle>\n" +
-                "</PubmedArticleSet>";
+        String xml = """
+                <?xml version="1.0" ?>
+                <!DOCTYPE PubmedArticleSet PUBLIC "-//NLM//DTD PubMedArticle, 1st January 2024//EN" "https://dtd.nlm.nih.gov/ncbi/pubmed/out/pubmed_240101.dtd">
+                <PubmedArticleSet>
+                  <PubmedArticle>
+                    <MedlineCitation Status="MEDLINE" Owner="NLM">
+                      <PMID Version="1">12345</PMID>
+                      <Article PubModel="Print">
+                        <Journal>
+                          <JournalIssue CitedMedium="Print">
+                            <PubDate>
+                              <Year>2024</Year>
+                              <Month>May</Month>
+                            </PubDate>
+                          </JournalIssue>
+                          <Title>Journal of Testing</Title>
+                        </Journal>
+                        <ArticleTitle>This is a test article</ArticleTitle>
+                        <AuthorList>
+                          <Author>
+                            <LastName>Smith</LastName>
+                            <ForeName>John</ForeName>
+                          </Author>
+                        </AuthorList>
+                        <Abstract>
+                          <AbstractText>Test abstract.</AbstractText>
+                        </Abstract>
+                        <PublicationTypeList>
+                          <PublicationType UI="D016428">Journal Article</PublicationType>
+                        </PublicationTypeList>
+                      </Article>
+                      <MeshHeadingList>
+                        <MeshHeading>
+                          <DescriptorName UI="D0000">TestMesh</DescriptorName>
+                        </MeshHeading>
+                      </MeshHeadingList>
+                      <KeywordList>
+                        <Keyword>TestKw</Keyword>
+                      </KeywordList>
+                    </MedlineCitation>
+                    <PubmedData>
+                      <ArticleIdList>
+                        <ArticleId IdType="pubmed">12345</ArticleId>
+                        <ArticleId IdType="doi">10.1234/test</ArticleId>
+                      </ArticleIdList>
+                    </PubmedData>
+                  </PubmedArticle>
+                </PubmedArticleSet>""";
 
         List<PubmedArticleData> articles = parser.parseEfetchArticles(xml);
 
         assertNotNull(articles);
         assertEquals(1, articles.size());
-        
+
         PubmedArticleData data = articles.get(0);
         assertEquals("12345", data.pmid());
         assertEquals("This is a test article", data.titulo());
@@ -118,25 +120,26 @@ class PubmedResponseParserTest {
     @Test
     @DisplayName("Parseo de XML aplica fillna 'No disponible' en campos faltantes")
     void parseEfetchArticlesFillna() {
-        String xml = "<?xml version=\"1.0\" ?>\n" +
-                "<PubmedArticleSet>\n" +
-                "  <PubmedArticle>\n" +
-                "    <MedlineCitation>\n" +
-                "      <PMID>67890</PMID>\n" +
-                "      <Article>\n" +
-                "        <Journal>\n" +
-                "          <JournalIssue></JournalIssue>\n" +
-                "        </Journal>\n" +
-                "      </Article>\n" +
-                "    </MedlineCitation>\n" +
-                "  </PubmedArticle>\n" +
-                "</PubmedArticleSet>";
+        String xml = """
+                <?xml version="1.0" ?>
+                <PubmedArticleSet>
+                  <PubmedArticle>
+                    <MedlineCitation>
+                      <PMID>67890</PMID>
+                      <Article>
+                        <Journal>
+                          <JournalIssue></JournalIssue>
+                        </Journal>
+                      </Article>
+                    </MedlineCitation>
+                  </PubmedArticle>
+                </PubmedArticleSet>""";
 
         List<PubmedArticleData> articles = parser.parseEfetchArticles(xml);
 
         assertNotNull(articles);
         assertEquals(1, articles.size());
-        
+
         PubmedArticleData data = articles.get(0);
         assertEquals("No disponible", data.titulo());
         assertEquals("No disponible", data.autores());
@@ -154,7 +157,7 @@ class PubmedResponseParserTest {
     @DisplayName("XML Inválido arroja PubmedParseException")
     void parseEfetchArticlesError() {
         String invalidXml = "<PubmedArticleSet><PubmedArticle>...";
-        
+
         assertThrows(PubmedParseException.class, () -> parser.parseEfetchArticles(invalidXml));
     }
 }

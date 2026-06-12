@@ -20,14 +20,19 @@ public class ChatService implements ChatUseCase {
             Verifica dosis, contraindicaciones e interacciones con fuentes clínicas \
             oficiales antes de aplicarla. MediBot no reemplaza el criterio médico profesional.""";
 
-    private static final java.util.regex.Pattern CLINICAL_KEYWORDS = java.util.regex.Pattern.compile(
+    private static final int REGEX_FLAGS =
+            java.util.regex.Pattern.CASE_INSENSITIVE | java.util.regex.Pattern.UNICODE_CASE | java.util.regex.Pattern.CANON_EQ;
+
+    private static final java.util.regex.Pattern CLINICAL_KEYWORDS_1 = java.util.regex.Pattern.compile(
             "\\b(dosis|mg|mcg|ml|prescri|receta|administra|tomar|toma|tratamiento|" +
-            "terapia|fármaco|farmaco|medicamento|antibiótico|antibiotico|analgésico|" +
-            "antiinflamatorio|antihipertensivo|antidiabético|" +
-            "ibuprofeno|paracetamol|amoxicilina|metformina|omeprazol|atorvastatina|" +
+            "terapia|fármaco|medicamento|antibiótico|antiinflamatorio|antihipertensivo|antidiabético)\\b",
+            REGEX_FLAGS);
+
+    private static final java.util.regex.Pattern CLINICAL_KEYWORDS_2 = java.util.regex.Pattern.compile(
+            "\\b(ibuprofeno|paracetamol|amoxicilina|metformina|omeprazol|atorvastatina|" +
             "indicado para|se recomienda|se sugiere|dosis recomendada|via oral|vía oral|" +
-            "intravenoso|intramuscular|subcutáneo|subcutaneo)\\b",
-            java.util.regex.Pattern.CASE_INSENSITIVE | java.util.regex.Pattern.UNICODE_CASE | java.util.regex.Pattern.CANON_EQ);
+            "intravenoso|intramuscular|subcutáneo)\\b",
+            REGEX_FLAGS);
 
     static final String CANNED_CRITICAL =
             "Para situaciones de emergencia o decisiones clínicas críticas, " +
@@ -132,7 +137,7 @@ public class ChatService implements ChatUseCase {
             return new ChatResponse(CANNED_CRITICAL, true);
         }
         String response = raw.strip();
-        if (CLINICAL_KEYWORDS.matcher(response).find()) {
+        if (CLINICAL_KEYWORDS_1.matcher(response).find() || CLINICAL_KEYWORDS_2.matcher(response).find()) {
             response = response + CLINICAL_DISCLAIMER;
         }
         return new ChatResponse(response, false);

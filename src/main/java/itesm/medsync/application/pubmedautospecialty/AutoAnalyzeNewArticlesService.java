@@ -105,60 +105,16 @@ public class AutoAnalyzeNewArticlesService implements AutoAnalyzeNewArticlesUseC
         int succeeded = 0;
         int skippedBlank = 0;
         int failed = 0;
-        boolean interrupted = false;
 
         for (Article article : candidates) {
-            if (isBlank(article.getTitulo())
-                    && isBlank(article.getAbstractText())
-                    && isBlank(article.getKeywords())) {
-                LOG.warnf("Auto-specialty: artículo %s no tiene texto analizable — omitido.", article.getId());
-                skippedBlank++;
-                continue;  // No Groq call was made — skip the delay too.
+            int[] result = processArticle(article, descriptors, vocabsById);
+            succeeded += result[0];
+            skippedBlank += result[1];
+            failed += result[2];
+            if (result[3] == 1) {
+                LOG.warn("Auto-specialty: pase interrumpido prematuramente.");
+                break;
             }
-
-            try {
-                ArticleAnalysisRequest request = new ArticleAnalysisRequest(
-                        article.getTitulo(),
-                        article.getAbstractText(),
-                        article.getKeywords(),
-                        List.copyOf(descriptors),
-                        Map.copyOf(vocabsById));
-
-                ArticleAnalysisResult result = aiGateway.analyzeArticle(request);
-
-                List<ArticleTag> domainTags = new ArrayList<>(result.tags().size());
-                for (ExtractedTag t : result.tags()) {
-                    domainTags.add(ArticleTag.create(t.tipo(), t.valor()));
-                }
-
-                saver.save(article, result.especialidadId(), domainTags);
-
-                LOG.infof("Auto-specialty: artículo %s → especialidad %s (hadAbstract=%b).",
-                        article.getId(), result.especialidadId(), result.hadAbstract());
-                succeeded++;
-
-            } catch (Exception e) {
-                LOG.errorf(e, "Auto-specialty: fallo al analizar artículo %s: %s",
-                        article.getId(), e.getMessage());
-                failed++;
-            }
-
-            // Always pause after a Groq call (success OR failure) to stay within
-            // the tokens-per-minute rate limit. Skipped-blank articles never reach here.
-            if (delayBetweenCallsMs > 0) {
-                try {
-                    TimeUnit.MILLISECONDS.sleep(delayBetweenCallsMs);
-                } catch (InterruptedException ie) {
-                    Thread.currentThread().interrupt();
-                    LOG.warn("Auto-specialty: hilo interrumpido durante el delay entre llamadas.");
-                    interrupted = true;
-                    break;
-                }
-            }
-        }
-
-        if (interrupted) {
-            LOG.warn("Auto-specialty: pase interrumpido prematuramente.");
         }
 
 
@@ -169,6 +125,44 @@ public class AutoAnalyzeNewArticlesService implements AutoAnalyzeNewArticlesUseC
     }
 
     // ------------------------------------------------------------------ helpers
+
+    /** Returns [succeeded, skippedBlank, failed, interrupted] counters for one article. */
+    private int[] processArticle(Article article, List<SpecialtyDescriptor> descriptors,
+                                  Map<UUID, Vocabulary> vocabsById) {
+        if (isBlank(article.getTitulo()) && isBlank(article.getAbstractText()) && isBlank(article.getKeywords())) {
+            LOG.warnf("Auto-specialty: artículo %s no tiene texto analizable — omitido.", article.getId());
+            return new int[]{0, 1, 0, 0};
+        }
+        int succeeded = 0;
+        int failed = 0;
+        try {
+            ArticleAnalysisRequest req = new ArticleAnalysisRequest(
+                    article.getTitulo(), article.getAbstractText(), article.getKeywords(),
+                    List.copyOf(descriptors), Map.copyOf(vocabsById));
+            ArticleAnalysisResult result = aiGateway.analyzeArticle(req);
+            List<ArticleTag> domainTags = new ArrayList<>(result.tags().size());
+            for (ExtractedTag t : result.tags()) {
+                domainTags.add(ArticleTag.create(t.tipo(), t.valor()));
+            }
+            saver.save(article, result.especialidadId(), domainTags);
+            LOG.infof("Auto-specialty: artículo %s → especialidad %s (hadAbstract=%b).",
+                    article.getId(), result.especialidadId(), result.hadAbstract());
+            succeeded = 1;
+        } catch (Exception e) {
+            LOG.errorf(e, "Auto-specialty: fallo al analizar artículo %s: %s", article.getId(), e.getMessage());
+            failed = 1;
+        }
+        if (delayBetweenCallsMs > 0) {
+            try {
+                TimeUnit.MILLISECONDS.sleep(delayBetweenCallsMs);
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                LOG.warn("Auto-specialty: hilo interrumpido durante el delay entre llamadas.");
+                return new int[]{succeeded, 0, failed, 1};
+            }
+        }
+        return new int[]{succeeded, 0, failed, 0};
+    }
 
     private List<SpecialtyDescriptor> buildDescriptors(List<Specialty> specialties) {
         List<SpecialtyDescriptor> descriptors = new ArrayList<>(specialties.size());

@@ -260,29 +260,31 @@ public class GroqAiAnalysisGateway implements AiAnalysisGateway {
         }
         List<ExtractedTag> kept = new ArrayList<>();
         for (JsonNode tagNode : tagsNode) {
-            String tipoRaw = textOrNull(tagNode.get("tipo"));
-            String valor = textOrNull(tagNode.get("valor"));
-            if (tipoRaw == null || valor == null) {
-                LOG.warnf("Groq extract: dropping malformed tag tipo=%s valor=%s", tipoRaw, valor);
-                continue;
-            }
-            TipoClinico tipo;
-            try {
-                tipo = TipoClinico.valueOf(tipoRaw.trim().toUpperCase());
-            } catch (IllegalArgumentException ex) {
-                LOG.warnf("Groq extract: dropping tag with unknown tipo=%s valor=%s", tipoRaw, valor);
-                continue;
-            }
-            if (!vocab.containsTerm(tipo, valor)) {
-                LOG.warnf("ai.gateway.unknown_term tipo=%s valor=\"%s\" specialty=%s",
-                        tipo, valor, vocab.getEspecialidadSlug());
-                continue;
-            }
-            // Snap to canonical capitalization from the vocabulary.
-            String canonical = canonicalValor(vocab, tipo, valor);
-            kept.add(new ExtractedTag(tipo, canonical));
+            toExtractedTag(tagNode, vocab).ifPresent(kept::add);
         }
         return kept;
+    }
+
+    private java.util.Optional<ExtractedTag> toExtractedTag(JsonNode tagNode, Vocabulary vocab) {
+        String tipoRaw = textOrNull(tagNode.get("tipo"));
+        String valor = textOrNull(tagNode.get("valor"));
+        if (tipoRaw == null || valor == null) {
+            LOG.warnf("Groq extract: dropping malformed tag tipo=%s valor=%s", tipoRaw, valor);
+            return java.util.Optional.empty();
+        }
+        TipoClinico tipo;
+        try {
+            tipo = TipoClinico.valueOf(tipoRaw.trim().toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            LOG.warnf("Groq extract: dropping tag with unknown tipo=%s valor=%s", tipoRaw, valor);
+            return java.util.Optional.empty();
+        }
+        if (!vocab.containsTerm(tipo, valor)) {
+            LOG.warnf("ai.gateway.unknown_term tipo=%s valor=\"%s\" specialty=%s",
+                    tipo, valor, vocab.getEspecialidadSlug());
+            return java.util.Optional.empty();
+        }
+        return java.util.Optional.of(new ExtractedTag(tipo, canonicalValor(vocab, tipo, valor)));
     }
 
     private static String canonicalValor(Vocabulary vocab, TipoClinico tipo, String raw) {

@@ -27,5 +27,8 @@ public class CreateUserRequest {
     @Pattern(regexp = "DOCTOR|COO|CMO", message = "Role must be DOCTOR, COO, or CMO")
     public String rol;
 
-    public UUID especialidadId;
+    private UUID especialidadId;
+
+    public UUID getEspecialidadId() { return especialidadId; }
+    public void setEspecialidadId(UUID especialidadId) { this.especialidadId = especialidadId; }
 }

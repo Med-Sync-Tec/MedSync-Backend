@@ -134,7 +134,7 @@ class HospitalGatewayImplTest {
     @DisplayName("findConsultaById: existe → Optional con consulta completa")
     void findConsultaByIdFound() {
         seedExpediente("EXP-F", "PAC-EXT-F");
-        seedConsulta("C-F1", "EXP-F", LocalDateTime.of(2026, 2, 1, 14, 0));
+        seedConsulta("C-F1", "EXP-F", LocalDateTime.of(2026, Month.FEBRUARY, 1, 14, 0));
         em.flush();
 
         Optional<Consulta> result = gateway.findConsultaById("C-F1");
@@ -187,7 +187,7 @@ class HospitalGatewayImplTest {
         em.flush();
 
         Consulta dom = Consulta.create("EXP-FOR-CONS",
-                LocalDateTime.of(2026, 4, 20, 12, 0),
+                LocalDateTime.of(2026, Month.APRIL, 20, 12, 0),
                 "motivo-save", "subj-save", "obj-save",
                 "eval-save", "plan-save", "presc-save", "diag-save");
 

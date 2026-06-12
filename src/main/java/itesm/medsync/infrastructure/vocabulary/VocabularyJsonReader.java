@@ -36,37 +36,10 @@ public class VocabularyJsonReader {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
-    /**
-     * Parses {@code jsonBytes} and verifies it matches {@code expectedSlug}.
-     *
-     * @param expectedSlug the slug taken from the filename (without {@code .json})
-     * @param jsonBytes    raw UTF-8 bytes of the file
-     * @return the validated intermediate representation
-     * @throws VocabularyParseException on any schema violation; the message names
-     *                                  the offending field and the file
-     */
     public ParsedVocabularyFile parse(String expectedSlug, byte[] jsonBytes) {
         String filename = expectedSlug + ".json";
-        JsonNode root;
-        try {
-            root = mapper.readTree(jsonBytes);
-        } catch (JsonProcessingException ex) {
-            throw new VocabularyParseException(filename, null, "malformed JSON: " + ex.getOriginalMessage(), ex);
-        } catch (java.io.IOException ex) {
-            throw new VocabularyParseException(filename, null, "unable to read JSON bytes", ex);
-        }
-
-        if (root == null || !root.isObject()) {
-            throw new VocabularyParseException(filename, null, "root must be a JSON object");
-        }
-
-        if (root.has("$schema")) {
-            JsonNode schemaNode = root.get("$schema");
-            if (!schemaNode.isTextual() || !SCHEMA_VALUE.equals(schemaNode.asText())) {
-                throw new VocabularyParseException(filename, "$schema",
-                        "value must be '" + SCHEMA_VALUE + "' (got: " + schemaNode.asText() + ")");
-            }
-        }
+        JsonNode root = readRootNode(jsonBytes, filename);
+        validateOptionalSchema(root, filename);
 
         String slug = requireText(root, "especialidadSlug", filename);
         if (!expectedSlug.equals(slug)) {
@@ -88,60 +61,93 @@ public class VocabularyJsonReader {
             throw new VocabularyParseException(filename, "terms", "must be a JSON object");
         }
 
+        return new ParsedVocabularyFile(slug, version, parseTermsMap(termsNode, filename));
+    }
+
+    private JsonNode readRootNode(byte[] jsonBytes, String filename) {
+        JsonNode root;
+        try {
+            root = mapper.readTree(jsonBytes);
+        } catch (JsonProcessingException ex) {
+            throw new VocabularyParseException(filename, null, "malformed JSON: " + ex.getOriginalMessage(), ex);
+        } catch (java.io.IOException ex) {
+            throw new VocabularyParseException(filename, null, "unable to read JSON bytes", ex);
+        }
+        if (root == null || !root.isObject()) {
+            throw new VocabularyParseException(filename, null, "root must be a JSON object");
+        }
+        return root;
+    }
+
+    private static void validateOptionalSchema(JsonNode root, String filename) {
+        if (!root.has("$schema")) {
+            return;
+        }
+        JsonNode schemaNode = root.get("$schema");
+        if (!schemaNode.isTextual() || !SCHEMA_VALUE.equals(schemaNode.asText())) {
+            throw new VocabularyParseException(filename, "$schema",
+                    "value must be '" + SCHEMA_VALUE + "' (got: " + schemaNode.asText() + ")");
+        }
+    }
+
+    private static Map<TipoClinico, List<String>> parseTermsMap(JsonNode termsNode, String filename) {
         Map<TipoClinico, List<String>> termsByType = new EnumMap<>(TipoClinico.class);
         for (TipoClinico tipo : TipoClinico.values()) {
             termsByType.put(tipo, List.of());
         }
-
         Iterator<Map.Entry<String, JsonNode>> fields = termsNode.fields();
         while (fields.hasNext()) {
             Map.Entry<String, JsonNode> entry = fields.next();
             String key = entry.getKey();
-            TipoClinico tipo;
-            try {
-                tipo = TipoClinico.valueOf(key);
-            } catch (IllegalArgumentException ex) {
-                throw new VocabularyParseException(filename, "terms." + key,
-                        "unknown TipoClinico key '" + key + "' (allowed: ENFERMEDAD, SINTOMA, TRATAMIENTO, MEDICAMENTO)");
-            }
+            TipoClinico tipo = parseTipoClinico(key, filename);
             JsonNode arr = entry.getValue();
             if (!arr.isArray()) {
-                throw new VocabularyParseException(filename, "terms." + key,
-                        "bucket must be a JSON array");
+                throw new VocabularyParseException(filename, "terms." + key, "bucket must be a JSON array");
             }
-            List<String> bucket = new ArrayList<>(arr.size());
-            Map<String, String> seen = new HashMap<>();
-            for (int i = 0; i < arr.size(); i++) {
-                JsonNode node = arr.get(i);
-                if (!node.isTextual()) {
-                    throw new VocabularyParseException(filename, "terms." + key + "[" + i + "]",
-                            "term must be a string");
-                }
-                String valor = node.asText();
-                if (valor == null || valor.isBlank()) {
-                    throw new VocabularyParseException(filename, "terms." + key + "[" + i + "]",
-                            "term is blank or whitespace-only");
-                }
-                if (valor.length() > VocabularyTerm.MAX_VALOR_LENGTH) {
-                    throw new VocabularyParseException(filename, "terms." + key + "[" + i + "]",
-                            "term exceeds " + VocabularyTerm.MAX_VALOR_LENGTH + " characters");
-                }
-                // Dedup is case-insensitive and trim-tolerant on the lookup key, but the
-                // error message reports both canonical forms so a clinical reviewer can
-                // see exactly which two lines collided.
-                String normalized = valor.trim().toLowerCase();
-                String previous = seen.put(normalized, valor);
-                if (previous != null) {
-                    throw new VocabularyParseException(filename, "terms." + key,
-                            "duplicate term within bucket (case-insensitive): '"
-                                    + previous + "' and '" + valor + "'");
-                }
-                bucket.add(valor);
-            }
-            termsByType.put(tipo, List.copyOf(bucket));
+            termsByType.put(tipo, parseBucket(key, arr, filename));
         }
+        return Map.copyOf(termsByType);
+    }
 
-        return new ParsedVocabularyFile(slug, version, Map.copyOf(termsByType));
+    private static TipoClinico parseTipoClinico(String key, String filename) {
+        try {
+            return TipoClinico.valueOf(key);
+        } catch (IllegalArgumentException ex) {
+            throw new VocabularyParseException(filename, "terms." + key,
+                    "unknown TipoClinico key '" + key + "' (allowed: ENFERMEDAD, SINTOMA, TRATAMIENTO, MEDICAMENTO)");
+        }
+    }
+
+    private static List<String> parseBucket(String key, JsonNode arr, String filename) {
+        List<String> bucket = new ArrayList<>(arr.size());
+        Map<String, String> seen = new HashMap<>();
+        for (int i = 0; i < arr.size(); i++) {
+            JsonNode node = arr.get(i);
+            String field = "terms." + key + "[" + i + "]";
+            if (!node.isTextual()) {
+                throw new VocabularyParseException(filename, field, "term must be a string");
+            }
+            String valor = node.asText();
+            if (valor == null || valor.isBlank()) {
+                throw new VocabularyParseException(filename, field, "term is blank or whitespace-only");
+            }
+            if (valor.length() > VocabularyTerm.MAX_VALOR_LENGTH) {
+                throw new VocabularyParseException(filename, field,
+                        "term exceeds " + VocabularyTerm.MAX_VALOR_LENGTH + " characters");
+            }
+            // Dedup is case-insensitive and trim-tolerant on the lookup key, but the
+            // error message reports both canonical forms so a clinical reviewer can
+            // see exactly which two lines collided.
+            String normalized = valor.trim().toLowerCase();
+            String previous = seen.put(normalized, valor);
+            if (previous != null) {
+                throw new VocabularyParseException(filename, "terms." + key,
+                        "duplicate term within bucket (case-insensitive): '"
+                                + previous + "' and '" + valor + "'");
+            }
+            bucket.add(valor);
+        }
+        return List.copyOf(bucket);
     }
 
     private static String requireText(JsonNode root, String field, String filename) {

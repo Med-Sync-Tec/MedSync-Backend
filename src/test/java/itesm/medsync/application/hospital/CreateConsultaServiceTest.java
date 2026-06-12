@@ -53,7 +53,7 @@ class CreateConsultaServiceTest {
         when(hospitalGateway.findExpedienteByPacienteExternoId(pacExt)).thenReturn(Optional.of(existing));
         when(hospitalGateway.saveConsulta(any(Consulta.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        LocalDateTime fecha = LocalDateTime.of(2026, 4, 20, 10, 0);
+        LocalDateTime fecha = LocalDateTime.of(2026, Month.APRIL, 20, 10, 0);
         Consulta result = service.execute(patientId, fecha, "cefalea",
                 "refiere dolor", "TA 120/80", "cefalea tensional",
                 "reposo", "paracetamol", "cefalea tensional");
@@ -83,7 +83,7 @@ class CreateConsultaServiceTest {
         when(hospitalGateway.saveConsulta(any(Consulta.class)))
                 .thenAnswer(inv -> inv.getArgument(0));
 
-        LocalDateTime fecha = LocalDateTime.of(2026, 4, 20, 11, 0);
+        LocalDateTime fecha = LocalDateTime.of(2026, Month.APRIL, 20, 11, 0);
         Consulta result = service.execute(patientId, fecha, "chequeo",
                 null, null, null, null, null, null);
 

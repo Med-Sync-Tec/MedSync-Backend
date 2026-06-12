@@ -157,7 +157,7 @@ class HospitalResourceIT {
         fixtures.persistExpediente(expId, "PAC-SINGLE-" + UUID.randomUUID(), null);
         String consId = "C-SINGLE-" + UUID.randomUUID();
         fixtures.persistConsulta(consId, expId,
-                LocalDateTime.of(2026, 4, 1, 12, 0), "chequeo", "sano");
+                LocalDateTime.of(2026, Month.APRIL, 1, 12, 0), "chequeo", "sano");
 
         given().when().get("/api/consultas/" + consId)
                 .then().statusCode(200)

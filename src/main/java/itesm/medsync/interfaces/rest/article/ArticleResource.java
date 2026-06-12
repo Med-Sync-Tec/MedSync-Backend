@@ -96,13 +96,13 @@ public class ArticleResource {
     public Response create(@Valid CreateArticleRequest request, @Context UriInfo uriInfo) {
         Article created = createArticle.execute(
                 request.titulo,
-                request.autores,
+                request.getAutores(),
                 request.revista,
-                request.anioPub,
+                request.getAnioPub(),
                 request.mesPub,
                 request.doi,
-                request.abstractText,
-                request.keywords,
+                request.getAbstractText(),
+                request.getKeywords(),
                 request.tipoPublicacion,
                 request.url);
         URI location = uriInfo.getAbsolutePathBuilder().path(created.getId().toString()).build();

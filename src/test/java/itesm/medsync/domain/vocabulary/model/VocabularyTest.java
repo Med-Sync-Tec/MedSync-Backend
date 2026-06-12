@@ -128,7 +128,7 @@ class VocabularyTest {
     @Test
     @DisplayName("Mutar input map o list después del constructor no afecta el aggregate")
     void defensiveCopies() {
-        Map<TipoClinico, List<VocabularyTerm>> input = new HashMap<>();
+        Map<TipoClinico, List<VocabularyTerm>> input = new EnumMap<>(TipoClinico.class);
         List<VocabularyTerm> mutableList = new ArrayList<>();
         mutableList.add(term(TipoClinico.ENFERMEDAD, "Original"));
         input.put(TipoClinico.ENFERMEDAD, mutableList);

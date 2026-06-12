@@ -9,12 +9,12 @@ public class CreateArticleRequest {
     @Size(max = 1000)
     public String titulo;
 
-    public String autores;
+    private String autores;
 
     @Size(max = 500)
     public String revista;
 
-    public Integer anioPub;
+    private Integer anioPub;
 
     @Size(max = 20)
     public String mesPub;
@@ -22,13 +22,25 @@ public class CreateArticleRequest {
     @Size(max = 200)
     public String doi;
 
-    public String abstractText;
+    private String abstractText;
 
-    public String keywords;
+    private String keywords;
 
     @Size(max = 100)
     public String tipoPublicacion;
 
     @Size(max = 500)
     public String url;
+
+    public String getAutores() { return autores; }
+    public void setAutores(String autores) { this.autores = autores; }
+
+    public Integer getAnioPub() { return anioPub; }
+    public void setAnioPub(Integer anioPub) { this.anioPub = anioPub; }
+
+    public String getAbstractText() { return abstractText; }
+    public void setAbstractText(String abstractText) { this.abstractText = abstractText; }
+
+    public String getKeywords() { return keywords; }
+    public void setKeywords(String keywords) { this.keywords = keywords; }
 }

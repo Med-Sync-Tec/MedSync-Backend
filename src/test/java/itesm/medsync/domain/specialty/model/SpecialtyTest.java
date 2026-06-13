@@ -1,4 +1,4 @@
-﻿package itesm.medsync.domain.specialty.model;
+package itesm.medsync.domain.specialty.model;
 
 import itesm.medsync.domain.specialty.exception.InvalidSpecialtyDataException;
 import org.junit.jupiter.api.DisplayName;

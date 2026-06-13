@@ -2,6 +2,7 @@ package itesm.medsync.application.article;
 
 import itesm.medsync.domain.article.model.Article;
 import itesm.medsync.domain.article.repository.ArticleRepository;
+import itesm.medsync.domain.article.usecase.CreateArticleCommand;
 import itesm.medsync.domain.article.usecase.SyncPubmedArticlesUseCase;
 import itesm.medsync.infrastructure.pubmed.PubmedArticleData;
 import itesm.medsync.infrastructure.pubmed.PubmedEutilsClient;
@@ -100,17 +101,10 @@ public class SyncPubmedArticlesService implements SyncPubmedArticlesUseCase {
      */
     private void upsertArticle(PubmedArticleData data) {
         // Construir el dominio limpio
-        Article article = Article.create(
-                data.titulo(),
-                data.autores(),
-                data.revista(),
-                data.anioPub(),
-                data.mesPub(),
-                data.doi(),
-                data.abstractText(),
-                combineKeywords(data.keywords(), data.meshTerms()),
-                data.tipoPublicacion(),
-                data.url());
+        Article article = Article.create(new CreateArticleCommand(
+                data.titulo(), data.autores(), data.revista(), data.anioPub(), data.mesPub(),
+                data.doi(), data.abstractText(), combineKeywords(data.keywords(), data.meshTerms()),
+                data.tipoPublicacion(), data.url()));
 
         // Si tiene DOI y ya existe → actualizar usando save (que hace upsert por UUID)
         // Dado que el repositorio ya implementa upsert por UUID en save(),

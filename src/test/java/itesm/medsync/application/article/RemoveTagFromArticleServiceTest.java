@@ -20,6 +20,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import itesm.medsync.domain.article.usecase.CreateArticleCommand;
 
 @ExtendWith(MockitoExtension.class)
 class RemoveTagFromArticleServiceTest {
@@ -34,8 +35,8 @@ class RemoveTagFromArticleServiceTest {
     @DisplayName("Happy path: quita el tag y guarda")
     void removeOk() {
         ArticleTag tag = ArticleTag.create(TipoClinico.ENFERMEDAD, "HTA");
-        Article article = Article.create("titulo", null, null, 2024, null,
-                null, null, null, null, null).withTagAdded(tag);
+        Article article = Article.create(new CreateArticleCommand("titulo", null, null, 2024, null,
+                null, null, null, null, null)).withTagAdded(tag);
         UUID articleId = article.getId();
         when(repository.findByUuid(articleId)).thenReturn(Optional.of(article));
         when(repository.save(any(Article.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -61,8 +62,8 @@ class RemoveTagFromArticleServiceTest {
     @Test
     @DisplayName("Tag no pertenece al article: ArticleTagNotFoundException, no guarda")
     void removeTagNotFound() {
-        Article article = Article.create("titulo", null, null, 2024, null,
-                null, null, null, null, null);
+        Article article = Article.create(new CreateArticleCommand("titulo", null, null, 2024, null,
+                null, null, null, null, null));
         UUID articleId = article.getId();
         when(repository.findByUuid(articleId)).thenReturn(Optional.of(article));
 

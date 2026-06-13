@@ -1,4 +1,4 @@
-﻿package itesm.medsync.domain.user.model;
+package itesm.medsync.domain.user.model;
 
 import itesm.medsync.domain.user.exception.InvalidUserDataException;
 import org.junit.jupiter.api.DisplayName;

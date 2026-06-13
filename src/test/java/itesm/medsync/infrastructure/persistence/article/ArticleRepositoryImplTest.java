@@ -1,4 +1,4 @@
-﻿package itesm.medsync.infrastructure.persistence.article;
+package itesm.medsync.infrastructure.persistence.article;
 
 import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;
@@ -27,6 +27,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import itesm.medsync.domain.article.usecase.CreateArticleCommand;
 
 @QuarkusTest
 class ArticleRepositoryImplTest {
@@ -60,10 +61,10 @@ class ArticleRepositoryImplTest {
     }
 
     private Article newArticle(String doi, UUID especialidadId) {
-        Article fresh = Article.create(
+        Article fresh = Article.create(new CreateArticleCommand(
                 "Tratamiento de hipertensión", "García J", "JAMA", 2024, "Mar",
                 doi, "abstract", "hipertension", "Journal Article",
-                "https://doi.org/" + (doi == null ? "x" : doi));
+                "https://doi.org/" + (doi == null ? "x" : doi)));
         return especialidadId == null
                 ? fresh
                 : fresh.withAiAnalysis(especialidadId, List.of());

@@ -15,6 +15,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
+import itesm.medsync.domain.article.usecase.CreateArticleCommand;
 
 @ExtendWith(MockitoExtension.class)
 class GetMatchingArticlesForMedicamentosServiceTest {
@@ -28,8 +29,8 @@ class GetMatchingArticlesForMedicamentosServiceTest {
     @Test
     @DisplayName("Happy path: delega al repository con el límite recibido")
     void matchOk() {
-        Article article = Article.create("titulo", null, null, 2024, null,
-                null, null, null, null, null);
+        Article article = Article.create(new CreateArticleCommand("titulo", null, null, 2024, null,
+                null, null, null, null, null));
         when(articleRepository.findMatchingArticlesForMedicamentos(anyInt()))
                 .thenReturn(List.of(article));
 

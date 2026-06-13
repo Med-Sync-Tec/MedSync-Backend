@@ -2,6 +2,7 @@ package itesm.medsync.infrastructure.ai;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Singleton;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.time.Duration;
@@ -14,12 +15,15 @@ import java.time.Duration;
  * {@code application.properties} is the empty string, so a missing
  * {@code GROQ_API_KEY} surfaces as the {@code AiConfigurationException}
  * thrown inside the config constructor — failing the boot.
+ *
+ * Uses {@code @Singleton} (pseudo-scope) instead of {@code @ApplicationScoped}
+ * because records are final and CDI cannot create proxies for them.
  */
 @ApplicationScoped
 public class GroqAiAnalysisGatewayConfigProducer {
 
     @Produces
-    @ApplicationScoped
+    @Singleton
     public GroqAiAnalysisGatewayConfig produce(
             @ConfigProperty(name = "ai.groq.api-key", defaultValue = "") String apiKey,
             @ConfigProperty(name = "ai.groq.model", defaultValue = "llama-3.3-70b-versatile") String model,

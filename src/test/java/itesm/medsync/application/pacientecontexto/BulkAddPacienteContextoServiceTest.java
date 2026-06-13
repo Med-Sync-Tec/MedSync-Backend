@@ -1,4 +1,4 @@
-﻿package itesm.medsync.application.pacientecontexto;
+package itesm.medsync.application.pacientecontexto;
 
 import itesm.medsync.domain.pacientecontexto.exception.InvalidPacienteContextoDataException;
 import itesm.medsync.domain.pacientecontexto.model.BulkEntry;

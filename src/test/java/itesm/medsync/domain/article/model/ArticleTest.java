@@ -10,11 +10,12 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
+import itesm.medsync.domain.article.usecase.CreateArticleCommand;
 
 class ArticleTest {
 
     private Article newValidArticle() {
-        return Article.create(
+        return Article.create(new CreateArticleCommand(
                 "Tratamiento de hipertensión",
                 "García J, López P",
                 "JAMA",
@@ -24,7 +25,7 @@ class ArticleTest {
                 "Resumen del estudio...",
                 "hipertension, beta-bloqueador",
                 "Journal Article",
-                "https://doi.org/10.1234/abc");
+                "https://doi.org/10.1234/abc"));
     }
 
     @Test
@@ -44,30 +45,30 @@ class ArticleTest {
     @DisplayName("titulo blank lanza InvalidArticleDataException")
     void tituloBlankThrows() {
         assertThrows(InvalidArticleDataException.class,
-                () -> Article.create("   ", null, null, null, null, null, null, null, null, null));
+                () -> Article.create(new CreateArticleCommand("   ", null, null, null, null, null, null, null, null, null)));
     }
 
     @Test
     @DisplayName("anioPub fuera de rango lanza InvalidArticleDataException")
     void anioFueraDeRango() {
         assertThrows(InvalidArticleDataException.class,
-                () -> Article.create("titulo", null, null, 1700, null, null, null, null, null, null));
+                () -> Article.create(new CreateArticleCommand("titulo", null, null, 1700, null, null, null, null, null, null)));
         int futuro = 2035;
         assertThrows(InvalidArticleDataException.class,
-                () -> Article.create("titulo", null, null, futuro, null, null, null, null, null, null));
+                () -> Article.create(new CreateArticleCommand("titulo", null, null, futuro, null, null, null, null, null, null)));
     }
 
     @Test
     @DisplayName("anioPub null es válido (campo opcional)")
     void anioNullPermitido() {
-        Article a = Article.create("titulo", null, null, null, null, null, null, null, null, null);
+        Article a = Article.create(new CreateArticleCommand("titulo", null, null, null, null, null, null, null, null, null));
         assertNull(a.getAnioPub());
     }
 
     @Test
     @DisplayName("doi blank se normaliza a null")
     void doiBlankToNull() {
-        Article a = Article.create("titulo", null, null, null, null, "   ", null, null, null, null);
+        Article a = Article.create(new CreateArticleCommand("titulo", null, null, null, null, "   ", null, null, null, null));
         assertNull(a.getDoi());
     }
 

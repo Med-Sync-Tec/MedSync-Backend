@@ -37,8 +37,8 @@ class ChatResourceTest {
 
         assertEquals(200, response.getStatus());
         ChatResponseDto body = (ChatResponseDto) response.getEntity();
-        assertEquals("El ibuprofeno es un antiinflamatorio.", body.response);
-        assertFalse(body.isCritical);
+        assertEquals("El ibuprofeno es un antiinflamatorio.", body.response());
+        assertFalse(body.isCritical());
     }
 
     @Test
@@ -54,7 +54,7 @@ class ChatResourceTest {
 
         assertEquals(200, response.getStatus());
         ChatResponseDto body = (ChatResponseDto) response.getEntity();
-        assertTrue(body.isCritical);
+        assertTrue(body.isCritical());
     }
 
     @Test

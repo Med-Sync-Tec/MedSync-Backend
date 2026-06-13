@@ -16,50 +16,23 @@ import java.util.Objects;
  * Lives in {@code infrastructure/ai/} because it carries provider-specific
  * fields ({@code baseUrl}, {@code model}) that domain code should not know about.
  */
-public final class GroqAiAnalysisGatewayConfig {
+public record GroqAiAnalysisGatewayConfig(
+        String apiKey,
+        String model,
+        int maxTokens,
+        Duration timeout,
+        String baseUrl) {
 
-    private final String apiKey;
-    private final String model;
-    private final int maxTokens;
-    private final Duration timeout;
-    private final String baseUrl;
-
-    public GroqAiAnalysisGatewayConfig(String apiKey,
-                                       String model,
-                                       int maxTokens,
-                                       Duration timeout,
-                                       String baseUrl) {
+    // Compact constructor: validate, then normalize baseUrl trailing slash
+    public GroqAiAnalysisGatewayConfig {
         Objects.requireNonNull(model, "model");
         Objects.requireNonNull(timeout, "timeout");
         Objects.requireNonNull(baseUrl, "baseUrl");
         if (maxTokens <= 0) {
             throw new AiConfigurationException("ai.groq.max-tokens must be > 0, was " + maxTokens);
         }
-        this.apiKey = apiKey;
-        this.model = model;
-        this.maxTokens = maxTokens;
-        this.timeout = timeout;
-        this.baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
-    }
-
-    public String apiKey() {
-        return apiKey;
-    }
-
-    public String model() {
-        return model;
-    }
-
-    public int maxTokens() {
-        return maxTokens;
-    }
-
-    public Duration timeout() {
-        return timeout;
-    }
-
-    public String baseUrl() {
-        return baseUrl;
+        // Remove trailing slash so chatCompletionsUrl() always produces a clean URL
+        baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
     }
 
     /** Returns {@code true} when the API key is present and non-blank. */

@@ -1,4 +1,4 @@
-﻿package itesm.medsync.application.patient;
+package itesm.medsync.application.patient;
 
 import itesm.medsync.domain.patient.exception.PatientNotFoundException;
 import itesm.medsync.domain.patient.model.Patient;

@@ -1,4 +1,4 @@
-﻿package itesm.medsync.domain.hospital.model;
+package itesm.medsync.domain.hospital.model;
 
 import itesm.medsync.domain.hospital.exception.InvalidHospitalDataException;
 import org.junit.jupiter.api.DisplayName;

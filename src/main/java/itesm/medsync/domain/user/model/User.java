@@ -6,42 +6,17 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
-public final class User {
+public record User(
+        UUID id,
+        String nombre,
+        String correo,
+        UUID especialidadId,
+        UUID rolId,
+        boolean activo,
+        LocalDateTime createdAt) {
 
-    private final UUID id;
-    private final String nombre;
-    private final String correo;
-    private final UUID especialidadId;
-    private final UUID rolId;
-    private final boolean activo;
-    private final LocalDateTime createdAt;
-
-    public User(UUID id,
-                String nombre,
-                String correo,
-                UUID especialidadId,
-                UUID rolId,
-                boolean activo,
-                LocalDateTime createdAt) {
-        validate(id, nombre, correo, rolId);
-        this.id = id;
-        this.nombre = nombre;
-        this.correo = correo;
-        this.especialidadId = especialidadId;
-        this.rolId = rolId;
-        this.activo = activo;
-        this.createdAt = createdAt;
-    }
-
-    public static User create(String nombre, String correo, UUID especialidadId, UUID rolId) {
-        return new User(UUID.randomUUID(), nombre, correo, especialidadId, rolId, true, null);
-    }
-
-    public User deactivate() {
-        return new User(id, nombre, correo, especialidadId, rolId, false, createdAt);
-    }
-
-    private static void validate(UUID id, String nombre, String correo, UUID rolId) {
+    // Compact constructor handles all validation
+    public User {
         if (id == null) {
             throw new InvalidUserDataException("User id cannot be null");
         }
@@ -59,6 +34,15 @@ public final class User {
         }
     }
 
+    public static User create(String nombre, String correo, UUID especialidadId, UUID rolId) {
+        return new User(UUID.randomUUID(), nombre, correo, especialidadId, rolId, true, null);
+    }
+
+    public User deactivate() {
+        return new User(id, nombre, correo, especialidadId, rolId, false, createdAt);
+    }
+
+    // Backward-compatible accessors
     public UUID getId() {
         return id;
     }
@@ -87,6 +71,7 @@ public final class User {
         return createdAt;
     }
 
+    // Id-based equality
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

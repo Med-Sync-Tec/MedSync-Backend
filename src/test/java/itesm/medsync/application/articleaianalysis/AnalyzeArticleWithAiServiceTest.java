@@ -34,6 +34,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import itesm.medsync.domain.article.usecase.CreateArticleCommand;
 
 @ExtendWith(MockitoExtension.class)
 class AnalyzeArticleWithAiServiceTest {
@@ -54,14 +55,14 @@ class AnalyzeArticleWithAiServiceTest {
     AnalyzeArticleWithAiService service;
 
     private Article articleWithText(String titulo, String abs, String keywords) {
-        return Article.create(
+        return Article.create(new CreateArticleCommand(
                 titulo == null ? "Título genérico" : titulo,
                 "Autores", "Revista", 2024, "Mar",
                 "10.1234/abc",
                 abs,
                 keywords,
                 "Journal Article",
-                "https://doi.org/10.1234/abc");
+                "https://doi.org/10.1234/abc"));
     }
 
     private Specialty cardiologia(UUID id) {

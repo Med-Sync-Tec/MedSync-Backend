@@ -12,44 +12,55 @@ import java.util.regex.Pattern;
  *
  * Immutable: every mutating operation returns a new instance. All invariants
  * (length limits, kebab-case slug pattern, non-blank nombre) are enforced in
- * the constructor, so any {@code Specialty} instance is guaranteed to be valid.
+ * the compact constructor, so any {@code Specialty} instance is guaranteed to be valid.
  *
  * The {@code slug} is the stable identifier used by cross-feature artifacts —
  * notably vocabulary file names (see {@code resources/vocabulary/<slug>.json}).
  * Renaming a {@code nombre} is safe; renaming a {@code slug} breaks those links.
  */
-public final class Specialty {
+public record Specialty(
+        UUID id,
+        String nombre,
+        String slug,
+        String descripcion,
+        boolean activo,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt) {
 
     public static final int MAX_NOMBRE_LENGTH = 100;
     public static final int MAX_SLUG_LENGTH = 60;
     public static final int MAX_DESCRIPCION_LENGTH = 500;
     // Kebab-case: lowercase a-z / 0-9, single hyphens, no leading/trailing hyphen.
     // Constrains slugs to safe URL and filename characters.
-    private static final Pattern SLUG_PATTERN = Pattern.compile("^[a-z0-9]+(-[a-z0-9]+)*+$");
+    public static final Pattern SLUG_PATTERN = Pattern.compile("^[a-z0-9]+(-[a-z0-9]+)*+$");
 
-    private final UUID id;
-    private final String nombre;
-    private final String slug;
-    private final String descripcion;
-    private final boolean activo;
-    private final LocalDateTime createdAt;
-    private final LocalDateTime updatedAt;
-
-    public Specialty(UUID id,
-                     String nombre,
-                     String slug,
-                     String descripcion,
-                     boolean activo,
-                     LocalDateTime createdAt,
-                     LocalDateTime updatedAt) {
-        validate(id, nombre, slug, descripcion);
-        this.id = id;
-        this.nombre = nombre;
-        this.slug = slug;
-        this.descripcion = descripcion;
-        this.activo = activo;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
+    // Compact constructor handles all validation
+    public Specialty {
+        if (id == null) {
+            throw new InvalidSpecialtyDataException("id cannot be null");
+        }
+        if (nombre == null || nombre.isBlank()) {
+            throw new InvalidSpecialtyDataException("nombre cannot be null or blank");
+        }
+        if (nombre.length() > MAX_NOMBRE_LENGTH) {
+            throw new InvalidSpecialtyDataException(
+                    "nombre cannot exceed " + MAX_NOMBRE_LENGTH + " characters");
+        }
+        if (slug == null || slug.isBlank()) {
+            throw new InvalidSpecialtyDataException("slug cannot be null or blank");
+        }
+        if (slug.length() > MAX_SLUG_LENGTH) {
+            throw new InvalidSpecialtyDataException(
+                    "slug cannot exceed " + MAX_SLUG_LENGTH + " characters");
+        }
+        if (!SLUG_PATTERN.matcher(slug).matches()) {
+            throw new InvalidSpecialtyDataException(
+                    "slug must be kebab-case (lowercase a-z, 0-9, single hyphens): " + slug);
+        }
+        if (descripcion != null && descripcion.length() > MAX_DESCRIPCION_LENGTH) {
+            throw new InvalidSpecialtyDataException(
+                    "descripcion cannot exceed " + MAX_DESCRIPCION_LENGTH + " characters");
+        }
     }
 
     /**
@@ -80,34 +91,7 @@ public final class Specialty {
         return new Specialty(id, nombre, slug, newDescripcion, activo, createdAt, updatedAt);
     }
 
-    private static void validate(UUID id, String nombre, String slug, String descripcion) {
-        if (id == null) {
-            throw new InvalidSpecialtyDataException("id cannot be null");
-        }
-        if (nombre == null || nombre.isBlank()) {
-            throw new InvalidSpecialtyDataException("nombre cannot be null or blank");
-        }
-        if (nombre.length() > MAX_NOMBRE_LENGTH) {
-            throw new InvalidSpecialtyDataException(
-                    "nombre cannot exceed " + MAX_NOMBRE_LENGTH + " characters");
-        }
-        if (slug == null || slug.isBlank()) {
-            throw new InvalidSpecialtyDataException("slug cannot be null or blank");
-        }
-        if (slug.length() > MAX_SLUG_LENGTH) {
-            throw new InvalidSpecialtyDataException(
-                    "slug cannot exceed " + MAX_SLUG_LENGTH + " characters");
-        }
-        if (!SLUG_PATTERN.matcher(slug).matches()) {
-            throw new InvalidSpecialtyDataException(
-                    "slug must be kebab-case (lowercase a-z, 0-9, single hyphens): " + slug);
-        }
-        if (descripcion != null && descripcion.length() > MAX_DESCRIPCION_LENGTH) {
-            throw new InvalidSpecialtyDataException(
-                    "descripcion cannot exceed " + MAX_DESCRIPCION_LENGTH + " characters");
-        }
-    }
-
+    // Backward-compatible accessors
     public UUID getId() {
         return id;
     }

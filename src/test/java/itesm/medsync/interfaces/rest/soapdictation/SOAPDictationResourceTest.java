@@ -44,8 +44,8 @@ class SOAPDictationResourceTest {
 
         assertEquals(200, response.getStatus());
         SOAPDictationResponse body = (SOAPDictationResponse) response.getEntity();
-        assertEquals("Dolor abdominal", body.motivoConsulta);
-        assertEquals("Apendicitis aguda", body.diagnostico);
+        assertEquals("Dolor abdominal", body.motivoConsulta());
+        assertEquals("Apendicitis aguda", body.diagnostico());
     }
 
     @Test
@@ -72,7 +72,7 @@ class SOAPDictationResourceTest {
 
         assertEquals(200, response.getStatus());
         SOAPDictationResponse body = (SOAPDictationResponse) response.getEntity();
-        assertEquals("Dolor de cabeza", body.motivoConsulta);
-        assertNull(body.diagnostico);
+        assertEquals("Dolor de cabeza", body.motivoConsulta());
+        assertNull(body.diagnostico());
     }
 }

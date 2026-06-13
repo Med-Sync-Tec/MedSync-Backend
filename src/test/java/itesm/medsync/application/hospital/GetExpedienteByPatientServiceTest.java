@@ -1,4 +1,4 @@
-﻿package itesm.medsync.application.hospital;
+package itesm.medsync.application.hospital;
 
 import itesm.medsync.domain.hospital.exception.ExpedienteNotFoundException;
 import itesm.medsync.domain.hospital.model.ExpedienteClinico;

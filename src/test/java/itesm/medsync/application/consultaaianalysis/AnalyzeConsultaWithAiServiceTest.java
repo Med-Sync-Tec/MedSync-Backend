@@ -1,4 +1,4 @@
-﻿package itesm.medsync.application.consultaaianalysis;
+package itesm.medsync.application.consultaaianalysis;
 
 import itesm.medsync.domain.articleaianalysis.exception.AiAnalysisException;
 import itesm.medsync.domain.articleaianalysis.exception.AiAnalysisTimeoutException;

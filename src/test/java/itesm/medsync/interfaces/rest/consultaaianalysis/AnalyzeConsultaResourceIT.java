@@ -1,4 +1,4 @@
-﻿package itesm.medsync.interfaces.rest.consultaaianalysis;
+package itesm.medsync.interfaces.rest.consultaaianalysis;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;

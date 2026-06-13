@@ -3,6 +3,7 @@ package itesm.medsync.application.article;
 import itesm.medsync.domain.article.exception.DuplicateArticleException;
 import itesm.medsync.domain.article.model.Article;
 import itesm.medsync.domain.article.repository.ArticleRepository;
+import itesm.medsync.domain.article.usecase.CreateArticleCommand;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,10 +30,10 @@ class CreateArticleServiceTest {
         when(repository.existsByDoi("10.1234/abc")).thenReturn(false);
         when(repository.save(any(Article.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Article result = service.execute(
+        Article result = service.execute(new CreateArticleCommand(
                 "Tratamiento", "García", "JAMA", 2024, "Mar",
                 "10.1234/abc", "abstract", "kw", "Journal Article",
-                "https://doi.org/10.1234/abc");
+                "https://doi.org/10.1234/abc"));
 
         assertNotNull(result);
         assertEquals("Tratamiento", result.getTitulo());
@@ -46,8 +47,9 @@ class CreateArticleServiceTest {
         when(repository.existsByDoi("10.1234/dup")).thenReturn(true);
 
         DuplicateArticleException ex = assertThrows(DuplicateArticleException.class,
-                () -> service.execute("titulo", null, null, null, null,
-                        "10.1234/dup", null, null, null, null));
+                () -> service.execute(new CreateArticleCommand(
+                        "titulo", null, null, null, null,
+                        "10.1234/dup", null, null, null, null)));
         assertEquals("10.1234/dup", ex.getDoi());
         verify(repository, never()).save(any());
     }
@@ -57,8 +59,9 @@ class CreateArticleServiceTest {
     void createDoiNull() {
         when(repository.save(any(Article.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Article result = service.execute("titulo", null, null, null, null,
-                null, null, null, null, null);
+        Article result = service.execute(new CreateArticleCommand(
+                "titulo", null, null, null, null,
+                null, null, null, null, null));
 
         assertNull(result.getDoi());
         verify(repository, never()).existsByDoi(any());

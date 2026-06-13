@@ -1,4 +1,4 @@
-﻿package itesm.medsync.application.consultaaianalysis;
+package itesm.medsync.application.consultaaianalysis;
 
 import itesm.medsync.domain.hospital.model.Consulta;
 import org.junit.jupiter.api.DisplayName;

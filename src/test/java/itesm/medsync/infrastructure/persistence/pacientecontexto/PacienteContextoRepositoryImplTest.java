@@ -1,4 +1,4 @@
-﻿package itesm.medsync.infrastructure.persistence.pacientecontexto;
+package itesm.medsync.infrastructure.persistence.pacientecontexto;
 
 import io.quarkus.test.TestTransaction;
 import io.quarkus.test.junit.QuarkusTest;

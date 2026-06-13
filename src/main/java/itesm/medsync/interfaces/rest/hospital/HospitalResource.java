@@ -1,6 +1,7 @@
 package itesm.medsync.interfaces.rest.hospital;
 
 import itesm.medsync.domain.hospital.model.Consulta;
+import itesm.medsync.domain.hospital.usecase.CreateConsultaCommand;
 import itesm.medsync.domain.hospital.usecase.CreateConsultaUseCase;
 import itesm.medsync.domain.hospital.usecase.GetConsultasByPatientUseCase;
 import itesm.medsync.domain.hospital.usecase.GetExpedienteByPatientUseCase;
@@ -70,16 +71,11 @@ public class HospitalResource {
     public Response createConsulta(@PathParam("id") UUID patientId,
                                    @Valid CreateConsultaRequest request,
                                    @Context UriInfo uriInfo) {
-        Consulta created = createConsulta.execute(
-                patientId,
-                request.fecha,
-                request.motivoConsulta,
-                request.subjetivo,
-                request.objetivo,
-                request.evaluacion,
-                request.plan,
-                request.prescripcion,
-                request.diagnostico);
+        CreateConsultaCommand cmd = new CreateConsultaCommand(
+                request.fecha, request.motivoConsulta, request.subjetivo,
+                request.objetivo, request.evaluacion, request.plan,
+                request.prescripcion, request.diagnostico);
+        Consulta created = createConsulta.execute(patientId, cmd);
         URI location = uriInfo.getBaseUriBuilder()
                 .path("api").path("consultas").path(created.getId()).build();
         return Response.created(location)

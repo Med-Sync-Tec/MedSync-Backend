@@ -7,28 +7,12 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
-public final class ArticleTag {
+public record ArticleTag(UUID id, TipoClinico tipo, String valor, LocalDateTime createdAt) {
 
     private static final int MAX_VALOR_LENGTH = 500;
 
-    private final UUID id;
-    private final TipoClinico tipo;
-    private final String valor;
-    private final LocalDateTime createdAt;
-
-    public ArticleTag(UUID id, TipoClinico tipo, String valor, LocalDateTime createdAt) {
-        validate(id, tipo, valor);
-        this.id = id;
-        this.tipo = tipo;
-        this.valor = valor.trim();
-        this.createdAt = createdAt;
-    }
-
-    public static ArticleTag create(TipoClinico tipo, String valor) {
-        return new ArticleTag(UUID.randomUUID(), tipo, valor, null);
-    }
-
-    private static void validate(UUID id, TipoClinico tipo, String valor) {
+    // Compact constructor: validate first, then normalize
+    public ArticleTag {
         if (id == null) {
             throw new InvalidArticleDataException("ArticleTag id cannot be null");
         }
@@ -42,8 +26,15 @@ public final class ArticleTag {
             throw new InvalidArticleDataException(
                     "ArticleTag valor cannot exceed " + MAX_VALOR_LENGTH + " characters");
         }
+        // Normalize after validation
+        valor = valor.trim();
     }
 
+    public static ArticleTag create(TipoClinico tipo, String valor) {
+        return new ArticleTag(UUID.randomUUID(), tipo, valor, null);
+    }
+
+    // Backward-compatible accessors
     public UUID getId() {
         return id;
     }
@@ -60,6 +51,7 @@ public final class ArticleTag {
         return createdAt;
     }
 
+    // Id-based equality
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -1,8 +1,9 @@
-﻿package itesm.medsync.application.hospital;
+package itesm.medsync.application.hospital;
 
 import itesm.medsync.domain.hospital.model.Consulta;
 import itesm.medsync.domain.hospital.model.ExpedienteClinico;
 import itesm.medsync.domain.hospital.repository.HospitalGateway;
+import itesm.medsync.domain.hospital.usecase.CreateConsultaCommand;
 import itesm.medsync.domain.patient.exception.PatientNotFoundException;
 import itesm.medsync.domain.patient.model.Patient;
 import itesm.medsync.domain.patient.usecase.GetPatientByIdUseCase;
@@ -54,9 +55,10 @@ class CreateConsultaServiceTest {
         when(hospitalGateway.saveConsulta(any(Consulta.class))).thenAnswer(inv -> inv.getArgument(0));
 
         LocalDateTime fecha = LocalDateTime.of(2026, Month.APRIL, 20, 10, 0);
-        Consulta result = service.execute(patientId, fecha, "cefalea",
-                "refiere dolor", "TA 120/80", "cefalea tensional",
-                "reposo", "paracetamol", "cefalea tensional");
+        CreateConsultaCommand cmd = new CreateConsultaCommand(
+                fecha, "cefalea", "refiere dolor", "TA 120/80",
+                "cefalea tensional", "reposo", "paracetamol", "cefalea tensional");
+        Consulta result = service.execute(patientId, cmd);
 
         verify(hospitalGateway, never()).saveExpediente(any());
         ArgumentCaptor<Consulta> captor = ArgumentCaptor.forClass(Consulta.class);
@@ -84,8 +86,9 @@ class CreateConsultaServiceTest {
                 .thenAnswer(inv -> inv.getArgument(0));
 
         LocalDateTime fecha = LocalDateTime.of(2026, Month.APRIL, 20, 11, 0);
-        Consulta result = service.execute(patientId, fecha, "chequeo",
-                null, null, null, null, null, null);
+        CreateConsultaCommand cmd = new CreateConsultaCommand(
+                fecha, "chequeo", null, null, null, null, null, null);
+        Consulta result = service.execute(patientId, cmd);
 
         ArgumentCaptor<ExpedienteClinico> expCaptor = ArgumentCaptor.forClass(ExpedienteClinico.class);
         verify(hospitalGateway).saveExpediente(expCaptor.capture());
@@ -107,9 +110,9 @@ class CreateConsultaServiceTest {
         UUID missing = UUID.randomUUID();
         when(getPatientByIdUseCase.execute(missing)).thenThrow(new PatientNotFoundException(missing));
 
-        assertThrows(PatientNotFoundException.class,
-                () -> service.execute(missing, LocalDateTime.now(),
-                        null, null, null, null, null, null, null));
+        CreateConsultaCommand cmd = new CreateConsultaCommand(
+                LocalDateTime.now(), null, null, null, null, null, null, null);
+        assertThrows(PatientNotFoundException.class, () -> service.execute(missing, cmd));
 
         verify(hospitalGateway, never()).findExpedienteByPacienteExternoId(anyString());
         verify(hospitalGateway, never()).saveExpediente(any());

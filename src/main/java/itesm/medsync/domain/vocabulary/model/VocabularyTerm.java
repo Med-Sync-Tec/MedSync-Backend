@@ -18,14 +18,12 @@ import java.util.Objects;
  * level so the canonical form remains available for prompt-building and the
  * debug endpoint.
  */
-public final class VocabularyTerm {
+public record VocabularyTerm(TipoClinico tipo, String valor) {
 
     public static final int MAX_VALOR_LENGTH = 500;
 
-    private final TipoClinico tipo;
-    private final String valor;
-
-    public VocabularyTerm(TipoClinico tipo, String valor) {
+    // Compact constructor handles all validation
+    public VocabularyTerm {
         if (tipo == null) {
             throw new InvalidVocabularyTermDataException("tipo cannot be null");
         }
@@ -36,10 +34,9 @@ public final class VocabularyTerm {
             throw new InvalidVocabularyTermDataException(
                     "valor cannot exceed " + MAX_VALOR_LENGTH + " characters");
         }
-        this.tipo = tipo;
-        this.valor = valor;
     }
 
+    // Backward-compatible accessors
     public TipoClinico getTipo() {
         return tipo;
     }
@@ -48,6 +45,7 @@ public final class VocabularyTerm {
         return valor;
     }
 
+    // Value-object equality: both tipo and valor determine identity
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

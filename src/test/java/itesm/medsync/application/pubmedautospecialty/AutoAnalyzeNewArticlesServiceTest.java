@@ -30,6 +30,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import itesm.medsync.domain.article.usecase.CreateArticleCommand;
 
 /**
  * Unit tests for {@link AutoAnalyzeNewArticlesService}.
@@ -70,11 +71,11 @@ class AutoAnalyzeNewArticlesServiceTest {
     }
 
     private Article articleWithText(String titulo, String abs, String keywords) {
-        return Article.create(
+        return Article.create(new CreateArticleCommand(
                 titulo == null || titulo.isBlank() ? "Título genérico" : titulo,
                 "Autores", "Revista", 2024, "May",
                 null, abs, keywords, "Journal Article",
-                "https://pubmed.example/" + UUID.randomUUID());
+                "https://pubmed.example/" + UUID.randomUUID()));
     }
 
     private Specialty cardiologia(UUID id) {

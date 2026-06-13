@@ -1,4 +1,4 @@
-﻿package itesm.medsync.application.patient;
+package itesm.medsync.application.patient;
 
 import itesm.medsync.domain.patient.exception.DuplicatePatientException;
 import itesm.medsync.domain.patient.exception.InvalidPatientDataException;

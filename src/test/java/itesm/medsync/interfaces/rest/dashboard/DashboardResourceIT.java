@@ -25,6 +25,7 @@ import java.util.UUID;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.when;
+import itesm.medsync.domain.article.usecase.CreateArticleCommand;
 
 /**
  * Regression coverage for the {@code GET /api/v1/dashboard/kpis} endpoint.
@@ -72,10 +73,10 @@ class DashboardResourceIT {
     }
 
     private void seedTaggedArticle(String doi) {
-        Article article = Article.create(
+        Article article = Article.create(new CreateArticleCommand(
                 "Tratamiento de IC", "Autor", "JAMA", 2024, "Mar",
                 doi, "abstract", "ic", "Journal Article",
-                "https://doi.org/" + doi);
+                "https://doi.org/" + doi));
         UUID cardio = specialtyRepository.findBySlug("cardiologia")
                 .map(Specialty::getId).orElseThrow();
         articleRepository.save(article.withAiAnalysis(cardio, List.of(

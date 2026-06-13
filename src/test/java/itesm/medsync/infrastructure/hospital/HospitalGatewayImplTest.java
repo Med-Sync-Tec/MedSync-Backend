@@ -1,4 +1,4 @@
-﻿package itesm.medsync.infrastructure.hospital;
+package itesm.medsync.infrastructure.hospital;
 
 import io.quarkus.hibernate.orm.PersistenceUnit;
 import io.quarkus.test.TestTransaction;

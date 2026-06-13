@@ -73,6 +73,7 @@ class GroqChatGatewayTest {
 
     private class QueueHandler implements HttpHandler {
         @Override
+        @SuppressWarnings("java:S2925")
         public void handle(HttpExchange exchange) throws IOException {
             String body = new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8);
             String auth = exchange.getRequestHeaders().getFirst("Authorization");

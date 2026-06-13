@@ -1,4 +1,4 @@
-﻿package itesm.medsync.application.article;
+package itesm.medsync.application.article;
 
 import itesm.medsync.domain.article.model.Article;
 import itesm.medsync.domain.article.repository.ArticleRepository;
@@ -23,6 +23,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import itesm.medsync.domain.article.usecase.CreateArticleCommand;
 
 @ExtendWith(MockitoExtension.class)
 class GetMatchingArticlesByPatientServiceTest {
@@ -43,8 +44,8 @@ class GetMatchingArticlesByPatientServiceTest {
         Patient stub = new Patient(pacienteId, "EXP", "Ana", LocalDate.of(1990, Month.JANUARY, 1),
                 "F", UUID.randomUUID(), true, null, null);
         when(patientRepository.findByUuid(pacienteId)).thenReturn(Optional.of(stub));
-        Article article = Article.create("titulo", null, null, 2024, null,
-                null, null, null, null, null);
+        Article article = Article.create(new CreateArticleCommand("titulo", null, null, 2024, null,
+                null, null, null, null, null));
         when(articleRepository.findMatchingArticlesForPaciente(eq(pacienteId), anyInt()))
                 .thenReturn(List.of(article));
 

@@ -15,6 +15,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
+import itesm.medsync.domain.article.usecase.CreateArticleCommand;
 
 @ExtendWith(MockitoExtension.class)
 class GetArticleByIdServiceTest {
@@ -29,8 +30,8 @@ class GetArticleByIdServiceTest {
     @DisplayName("Existe: devuelve el artículo")
     void getOk() {
         UUID id = UUID.randomUUID();
-        Article article = Article.create("titulo", null, null, 2024, null,
-                null, null, null, null, null);
+        Article article = Article.create(new CreateArticleCommand("titulo", null, null, 2024, null,
+                null, null, null, null, null));
         when(repository.findByUuid(id)).thenReturn(Optional.of(article));
 
         Article result = service.execute(id);

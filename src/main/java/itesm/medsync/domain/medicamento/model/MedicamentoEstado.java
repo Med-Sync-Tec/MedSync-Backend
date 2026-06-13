@@ -3,24 +3,20 @@ package itesm.medsync.domain.medicamento.model;
 import java.util.Objects;
 import java.util.UUID;
 
-public final class MedicamentoEstado {
+public record MedicamentoEstado(UUID id, String nombre, String descripcion) {
 
-    private final UUID id;
-    private final String nombre;
-    private final String descripcion;
-
-    public MedicamentoEstado(UUID id, String nombre, String descripcion) {
+    // Compact constructor handles all validation
+    public MedicamentoEstado {
         if (id == null) throw new IllegalArgumentException("id cannot be null");
         if (nombre == null || nombre.isBlank()) throw new IllegalArgumentException("nombre cannot be blank");
-        this.id = id;
-        this.nombre = nombre;
-        this.descripcion = descripcion;
     }
 
+    // Backward-compatible accessors
     public UUID getId() { return id; }
     public String getNombre() { return nombre; }
     public String getDescripcion() { return descripcion; }
 
+    // Id-based equality
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

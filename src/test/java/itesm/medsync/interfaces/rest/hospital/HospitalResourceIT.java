@@ -1,4 +1,4 @@
-﻿package itesm.medsync.interfaces.rest.hospital;
+package itesm.medsync.interfaces.rest.hospital;
 
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;

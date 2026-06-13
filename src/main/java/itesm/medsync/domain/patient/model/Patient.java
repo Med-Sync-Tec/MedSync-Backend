@@ -9,69 +9,21 @@ import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.UUID;
 
-public final class Patient {
+public record Patient(
+        UUID id,
+        String expedienteExternoId,
+        String nombre,
+        LocalDate fechaNacimiento,
+        String genero,
+        UUID medicoId,
+        boolean activo,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt) {
 
-    private static final int MAX_AGE_YEARS = 150;
+    public static final int MAX_AGE_YEARS = 150;
 
-    private final UUID id;
-    private final String expedienteExternoId;
-    private final String nombre;
-    private final LocalDate fechaNacimiento;
-    private final String genero;
-    private final UUID medicoId;
-    private final boolean activo;
-    private final LocalDateTime createdAt;
-    private final LocalDateTime updatedAt;
-
-    public Patient(UUID id,
-                   String expedienteExternoId,
-                   String nombre,
-                   LocalDate fechaNacimiento,
-                   String genero,
-                   UUID medicoId,
-                   boolean activo,
-                   LocalDateTime createdAt,
-                   LocalDateTime updatedAt) {
-        validate(id, expedienteExternoId, nombre, fechaNacimiento, medicoId);
-        this.id = id;
-        this.expedienteExternoId = expedienteExternoId;
-        this.nombre = nombre;
-        this.fechaNacimiento = fechaNacimiento;
-        this.genero = genero;
-        this.medicoId = medicoId;
-        this.activo = activo;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-    }
-
-    public static Patient create(String expedienteExternoId,
-                                 String nombre,
-                                 LocalDate fechaNacimiento,
-                                 String genero,
-                                 UUID medicoId) {
-        return new Patient(
-                UUID.randomUUID(),
-                expedienteExternoId,
-                nombre,
-                fechaNacimiento,
-                genero,
-                medicoId,
-                true,
-                null,
-                null);
-    }
-
-    public Patient softDelete() {
-        return new Patient(
-                id, expedienteExternoId, nombre, fechaNacimiento,
-                genero, medicoId, false, createdAt, updatedAt);
-    }
-
-    private static void validate(UUID id,
-                                 String expedienteExternoId,
-                                 String nombre,
-                                 LocalDate fechaNacimiento,
-                                 UUID medicoId) {
+    // Compact constructor handles all validation
+    public Patient {
         if (id == null) {
             throw new InvalidPatientDataException("Patient id cannot be null");
         }
@@ -98,6 +50,30 @@ public final class Patient {
         }
     }
 
+    public static Patient create(String expedienteExternoId,
+                                 String nombre,
+                                 LocalDate fechaNacimiento,
+                                 String genero,
+                                 UUID medicoId) {
+        return new Patient(
+                UUID.randomUUID(),
+                expedienteExternoId,
+                nombre,
+                fechaNacimiento,
+                genero,
+                medicoId,
+                true,
+                null,
+                null);
+    }
+
+    public Patient softDelete() {
+        return new Patient(
+                id, expedienteExternoId, nombre, fechaNacimiento,
+                genero, medicoId, false, createdAt, updatedAt);
+    }
+
+    // Backward-compatible accessors
     public UUID getId() {
         return id;
     }
@@ -134,6 +110,7 @@ public final class Patient {
         return updatedAt;
     }
 
+    // Id-based equality
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

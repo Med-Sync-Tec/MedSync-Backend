@@ -6,26 +6,10 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
-public final class Role {
+public record Role(UUID id, String nombre, String descripcion, LocalDateTime createdAt) {
 
-    private final UUID id;
-    private final String nombre;
-    private final String descripcion;
-    private final LocalDateTime createdAt;
-
-    public Role(UUID id, String nombre, String descripcion, LocalDateTime createdAt) {
-        validate(id, nombre);
-        this.id = id;
-        this.nombre = nombre;
-        this.descripcion = descripcion;
-        this.createdAt = createdAt;
-    }
-
-    public static Role create(String nombre, String descripcion) {
-        return new Role(UUID.randomUUID(), nombre, descripcion, null);
-    }
-
-    private static void validate(UUID id, String nombre) {
+    // Compact constructor handles all validation
+    public Role {
         if (id == null) {
             throw new InvalidRoleDataException("Role id cannot be null");
         }
@@ -34,6 +18,11 @@ public final class Role {
         }
     }
 
+    public static Role create(String nombre, String descripcion) {
+        return new Role(UUID.randomUUID(), nombre, descripcion, null);
+    }
+
+    // Backward-compatible accessors
     public UUID getId() {
         return id;
     }
@@ -50,6 +39,7 @@ public final class Role {
         return createdAt;
     }
 
+    // Id-based equality
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

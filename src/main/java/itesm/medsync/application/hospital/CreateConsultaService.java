@@ -3,13 +3,13 @@ package itesm.medsync.application.hospital;
 import itesm.medsync.domain.hospital.model.Consulta;
 import itesm.medsync.domain.hospital.model.ExpedienteClinico;
 import itesm.medsync.domain.hospital.repository.HospitalGateway;
+import itesm.medsync.domain.hospital.usecase.CreateConsultaCommand;
 import itesm.medsync.domain.hospital.usecase.CreateConsultaUseCase;
 import itesm.medsync.domain.patient.model.Patient;
 import itesm.medsync.domain.patient.usecase.GetPatientByIdUseCase;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @ApplicationScoped
@@ -26,15 +26,7 @@ public class CreateConsultaService implements CreateConsultaUseCase {
     }
 
     @Override
-    public Consulta execute(UUID patientId,
-                            LocalDateTime fecha,
-                            String motivoConsulta,
-                            String subjetivo,
-                            String objetivo,
-                            String evaluacion,
-                            String plan,
-                            String prescripcion,
-                            String diagnostico) {
+    public Consulta execute(UUID patientId, CreateConsultaCommand cmd) {
         Patient patient = getPatientByIdUseCase.execute(patientId);
         String pacienteExternoId = patient.getExpedienteExternoId();
 
@@ -45,14 +37,14 @@ public class CreateConsultaService implements CreateConsultaUseCase {
 
         Consulta consulta = Consulta.create(
                 expediente.getId(),
-                fecha,
-                motivoConsulta,
-                subjetivo,
-                objetivo,
-                evaluacion,
-                plan,
-                prescripcion,
-                diagnostico);
+                cmd.fecha(),
+                cmd.motivoConsulta(),
+                cmd.subjetivo(),
+                cmd.objetivo(),
+                cmd.evaluacion(),
+                cmd.plan(),
+                cmd.prescripcion(),
+                cmd.diagnostico());
 
         return hospitalGateway.saveConsulta(consulta);
     }

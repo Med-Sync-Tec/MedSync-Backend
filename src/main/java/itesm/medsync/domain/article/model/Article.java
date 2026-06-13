@@ -1,113 +1,57 @@
 package itesm.medsync.domain.article.model;
 
 import itesm.medsync.domain.article.exception.InvalidArticleDataException;
+import itesm.medsync.domain.article.usecase.CreateArticleCommand;
 
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-public final class Article {
+public record Article(
+        UUID id,
+        String titulo,
+        String autores,
+        String revista,
+        Integer anioPub,
+        String mesPub,
+        String doi,
+        String abstractText,
+        String keywords,
+        String tipoPublicacion,
+        String url,
+        UUID especialidadId,
+        List<ArticleTag> tags,
+        LocalDateTime createdAt,
+        LocalDateTime updatedAt) {
 
-    private static final int MAX_TITULO_LENGTH = 1000;
-    private static final int MAX_DOI_LENGTH = 200;
-    private static final int MAX_URL_LENGTH = 500;
+    public static final int MAX_TITULO_LENGTH = 1000;
+    public static final int MAX_DOI_LENGTH = 200;
+    public static final int MAX_URL_LENGTH = 500;
 
-    private final UUID id;
-    private final String titulo;
-    private final String autores;
-    private final String revista;
-    private final Integer anioPub;
-    private final String mesPub;
-    private final String doi;
-    private final String abstractText;
-    private final String keywords;
-    private final String tipoPublicacion;
-    private final String url;
-    private final UUID especialidadId;
-    private final List<ArticleTag> tags;
-    private final LocalDateTime createdAt;
-    private final LocalDateTime updatedAt;
-
-    public Article(UUID id,
-                   String titulo,
-                   String autores,
-                   String revista,
-                   Integer anioPub,
-                   String mesPub,
-                   String doi,
-                   String abstractText,
-                   String keywords,
-                   String tipoPublicacion,
-                   String url,
-                   List<ArticleTag> tags,
-                   LocalDateTime createdAt,
-                   LocalDateTime updatedAt) {
-        this(id, titulo, autores, revista, anioPub, mesPub, doi, abstractText, keywords,
-                tipoPublicacion, url, null, tags, createdAt, updatedAt);
-    }
-
-    public Article(UUID id,
-                   String titulo,
-                   String autores,
-                   String revista,
-                   Integer anioPub,
-                   String mesPub,
-                   String doi,
-                   String abstractText,
-                   String keywords,
-                   String tipoPublicacion,
-                   String url,
-                   UUID especialidadId,
-                   List<ArticleTag> tags,
-                   LocalDateTime createdAt,
-                   LocalDateTime updatedAt) {
+    // Compact constructor: validate, then normalize fields and defensively copy tags
+    public Article {
         validate(id, titulo, anioPub, doi, url);
-        this.id = id;
-        this.titulo = titulo.trim();
-        this.autores = autores;
-        this.revista = revista;
-        this.anioPub = anioPub;
-        this.mesPub = mesPub;
-        this.doi = doi == null || doi.isBlank() ? null : doi.trim();
-        this.abstractText = abstractText;
-        this.keywords = keywords;
-        this.tipoPublicacion = tipoPublicacion;
-        this.url = url == null || url.isBlank() ? null : url.trim();
-        this.especialidadId = especialidadId;
-        this.tags = tags == null ? new ArrayList<>() : new ArrayList<>(tags);
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
+        titulo = titulo.trim();
+        doi = (doi == null || doi.isBlank()) ? null : doi.trim();
+        url = (url == null || url.isBlank()) ? null : url.trim();
+        // Defensive copy — List.copyOf is unmodifiable and null-safe via null check
+        tags = tags == null ? List.of() : List.copyOf(tags);
     }
 
-    public static Article create(String titulo,
-                                 String autores,
-                                 String revista,
-                                 Integer anioPub,
-                                 String mesPub,
-                                 String doi,
-                                 String abstractText,
-                                 String keywords,
-                                 String tipoPublicacion,
-                                 String url) {
-        return new Article(
-                UUID.randomUUID(),
-                titulo, autores, revista, anioPub, mesPub,
-                doi, abstractText, keywords, tipoPublicacion, url,
-                null,
-                new ArrayList<>(),
-                null, null);
+    public static Article create(CreateArticleCommand cmd) {
+        return new Article(UUID.randomUUID(), cmd.titulo(), cmd.autores(), cmd.revista(),
+                cmd.anioPub(), cmd.mesPub(), cmd.doi(), cmd.abstractText(),
+                cmd.keywords(), cmd.tipoPublicacion(), cmd.url(), null, null, null, null);
     }
 
     public Article withTagAdded(ArticleTag tag) {
         if (tag == null) {
             throw new InvalidArticleDataException("tag cannot be null");
         }
-        List<ArticleTag> next = new ArrayList<>(this.tags);
+        List<ArticleTag> next = new java.util.ArrayList<>(this.tags);
         next.add(tag);
         return new Article(
                 id, titulo, autores, revista, anioPub, mesPub,
@@ -134,11 +78,11 @@ public final class Article {
         return new Article(
                 id, titulo, autores, revista, anioPub, mesPub,
                 doi, abstractText, keywords, tipoPublicacion, url,
-                newEspecialidadId, new ArrayList<>(newTags), createdAt, updatedAt);
+                newEspecialidadId, new java.util.ArrayList<>(newTags), createdAt, updatedAt);
     }
 
     public Article withTagRemoved(UUID tagId) {
-        List<ArticleTag> next = new ArrayList<>(this.tags);
+        List<ArticleTag> next = new java.util.ArrayList<>(this.tags);
         next.removeIf(t -> t.getId().equals(tagId));
         return new Article(
                 id, titulo, autores, revista, anioPub, mesPub,
@@ -174,6 +118,7 @@ public final class Article {
         }
     }
 
+    // Backward-compatible accessors
     public UUID getId() {
         return id;
     }
@@ -222,8 +167,9 @@ public final class Article {
         return especialidadId;
     }
 
+    // tags is already List.copyOf(...) from the compact constructor — already unmodifiable
     public List<ArticleTag> getTags() {
-        return Collections.unmodifiableList(tags);
+        return tags;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -234,6 +180,7 @@ public final class Article {
         return updatedAt;
     }
 
+    // Id-based equality
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

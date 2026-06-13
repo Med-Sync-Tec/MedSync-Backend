@@ -19,6 +19,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import itesm.medsync.domain.article.usecase.CreateArticleCommand;
 
 @ExtendWith(MockitoExtension.class)
 class AddTagToArticleServiceTest {
@@ -33,8 +34,8 @@ class AddTagToArticleServiceTest {
     @DisplayName("Happy path: agrega tag y guarda; el resultado está en el saved")
     void addOk() {
         UUID articleId = UUID.randomUUID();
-        Article article = Article.create("titulo", null, null, 2024, null,
-                null, null, null, null, null);
+        Article article = Article.create(new CreateArticleCommand("titulo", null, null, 2024, null,
+                null, null, null, null, null));
         when(repository.findByUuid(articleId)).thenReturn(Optional.of(article));
         when(repository.save(any(Article.class))).thenAnswer(inv -> inv.getArgument(0));
 

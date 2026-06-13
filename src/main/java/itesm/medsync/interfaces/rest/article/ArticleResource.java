@@ -3,6 +3,7 @@ package itesm.medsync.interfaces.rest.article;
 import itesm.medsync.domain.article.model.Article;
 import itesm.medsync.domain.article.model.ArticleTag;
 import itesm.medsync.domain.article.usecase.AddTagToArticleUseCase;
+import itesm.medsync.domain.article.usecase.CreateArticleCommand;
 import itesm.medsync.domain.article.usecase.CreateArticleUseCase;
 import itesm.medsync.domain.article.usecase.GetArticleByIdUseCase;
 import itesm.medsync.domain.article.usecase.GetRecentArticlesUseCase;
@@ -94,17 +95,12 @@ public class ArticleResource {
     @APIResponse(responseCode = "400", description = "Datos inválidos")
     @APIResponse(responseCode = "409", description = "DOI duplicado")
     public Response create(@Valid CreateArticleRequest request, @Context UriInfo uriInfo) {
-        Article created = createArticle.execute(
-                request.titulo,
-                request.getAutores(),
-                request.revista,
-                request.getAnioPub(),
-                request.mesPub,
-                request.doi,
-                request.getAbstractText(),
-                request.getKeywords(),
-                request.tipoPublicacion,
-                request.url);
+        CreateArticleCommand cmd = new CreateArticleCommand(
+                request.titulo, request.getAutores(), request.revista,
+                request.getAnioPub(), request.mesPub, request.doi,
+                request.getAbstractText(), request.getKeywords(),
+                request.tipoPublicacion, request.url);
+        Article created = createArticle.execute(cmd);
         URI location = uriInfo.getAbsolutePathBuilder().path(created.getId().toString()).build();
         return Response.created(location)
                 .entity(ArticleRestMapper.toResponse(created))

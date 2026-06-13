@@ -111,7 +111,7 @@ class CreateConsultaServiceTest {
         when(getPatientByIdUseCase.execute(missing)).thenThrow(new PatientNotFoundException(missing));
 
         CreateConsultaCommand cmd = new CreateConsultaCommand(
-                LocalDateTime.now(), null, null, null, null, null, null, null);
+                LocalDateTime.of(2026, Month.JANUARY, 1, 0, 0), null, null, null, null, null, null, null);
         assertThrows(PatientNotFoundException.class, () -> service.execute(missing, cmd));
 
         verify(hospitalGateway, never()).findExpedienteByPacienteExternoId(anyString());

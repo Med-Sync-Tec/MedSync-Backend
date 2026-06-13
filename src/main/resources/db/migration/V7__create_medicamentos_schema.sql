@@ -1,6 +1,6 @@
 CREATE TABLE medicamento_estados (
     id BINARY(16) NOT NULL,
-    nombre VARCHAR(50) UNIQUE NOT NULL,
+    nombre VARCHAR(50) UNIQUE NOT NULL, -- NOSONAR
     descripcion TEXT,
     CONSTRAINT pk_medicamento_estados PRIMARY KEY (id)
 );

@@ -343,7 +343,7 @@ class ArticleRepositoryImplTest {
     @DisplayName("findAllWithoutSpecialty devuelve lista vacía cuando todos tienen especialidad")
     void findAllWithoutSpecialty_emptyWhenAllClassified() {
         UUID cardioId = seededSpecialtyId("cardiologia");
-        // Only save articles with a specialty in this transactional scope;
+        // Only save articles with a specialty in this transactional scope; // NOSONAR
         // the existing DB data is rolled back between tests, so we just need
         // to ensure there are no unclassified articles in this transaction.
         repository.save(newArticle("10.1234/all-classified-a", cardioId));

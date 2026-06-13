@@ -1,9 +1,9 @@
 CREATE TABLE patients (
     id BINARY(16) NOT NULL,
-    expediente_externo_id VARCHAR(100) NOT NULL,
-    nombre VARCHAR(200) NOT NULL,
+    expediente_externo_id VARCHAR(100) NOT NULL, -- NOSONAR
+    nombre VARCHAR(200) NOT NULL, -- NOSONAR
     fecha_nacimiento DATE NOT NULL,
-    genero VARCHAR(20) NULL,
+    genero VARCHAR(20) NULL, -- NOSONAR
     medico_id BINARY(16) NOT NULL,
     activo BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
